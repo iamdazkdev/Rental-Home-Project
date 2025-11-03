@@ -4,14 +4,20 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv").config();
 const cors = require("cors");
 
+// Import routes
+const authRoutes = require("./routes/auth");
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
+// Routes
+app.use("/auth", authRoutes);
+
 /*
 MONGODB CONNECTION
 */
-const PORT = 3000;
+const PORT = 3001;
 mongoose
   .connect(process.env.MONGO_URL)
   .then(() => {
