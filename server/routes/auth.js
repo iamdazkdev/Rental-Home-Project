@@ -243,7 +243,8 @@ router.post("/login", async (req, res) => {
         expiresIn: "7d",
       }
     );
-
+    // Delete password from user object before sending response
+    delete user.password;
     // Return success response
     res.status(200).json({
       message: "Login successful",
