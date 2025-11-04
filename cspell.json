@@ -1,0 +1,60 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "breakpoints",
+    "iamdazkdev",
+    "pinkred",
+    "darkgrey",
+    "buttonStyle",
+    "multer",
+    "gridfs",
+    "bcrypt",
+    "jsonwebtoken",
+    "cors",
+    "dotenv",
+    "mongoose",
+    "middleware",
+    "auth",
+    "login",
+    "signup",
+    "rentals",
+    "scss",
+    "jsx",
+    "frontend",
+    "backend",
+    "mongodb",
+    "navbar",
+    "sidebar",
+    "dropdown",
+    "tooltip",
+    "popover",
+    "glassmorphism",
+    "rgba",
+    "webkit",
+    "keyframes",
+    "translateY",
+    "translateX",
+    "eresolve"
+  ],
+  "ignorePaths": [
+    "node_modules/**",
+    "build/**",
+    "dist/**",
+    "*.log",
+    "package-lock.json",
+    "yarn.lock",
+    ".git/**"
+  ],
+  "ignoreRegExpList": [
+    "/data:image\\/svg\\+xml[^\"]+/g"
+  ],
+  "allowCompoundWords": true,
+  "dictionaries": [
+    "typescript",
+    "node",
+    "html",
+    "css",
+    "bash"
+  ]
+}

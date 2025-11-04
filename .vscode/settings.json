@@ -1,3 +1,42 @@
 {
-    "postman.settings.dotenv-detection-notification-visibility": false
+    "postman.settings.dotenv-detection-notification-visibility": false,
+    "cSpell.enabled": true,
+    "cSpell.enabledFileTypes": [
+        "scss",
+        "css",
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
+        "json",
+        "markdown"
+    ],
+    "cSpell.diagnosticLevel": "Hint",
+    "cSpell.showStatus": true,
+    "cSpell.allowCompoundWords": true,
+    "cSpell.caseSensitive": false,
+    "cSpell.ignoreRegExpList": [
+        "/data:image\\/svg\\+xml[^\"]+/g",
+        "/#[0-9a-fA-F]{3,8}/g",
+        "/rgba?\\([^)]+\\)/g",
+        "/@[\\w-]+/g"
+    ],
+    "cSpell.words": [
+        "breakpoints",
+        "buttonStyle",
+        "darkgrey",
+        "pinkred",
+        "glassmorphism",
+        "webkit",
+        "keyframes",
+        "translateY",
+        "translateX",
+        "iamdazkdev",
+        "rentals",
+        "navbar",
+        "sidebar"
+    ],
+    "files.associations": {
+        "*.scss": "scss"
+    }
 }
