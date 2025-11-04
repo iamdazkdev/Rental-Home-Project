@@ -5,7 +5,7 @@ const dotenv = require("dotenv").config();
 const cors = require("cors");
 
 // Import routes
-const authRoutes = require("./routes/auth");
+const authRoutes = require("./routes/auth.js");
 
 app.use(cors());
 app.use(express.json());
@@ -19,7 +19,7 @@ MONGODB CONNECTION
 */
 const PORT = 3001;
 mongoose
-  .connect(process.env.MONGO_URL)
+  .connect(process.env.MONGO_URL, { dbName: "rental-home-db" })
   .then(() => {
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
