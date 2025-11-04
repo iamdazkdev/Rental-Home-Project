@@ -5,23 +5,27 @@
 ## ✨ Features
 
 ### 🎨 **Modern UI/UX**
+
 - **Glass Morphism Design**: Beautiful translucent components with backdrop blur effects
 - **Responsive Layout**: Seamlessly adapts to all screen sizes (mobile, tablet, desktop)
 - **Smooth Animations**: Engaging hover effects and transitions
 - **SCSS Architecture**: Modular styling with variables and mixins
 
 ### 🔐 **Authentication System**
+
 - **User Registration**: Complete signup flow with profile image upload
 - **Secure Login**: JWT-based authentication with comprehensive error handling
 - **Form Validation**: Real-time validation with user-friendly error messages
 - **Password Security**: Secure password requirements and validation
 
 ### 🛠 **State Management**
+
 - **Redux Toolkit**: Modern Redux implementation with RTK Query
 - **Redux Persist**: Automatic state persistence across browser sessions
 - **User State**: Centralized user authentication and profile management
 
 ### 📱 **Pages & Components**
+
 - **HomePage**: Landing page with property listings
 - **LoginPage**: Modern authentication interface
 - **RegisterPage**: User registration with file upload
@@ -30,6 +34,7 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - **Node.js** (v16 or higher)
 - **npm** or **yarn**
 - **Server** running on `http://localhost:3001`
@@ -37,21 +42,25 @@
 ### Installation
 
 1. **Navigate to client directory**
+
    ```bash
    cd client
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Start development server**
+
    ```bash
    npm start
    ```
 
 4. **Open your browser**
+
    ```
    http://localhost:3000
    ```
@@ -59,23 +68,27 @@
 ## 📜 Available Scripts
 
 ### `npm start`
+
 - Launches the development server
 - Opens [http://localhost:3000](http://localhost:3000) in your browser
 - Hot reload enabled for instant development feedback
 - Displays lint errors in console
 
 ### `npm test`
+
 - Runs the test suite in interactive watch mode
 - Automatically re-runs tests when files change
 - Includes comprehensive testing utilities
 
 ### `npm run build`
+
 - Creates optimized production build in `build/` folder
 - Minifies and optimizes all assets
 - Includes hashed filenames for cache busting
 - Ready for deployment to any static hosting service
 
 ### `npm run eject` ⚠️
+
 - **Warning**: This is irreversible!
 - Exposes all configuration files for advanced customization
 - Only use if you need full control over build configuration
@@ -114,20 +127,24 @@ client/
 ## 🔧 Technology Stack
 
 ### **Core Technologies**
+
 - **React 19.2.0** - Latest React with concurrent features
 - **React Router 7.9.5** - Client-side routing
 - **SCSS 1.93.3** - Advanced CSS preprocessing
 
 ### **State Management**
+
 - **Redux Toolkit 2.10.0** - Modern Redux implementation
 - **React Redux 9.2.0** - React bindings for Redux
 - **Redux Persist 6.0.0** - State persistence
 
 ### **UI Framework**
+
 - **Material-UI 7.3.4** - React component library
 - **Emotion** - CSS-in-JS styling solution
 
 ### **Development Tools**
+
 - **React Scripts 5.0.1** - Build toolchain
 - **Testing Library** - React testing utilities
 - **Web Vitals** - Performance monitoring
@@ -135,15 +152,18 @@ client/
 ## 🎨 Design System
 
 ### **Color Palette**
+
 - **Primary**: Gradient blues and purples (`#764ba2` to `#667eea`)
 - **Accent**: Pink-red (`#f8395a`)
 - **Neutral**: Various gray shades for text and backgrounds
 
 ### **Typography**
+
 - **Headings**: Bold, modern fonts with proper hierarchy
 - **Body Text**: Clean, readable fonts optimized for web
 
 ### **Glass Morphism Effects**
+
 - **Backdrop Blur**: `blur(20px)` for glass effect
 - **Transparency**: `rgba(255, 255, 255, 0.95)` for subtle opacity
 - **Borders**: Subtle white borders for definition
@@ -151,10 +171,12 @@ client/
 ## 🌐 API Integration
 
 ### **Authentication Endpoints**
+
 - **POST** `/auth/register` - User registration
 - **POST** `/auth/login` - User authentication
 
 ### **Request Configuration**
+
 - **Base URL**: `http://localhost:3001`
 - **Headers**: `Content-Type: application/json`
 - **Authentication**: JWT tokens stored in localStorage
@@ -170,11 +192,13 @@ client/
 ## 📱 Responsive Design
 
 ### **Breakpoints**
+
 - **Mobile**: `< 768px`
 - **Tablet**: `768px - 1024px`
 - **Desktop**: `> 1024px`
 
 ### **Mobile Optimizations**
+
 - Touch-friendly interface elements
 - Optimized font sizes and spacing
 - Responsive image handling
@@ -183,11 +207,13 @@ client/
 ## 🚀 Deployment
 
 ### **Production Build**
+
 ```bash
 npm run build
 ```
 
 ### **Deployment Options**
+
 - **Netlify**: Drag and drop `build/` folder
 - **Vercel**: Connect GitHub repository
 - **GitHub Pages**: Use `gh-pages` package
