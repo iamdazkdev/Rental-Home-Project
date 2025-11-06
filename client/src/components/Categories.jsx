@@ -2,7 +2,7 @@ import { categories } from "../data";
 import "../styles/Categories.scss";
 import { Link } from "react-router-dom";
 
-const Categories = () => {
+const Categories = ({ onCategorySelect }) => {
   return (
     <div className="categories">
       <h1>Explore Top Categories</h1>

@@ -74,7 +74,7 @@ const LoginPage = () => {
         // Redirect to home page after 1.5 seconds
         setTimeout(() => {
           navigate("/");
-        }, 1500);
+        }, 500);
       } else {
         // Handle different error status codes
         switch (response.status) {

@@ -259,25 +259,63 @@
         position: relative;
         width: 250px;
         height: 150px;
-        cursor: move;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+        &:hover {
+          transform: scale(1.02);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        // When being dragged
+        &[data-dragging="true"] {
+          transform: rotate(5deg) scale(1.05);
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+          z-index: 1000;
+        }
+
+        .photo-drag-handle {
+          &:hover {
+            cursor: move;
+          }
+        }
 
         img {
           width: 100%;
           height: 100%;
+          object-fit: cover;
+          pointer-events: none; // Prevent image from interfering with clicks
         }
 
         button {
           position: absolute;
-          right: 0;
-          top: 0;
-          padding: 3px;
+          right: 5px;
+          top: 5px;
+          padding: 8px;
           border: none;
-          background-color: rgba(255, 255, 255, 0.8);
-          font-size: 20px;
-          cursor: pointer;
+          background-color: rgba(255, 255, 255, 0.95);
+          border-radius: 50%;
+          font-size: 16px;
+          cursor: pointer !important;
+          z-index: 20;
+          transition: all 0.2s ease;
+          pointer-events: auto;
+          
+          // Ensure button is always clickable
+          &:active {
+            transform: scale(0.95);
+          }
 
           &:hover {
             color: $pinkred;
+            background-color: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+          }
+
+          // Override any drag cursor when hovering delete button
+          &:hover ~ .photo-drag-handle {
+            cursor: default;
           }
         }
       }
