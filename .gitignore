@@ -85,3 +85,4 @@ build/
 *.bak
 *.backup
 *~
+.vscode/.server-controller-port.log
