@@ -3,6 +3,11 @@ import "../../styles/Login.scss";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setLogin } from "../../redux/state";
+import {
+  API_ENDPOINTS,
+  DEFAULT_HEADERS,
+  HTTP_METHODS,
+} from "../../constants/api";
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
@@ -36,11 +41,9 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3001/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
+        method: HTTP_METHODS.POST,
+        headers: DEFAULT_HEADERS,
         body: JSON.stringify(formData),
       });
 

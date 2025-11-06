@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "../../styles/Register.scss";
 import { useNavigate } from "react-router-dom";
+import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -47,8 +48,8 @@ const RegisterPage = () => {
         register_form.append(key, formData[key]);
       }
 
-      const response = await fetch("http://localhost:3001/auth/register", {
-        method: "POST",
+      const response = await fetch(API_ENDPOINTS.AUTH.REGISTER, {
+        method: HTTP_METHODS.POST,
         body: register_form,
       });
 
@@ -60,7 +61,7 @@ const RegisterPage = () => {
         setSuccess("Account created successfully! Redirecting to login...");
         setTimeout(() => {
           navigate("/login");
-        }, 2000);
+        }, 500);
       } else {
         // Handle different error status codes
         switch (response.status) {
