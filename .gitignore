@@ -85,5 +85,7 @@ build/
 *.bak
 *.backup
 *~
+
+# VS Code server files
 .vscode/.server-controller-port.log
-.vscode/.server-controller-port.log
+.vscode/server-controller-port.log
