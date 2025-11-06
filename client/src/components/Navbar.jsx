@@ -18,7 +18,7 @@ import "../styles/Navbar.scss";
 import { Link, useNavigate } from "react-router-dom";
 import { setLogout } from "../redux/state";
 
-export const Navbar = () => {
+const Navbar = () => {
   const [dropdownMenu, setDropdownMenu] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const dropdownRef = useRef(null);
@@ -203,3 +203,5 @@ export const Navbar = () => {
     </div>
   );
 };
+
+export default Navbar;
