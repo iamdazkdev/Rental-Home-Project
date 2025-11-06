@@ -9,6 +9,7 @@ A modern, full-stack rental home platform built with React.js and Node.js. Dream
 ## ✨ Features
 
 ### 🔐 **Authentication System**
+
 - **User Registration** with profile image upload
 - **Secure Login** with JWT tokens
 - **Password Validation** with strength requirements
@@ -16,6 +17,7 @@ A modern, full-stack rental home platform built with React.js and Node.js. Dream
 - **Modern Glass Morphism UI** design
 
 ### 🏡 **Property Management**
+
 - Browse rental properties
 - Advanced search and filtering
 - Property listing creation
@@ -23,6 +25,7 @@ A modern, full-stack rental home platform built with React.js and Node.js. Dream
 - Detailed property views
 
 ### 💻 **Modern UI/UX**
+
 - **Responsive Design** for all devices
 - **Glass Morphism** design aesthetic
 - **Smooth Animations** and transitions
@@ -30,6 +33,7 @@ A modern, full-stack rental home platform built with React.js and Node.js. Dream
 - **Dark/Light Theme** support
 
 ### 🔒 **Security Features**
+
 - **JWT Authentication** with 7-day expiration
 - **Password Hashing** with bcrypt (12 salt rounds)
 - **File Validation** for image uploads (5MB limit)
@@ -39,18 +43,21 @@ A modern, full-stack rental home platform built with React.js and Node.js. Dream
 ## 🛠️ Tech Stack
 
 ### **Frontend**
+
 - ![React](https://img.shields.io/badge/React-19.2.0-61DAFB?style=flat&logo=react&logoColor=white)
 - ![React Router](https://img.shields.io/badge/React%20Router-7.9.5-CA4245?style=flat&logo=react-router&logoColor=white)
 - ![Sass](https://img.shields.io/badge/Sass-1.93.3-CC6699?style=flat&logo=sass&logoColor=white)
 - ![Material-UI](https://img.shields.io/badge/Material--UI-7.3.4-0081CB?style=flat&logo=mui&logoColor=white)
 
 ### **Backend**
+
 - ![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat&logo=node.js&logoColor=white)
 - ![Express.js](https://img.shields.io/badge/Express.js-5.1.0-000000?style=flat&logo=express&logoColor=white)
 - ![MongoDB](https://img.shields.io/badge/MongoDB-8.19.2-47A248?style=flat&logo=mongodb&logoColor=white)
 - ![JWT](https://img.shields.io/badge/JWT-9.0.2-000000?style=flat&logo=json-web-tokens&logoColor=white)
 
 ### **Additional Tools**
+
 - ![Multer](https://img.shields.io/badge/Multer-File%20Upload-orange?style=flat)
 - ![bcryptjs](https://img.shields.io/badge/bcryptjs-Password%20Hashing-red?style=flat)
 - ![CORS](https://img.shields.io/badge/CORS-Security-blue?style=flat)
@@ -59,6 +66,7 @@ A modern, full-stack rental home platform built with React.js and Node.js. Dream
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - **Node.js** (v16 or higher)
 - **npm** or **yarn**
 - **MongoDB** (local or MongoDB Atlas)
@@ -67,26 +75,30 @@ A modern, full-stack rental home platform built with React.js and Node.js. Dream
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/iamdazkdev/Rental-Home-Project.git
    cd Rental-Home-Project
    ```
 
 2. **Install Server Dependencies**
+
    ```bash
    cd server
    npm install
    ```
 
 3. **Install Client Dependencies**
+
    ```bash
    cd ../client
    npm install
    ```
 
 4. **Environment Setup**
-   
+
    Create a `.env` file in the `server` directory:
+
    ```env
    MONGO_URL=your_mongodb_connection_string
    JWT_SECRET=your_super_secret_jwt_key
@@ -94,22 +106,24 @@ A modern, full-stack rental home platform built with React.js and Node.js. Dream
    ```
 
 5. **Start the Development Servers**
-   
+
    **Terminal 1 - Backend Server:**
+
    ```bash
    cd server
    npm start
    ```
-   
+
    **Terminal 2 - Frontend Client:**
+
    ```bash
    cd client
    npm start
    ```
 
 6. **Access the Application**
-   - **Frontend:** http://localhost:3000
-   - **Backend API:** http://localhost:3001
+   - **Frontend:** <http://localhost:3000>
+   - **Backend API:** <http://localhost:3001>
 
 ## 📁 Project Structure
 
@@ -159,6 +173,7 @@ Rental-Home-Project/
 ### Example API Usage
 
 #### Register User
+
 ```javascript
 const formData = new FormData();
 formData.append('firstName', 'John');
@@ -175,6 +190,7 @@ fetch('http://localhost:3001/auth/register', {
 ```
 
 #### Login User
+
 ```javascript
 fetch('http://localhost:3001/auth/login', {
   method: 'POST',
@@ -191,6 +207,7 @@ fetch('http://localhost:3001/auth/login', {
 ## 🎨 Design System
 
 ### **Color Palette**
+
 - **Primary Pink:** `#F8395A` - Main brand color
 - **Primary Blue:** `#24355A` - Text and accents
 - **Light Grey:** `#F7F8F8` - Backgrounds
@@ -198,11 +215,13 @@ fetch('http://localhost:3001/auth/login', {
 - **Dark Grey:** `#969393` - Muted text
 
 ### **Typography**
+
 - **Primary Font:** System fonts with fallbacks
 - **Headings:** Bold (700), letter-spacing optimized
 - **Body Text:** Regular (400) and Medium (500)
 
 ### **Components**
+
 - **Glass Morphism Cards** with backdrop blur
 - **Gradient Backgrounds** for visual depth
 - **Smooth Animations** with CSS transitions
@@ -213,6 +232,7 @@ fetch('http://localhost:3001/auth/login', {
 ### **Available Scripts**
 
 #### Client (Frontend)
+
 ```bash
 npm start          # Start development server
 npm build          # Build for production
@@ -221,6 +241,7 @@ npm eject          # Eject from Create React App
 ```
 
 #### Server (Backend)
+
 ```bash
 npm start          # Start server with nodemon
 npm test           # Run tests (placeholder)
@@ -261,6 +282,7 @@ The application is fully responsive with breakpoints:
 ## 🚀 Deployment
 
 ### **Frontend (Vercel/Netlify)**
+
 ```bash
 cd client
 npm run build
@@ -268,6 +290,7 @@ npm run build
 ```
 
 ### **Backend (Heroku/Railway)**
+
 ```bash
 cd server
 # Set environment variables in hosting platform
@@ -275,6 +298,7 @@ cd server
 ```
 
 ### **Database (MongoDB Atlas)**
+
 - Create a MongoDB Atlas cluster
 - Get connection string
 - Update `MONGO_URL` in environment variables
@@ -294,6 +318,7 @@ This project is licensed under the ISC License - see the [LICENSE](LICENSE) file
 ## 👨‍💻 Author
 
 **iamdazkdev**
+
 - GitHub: [@iamdazkdev](https://github.com/iamdazkdev)
 - Project: [Rental-Home-Project](https://github.com/iamdazkdev/Rental-Home-Project)
 
