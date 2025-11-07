@@ -191,7 +191,7 @@ const CreateListingPage = () => {
 
     try {
       // Validation
-      if (!category || category === "All") {
+      if (!category) {
         alert("Please select a category");
         setIsLoading(false);
         return;
