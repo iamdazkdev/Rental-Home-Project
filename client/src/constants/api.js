@@ -4,9 +4,9 @@
  */
 
 // Environment Variables
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
-const API_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT) || 30000;
-const MAX_FILE_SIZE = parseInt(process.env.REACT_APP_MAX_FILE_SIZE) || 10485760; // 10MB
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+const API_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT);
+const MAX_FILE_SIZE = parseInt(process.env.REACT_APP_MAX_FILE_SIZE); // 10MB
 const MAX_FILES_PER_LISTING =
   parseInt(process.env.REACT_APP_MAX_FILES_PER_LISTING) || 10;
 const ALLOWED_FILE_TYPES = process.env.REACT_APP_ALLOWED_FILE_TYPES?.split(

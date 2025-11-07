@@ -13,6 +13,7 @@ import {
   PersonAdd,
 } from "@mui/icons-material";
 import variables from "../styles/variables.scss";
+import { CONFIG } from "../constants/api";
 import { useSelector, useDispatch } from "react-redux";
 import "../styles/Navbar.scss";
 import { Link, useNavigate } from "react-router-dom";
@@ -82,7 +83,7 @@ const Navbar = () => {
             ) : (
               <div className="profile_image_container">
                 <img
-                  src={`http://localhost:3001/${user.profileImagePath.replace(
+                  src={`${CONFIG.API_BASE_URL}/${user.profileImagePath.replace(
                     "public/",
                     ""
                   )}`}
@@ -101,10 +102,9 @@ const Navbar = () => {
                   <div className="user_info">
                     <div className="user_avatar">
                       <img
-                        src={`http://localhost:3001/${user.profileImagePath.replace(
-                          "public/",
-                          ""
-                        )}`}
+                        src={`${
+                          CONFIG.API_BASE_URL
+                        }/${user.profileImagePath.replace("public/", "")}`}
                         alt="Profile"
                       />
                     </div>
