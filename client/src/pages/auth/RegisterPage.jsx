@@ -24,7 +24,6 @@ const RegisterPage = () => {
       [name]: name === "profileImage" ? files[0] : value,
     });
   };
-  console.log(formData);
   const [passwordMatch, setPasswordMatch] = useState(true);
   useEffect(() => {
     setPasswordMatch(
