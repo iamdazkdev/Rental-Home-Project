@@ -121,7 +121,7 @@ router.get("/", async (req, res) => {
         "creator"
       );
     } else {
-      await Listing.find();
+      listings = await Listing.find().populate("creator");
     }
     res.status(HTTP_STATUS.OK).json(listings);
   } catch (error) {
