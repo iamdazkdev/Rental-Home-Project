@@ -75,7 +75,21 @@ const ListingCard = ({
           {listingPhotoPaths?.map((photo, index) => (
             <div key={index} className="slide">
               <img
-                src={`${CONFIG.API_BASE_URL}/${photo.replace("public/", "")}`}
+                src={(() => {
+                  console.log("ListingCard Image Debug:");
+                  // Check if it's already a full Cloudinary URL
+                  if (photo?.startsWith("https://")) {
+                    console.log("- Using Cloudinary URL directly:", photo);
+                    return photo;
+                  }
+
+                  // Legacy local path handling
+                  const localPath = `${CONFIG.API_BASE_URL}/${
+                    photo?.replace("public/", "") || ""
+                  }`;
+                  console.log("- Using local path:", localPath);
+                  return localPath;
+                })()}
                 alt={`photo ${index + 1}`}
               />
               <div

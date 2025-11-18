@@ -7,6 +7,7 @@ const fs = require("fs").promises;
 
 const User = require("../models/User");
 const { sendPasswordResetEmail } = require("../services/emailService");
+const { upload: cloudinaryUpload } = require("../services/cloudinaryService");
 
 // Utility functions
 const validateEmail = (email) => {
@@ -60,19 +61,25 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-});
+// Use Cloudinary upload (configured for profile images)
+const upload = cloudinaryUpload;
 
 /* REGISTER USER */
 router.post("/register", upload.single("profileImage"), async (req, res) => {
   try {
     const { firstName, lastName, email, password, confirmPassword } = req.body;
     const profileImage = req.file;
+
+    console.log(
+      "Profile image upload result:",
+      profileImage
+        ? {
+            originalname: profileImage.originalname,
+            path: profileImage.path,
+            publicId: profileImage.filename,
+          }
+        : "No image uploaded"
+    );
 
     // Input validation
     if (!firstName || !lastName || !email || !password || !confirmPassword) {

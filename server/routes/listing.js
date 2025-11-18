@@ -1,20 +1,12 @@
 const router = require("express").Router();
-const multer = require("multer");
 const Listing = require("../models/Listing");
 const User = require("../models/User");
 const { HTTP_STATUS } = require("../constants");
-// Multer setup for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public/uploads/"); // Store uploaded files in 'public/uploads' directory
-  },
-  filename: function (req, file, cb) {
-    // Generate unique filename to avoid conflicts
-    cb(null, file.originalname);
-  },
-});
-
-const upload = multer({ storage: storage });
+const {
+  upload,
+  deleteCloudinaryImage,
+  extractPublicId,
+} = require("../services/cloudinaryService");
 
 // CREATE LISTING
 router.post("/create", upload.array("listingPhotos"), async (req, res) => {
@@ -71,10 +63,21 @@ router.post("/create", upload.array("listingPhotos"), async (req, res) => {
     const listingPhotos = req.files;
     if (!listingPhotos || listingPhotos.length === 0) {
       return res
-        .status(HTTP_STATUS.NOT_FOUND)
+        .status(HTTP_STATUS.BAD_REQUEST)
         .json({ message: "At least one listing photo is required" });
     }
+
+    // Cloudinary returns secure URLs directly
     const listingPhotoPaths = listingPhotos.map((file) => file.path);
+
+    console.log(
+      "Cloudinary upload results:",
+      listingPhotos.map((file) => ({
+        originalname: file.originalname,
+        path: file.path,
+        publicId: file.filename,
+      }))
+    );
     const newListing = new Listing({
       creator,
       category,
