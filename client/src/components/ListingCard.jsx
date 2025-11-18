@@ -105,6 +105,11 @@ const ListingCard = ({
         {city}, {province}, {country}
       </h3>
       <p>{category}</p>
+      <p>{type}</p>
+      <p>
+        <span>${price}</span>
+        &nbsp;per night
+      </p>
     </div>
   );
 };
