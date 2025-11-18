@@ -5,7 +5,7 @@ import "../styles/Listings.scss";
 import ListingCard from "./ListingCard";
 import Loader from "./Loader";
 import { useDispatch, useSelector } from "react-redux";
-import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from "../constants/api";
+import { HTTP_METHODS, CONFIG } from "../constants/api";
 import { setListings } from "../redux/state";
 const Listing = () => {
   const dispatch = useDispatch();
@@ -50,18 +50,52 @@ const Listing = () => {
     getFeedListing();
   }, [getFeedListing]);
   return (
-    <div className="category-list">
-      {categories?.map((category, index) => (
-        <div
-          className={`category`}
-          key={index}
-          onClick={() => setSelectedCategory(category.label)}
-        >
-          <div className="category_icon">{category.icon}</div>
-          <p>{category.label}</p>
+    <>
+      <div className="category-list">
+        {categories?.map((category, index) => (
+          <div
+            className={`category`}
+            key={index}
+            onClick={() => setSelectedCategory(category.label)}
+          >
+            <div className="category_icon">{category.icon}</div>
+            <p>{category.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {loading ? (
+        <Loader />
+      ) : (
+        <div className="listings">
+          {listings.map(
+            ({
+              id,
+              creator,
+              listingPhotoPaths,
+              city,
+              province,
+              country,
+              category,
+              type,
+              price,
+            }) => (
+              <ListingCard
+                listingId={id}
+                creator={creator}
+                listingPhotoPaths={listingPhotoPaths}
+                city={city}
+                province={province}
+                country={country}
+                category={category}
+                type={type}
+                price={price}
+              />
+            )
+          )}
         </div>
-      ))}
-    </div>
+      )}
+    </>
   );
 };
 

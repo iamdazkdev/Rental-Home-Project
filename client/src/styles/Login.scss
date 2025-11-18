@@ -116,6 +116,45 @@
       }
     }
 
+    .password_input_group {
+      input {
+        padding-right: 60px; // Make space for toggle button
+      }
+
+      .password_toggle_btn {
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 8px;
+        color: #a0a6b1;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+
+        &:hover {
+          background: rgba(248, 57, 90, 0.1);
+          color: $pinkred;
+        }
+
+        &:focus {
+          outline: 2px solid rgba(248, 57, 90, 0.3);
+          outline-offset: 2px;
+        }
+
+        svg {
+          transition: all 0.2s ease;
+        }
+      }
+    }
+
     .forgot_password {
       text-align: right;
       margin-top: -10px;
