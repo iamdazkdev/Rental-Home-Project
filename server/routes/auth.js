@@ -6,6 +6,7 @@ const path = require("path");
 const fs = require("fs").promises;
 
 const User = require("../models/User");
+const { sendPasswordResetEmail } = require("../services/emailService");
 
 // Utility functions
 const validateEmail = (email) => {
@@ -259,6 +260,194 @@ router.post("/login", async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
+    res.status(500).json({
+      message: "Server error. Please try again later.",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
+
+// Forgot Password Route
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Validate input
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    if (!validateEmail(email)) {
+      return res
+        .status(400)
+        .json({ message: "Please provide a valid email address" });
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "No account found with this email address" });
+    }
+
+    // Generate reset token
+    const resetToken = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.JWT_SECRET + user.password, // Include password in secret to invalidate token when password changes
+      { expiresIn: "1h" } // Token expires in 1 hour
+    );
+
+    // Generate reset link
+    const resetLink = `${
+      process.env.CLIENT_URL || "http://localhost:3000"
+    }/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+
+    try {
+      // Send password reset email
+      const emailResult = await sendPasswordResetEmail(
+        email,
+        resetLink,
+        user.firstName
+      );
+
+      console.log("Password reset email sent successfully to:", email);
+
+      res.status(200).json({
+        message:
+          "Password reset instructions have been sent to your email address",
+        // In development, include additional info
+        ...(process.env.NODE_ENV === "development" && {
+          resetLink,
+          token: resetToken,
+          previewUrl: emailResult.previewUrl,
+        }),
+      });
+    } catch (emailError) {
+      console.error("Failed to send reset email:", emailError);
+
+      // Still return success to user for security (don't reveal if email exists)
+      res.status(200).json({
+        message:
+          "If an account with this email exists, password reset instructions have been sent",
+        // In development, show the error and reset link
+        ...(process.env.NODE_ENV === "development" && {
+          error: "Email service failed",
+          resetLink,
+          token: resetToken,
+        }),
+      });
+    }
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({
+      message: "Server error. Please try again later.",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
+
+// Verify Reset Token Route
+router.get("/verify-reset-token", async (req, res) => {
+  try {
+    const { token, email } = req.query;
+
+    if (!token || !email) {
+      return res.status(400).json({ message: "Token and email are required" });
+    }
+
+    // Find user
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    try {
+      // Verify token
+      jwt.verify(token, process.env.JWT_SECRET + user.password);
+      res.status(200).json({ message: "Token is valid" });
+    } catch (tokenError) {
+      if (tokenError.name === "TokenExpiredError") {
+        return res.status(401).json({
+          message: "Reset token has expired. Please request a new one.",
+        });
+      }
+      return res.status(401).json({ message: "Invalid reset token" });
+    }
+  } catch (error) {
+    console.error("Verify token error:", error);
+    res.status(500).json({
+      message: "Server error. Please try again later.",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
+
+// Reset Password Route
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, email, password } = req.body;
+
+    // Validate input
+    if (!token || !email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Token, email, and new password are required" });
+    }
+
+    if (!validateEmail(email)) {
+      return res
+        .status(400)
+        .json({ message: "Please provide a valid email address" });
+    }
+
+    if (password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters long" });
+    }
+
+    // Find user
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    try {
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET + user.password);
+
+      // Ensure the token is for this user
+      if (
+        decoded.userId !== user._id.toString() ||
+        decoded.email !== user.email
+      ) {
+        return res.status(401).json({ message: "Invalid reset token" });
+      }
+    } catch (tokenError) {
+      if (tokenError.name === "TokenExpiredError") {
+        return res.status(401).json({
+          message: "Reset token has expired. Please request a new one.",
+        });
+      }
+      return res.status(401).json({ message: "Invalid reset token" });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(
+      parseInt(process.env.BCRYPT_ROUNDS) || 12
+    );
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Update user password
+    await User.findByIdAndUpdate(user._id, { password: hashedPassword });
+
+    res.status(200).json({
+      message:
+        "Password reset successfully. You can now login with your new password.",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
     res.status(500).json({
       message: "Server error. Please try again later.",
       error: process.env.NODE_ENV === "development" ? error.message : undefined,

@@ -4,6 +4,8 @@ import HomePage from "./pages/home/HomePage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import LoginPage from "./pages/auth/LoginPage";
 import CreateListingPage from "./pages/host/CreateListing";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 function App() {
   return (
     <div>
@@ -13,6 +15,8 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/create-listing" element={<CreateListingPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         </Routes>
       </BrowserRouter>
     </div>
