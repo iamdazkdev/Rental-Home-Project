@@ -4,7 +4,11 @@
  */
 
 // Environment Variables
-const API_BASE_URL = process.env.REACT_APP_API_URL;
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://your-railway-app.railway.app"
+    : "http://localhost:3001");
 const API_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT);
 const MAX_FILE_SIZE = parseInt(process.env.REACT_APP_MAX_FILE_SIZE); // 10MB
 const MAX_FILES_PER_LISTING =

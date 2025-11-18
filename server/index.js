@@ -15,6 +15,15 @@ app.use(express.json({ limit: MAX_FILE_SIZE }));
 app.use(express.urlencoded({ limit: MAX_FILE_SIZE, extended: true }));
 app.use(express.static("public"));
 
+// Health check endpoint for Railway
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    message: "Dream Nest Server is running",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Routes
 app.use("/auth", authRoutes);
 app.use("/listing", listingRoutes);
