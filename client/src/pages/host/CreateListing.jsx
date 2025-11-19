@@ -97,6 +97,7 @@ const CreateListingPage = () => {
   const [bathroomCount, setBathroomCount] = useState(1);
   const [amenities, setAmenities] = useState([]);
   const [photos, setPhotos] = useState([]);
+  const [photoWarning, setPhotoWarning] = useState("");
   const [formDescription, setFormDescription] = useState({
     title: "",
     description: "",
@@ -149,21 +150,44 @@ const CreateListingPage = () => {
   };
 
   const handleUploadPhotos = (e) => {
-    const newPhotos = e.target.files;
-    Array.from(newPhotos).forEach((photo) => {
-      if (photos.length < 5) {
-        // Create URL for preview and store the actual file
-        const previewUrl = URL.createObjectURL(photo);
-        setPhotos((prev) => [
-          ...prev,
-          {
-            id: `photo-${Date.now()}-${Math.random()}`,
-            url: previewUrl,
-            file: photo, // Store the actual file for upload
-          },
-        ]);
-      }
-    });
+    const newPhotos = Array.from(e.target.files);
+    const currentPhotoCount = photos.length;
+    const maxPhotos = 6;
+
+    // Kiểm tra nếu đã đủ 6 ảnh
+    if (currentPhotoCount >= maxPhotos) {
+      setPhotoWarning("⚠️ Bạn đã đủ 6 ảnh rồi! Không thể thêm ảnh nữa.");
+      setTimeout(() => setPhotoWarning(""), 3000);
+      return;
+    }
+
+    // Tính số ảnh có thể thêm
+    const availableSlots = maxPhotos - currentPhotoCount;
+
+    // Nếu user chọn quá nhiều ảnh, chỉ lấy số lượng cho phép
+    if (newPhotos.length > availableSlots) {
+      setPhotoWarning(
+        `⚠️ Bạn chỉ có thể thêm ${availableSlots} ảnh nữa. Đã chọn ${availableSlots} ảnh đầu tiên.`
+      );
+      setTimeout(() => setPhotoWarning(""), 4000);
+    } else {
+      // Xóa warning nếu upload thành công
+      setPhotoWarning("");
+    }
+
+    // Chỉ lấy số ảnh cho phép
+    const photosToAdd = newPhotos.slice(0, availableSlots);
+
+    const processedPhotos = photosToAdd.map((photo) => ({
+      id: `photo-${Date.now()}-${Math.random()}`,
+      url: URL.createObjectURL(photo),
+      file: photo,
+    }));
+
+    setPhotos((prev) => [...prev, ...processedPhotos]);
+
+    // Reset input để có thể chọn lại file
+    e.target.value = "";
   };
 
   const handleDeletePhoto = (photoIndex) => {
@@ -573,19 +597,32 @@ const CreateListingPage = () => {
                     accept="image/*"
                     onChange={handleUploadPhotos}
                     multiple
+                    disabled={photos.length >= 6}
                   />
-                  <label htmlFor="image" className="upload-button">
+                  <label
+                    htmlFor="image"
+                    className={`upload-button ${
+                      photos.length >= 6 ? "disabled" : ""
+                    }`}
+                  >
                     <span className="upload-icon">📤</span>
-                    Upload Photos ({photos.length}/5)
+                    {photos.length >= 6
+                      ? "Đã đủ 6 ảnh"
+                      : `Upload Photos (${photos.length}/6)`}
                   </label>
 
                   {photos.length > 0 && (
                     <div className="photo-count">
-                      {photos.length} photo{photos.length !== 1 ? "s" : ""}{" "}
-                      uploaded.
-                      {photos.length < 5 &&
-                        ` You can add ${5 - photos.length} more.`}
+                      {photos.length} ảnh đã upload{" "}
+                      {photos.length < 6 &&
+                        `- Bạn có thể thêm ${6 - photos.length} ảnh nữa`}
+                      {photos.length === 6 && " - Đã đạt giới hạn tối đa"}
                     </div>
+                  )}
+
+                  {/* Warning Message */}
+                  {photoWarning && (
+                    <div className="photo-warning">{photoWarning}</div>
                   )}
                 </div>
               </div>
