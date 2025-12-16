@@ -3,6 +3,8 @@ import "../styles/ListingCard.scss";
 import { CONFIG } from "../constants/api";
 import { ArrowForwardIos, ArrowBackIosNew } from "@mui/icons-material";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 const ListingCard = ({
   listingId,
   creator,
@@ -27,46 +29,14 @@ const ListingCard = ({
   const goToNextSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % listingPhotoPaths.length);
   };
-  // return (
-  //   <div className="listing_card">
-  //     <div className="slider-container">
-  //       <div className="slider" style={{ transform: `tran` }}>
-  //         {listingPhotoPaths.map((photo, index) => (
-  //           <div className="slide" key={index}>
-  //             <img
-  //               src={`${CONFIG.API_BASE_URL}/${photo.replace("public/", "")}`}
-  //               alt={`photo ${index + 1}`}
-  //             />
 
-  //             <div
-  //               className="prev-button"
-  //               onClick={(e) => {
-  //                 goToPrevSlide(e);
-  //               }}
-  //             >
-  //               <ArrowBackIosNew sx={{ fontSize: "15px" }} />
-  //             </div>
-  //             <div
-  //               className="next-button"
-  //               onClick={(e) => {
-  //                 goToNextSlide(e);
-  //               }}
-  //             >
-  //               <ArrowForwardIos sx={{ fontSize: "15px" }} />
-  //             </div>
-  //           </div>
-  //         ))}
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
+  const navigate = useNavigate();
+  const handleNavigateToDetails = () => {
+    navigate(`/listing/${listingId}`);
+  };
+
   return (
-    <div
-      className="listing-card"
-      // onClick={() => {
-      //   navigate(`/properties/${listingId}`);
-      // }}
-    >
+    <div className="listing-card" onClick={handleNavigateToDetails}>
       <div className="slider-container">
         <div
           className="slider"
@@ -82,7 +52,6 @@ const ListingCard = ({
                     console.log("- Using Cloudinary URL directly:", photo);
                     return photo;
                   }
-
                   // Legacy local path handling
                   const localPath = `${CONFIG.API_BASE_URL}/${
                     photo?.replace("public/", "") || ""

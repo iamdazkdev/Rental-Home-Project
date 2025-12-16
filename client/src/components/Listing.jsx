@@ -20,9 +20,6 @@ const Listing = () => {
         selectedCategory !== "All"
           ? `${CONFIG.API_BASE_URL}/listing?category=${selectedCategory}`
           : `${CONFIG.API_BASE_URL}/listing`;
-
-      console.log("Fetching from URL:", url);
-
       const response = await fetch(url, {
         method: HTTP_METHODS.GET,
         headers: {
@@ -70,6 +67,7 @@ const Listing = () => {
         <div className="listings">
           {listings.map(
             ({
+              _id,
               id,
               creator,
               listingPhotoPaths,
@@ -79,19 +77,24 @@ const Listing = () => {
               category,
               type,
               price,
-            }) => (
-              <ListingCard
-                listingId={id}
-                creator={creator}
-                listingPhotoPaths={listingPhotoPaths}
-                city={city}
-                province={province}
-                country={country}
-                category={category}
-                type={type}
-                price={price}
-              />
-            )
+            }) => {
+              const listingId = id || _id; // API returns _id; fallback to id if present
+              if (!listingId) return null;
+              return (
+                <ListingCard
+                  key={listingId}
+                  listingId={listingId}
+                  creator={creator}
+                  listingPhotoPaths={listingPhotoPaths}
+                  city={city}
+                  province={province}
+                  country={country}
+                  category={category}
+                  type={type}
+                  price={price}
+                />
+              );
+            }
           )}
         </div>
       )}

@@ -135,4 +135,27 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET LISTING DETAILS
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const listing = await Listing.findById(id).populate("creator");
+
+    if (!listing) {
+      return res
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ message: "Listing not found" });
+    }
+
+    console.log("Fetched listing details:", listing);
+    res.status(HTTP_STATUS.OK).json(listing);
+  } catch (error) {
+    res
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ message: "ERROR: Fail to get listings", error: error.message });
+    console.log("ERROR: Fail to get listings", error);
+  }
+});
+
+
 module.exports = router;

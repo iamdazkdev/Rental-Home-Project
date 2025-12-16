@@ -6,6 +6,8 @@ import LoginPage from "./pages/auth/LoginPage";
 import CreateListingPage from "./pages/host/CreateListing";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ListDetailPage from "./pages/listing/ListDetailPage";
+
 function App() {
   return (
     <div>
@@ -17,6 +19,7 @@ function App() {
           <Route path="/create-listing" element={<CreateListingPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/listing/:listingId" element={<ListDetailPage />} />
         </Routes>
       </BrowserRouter>
     </div>
