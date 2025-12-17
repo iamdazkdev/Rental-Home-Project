@@ -7,7 +7,8 @@ const cors = require("cors");
 // Import routes
 const authRoutes = require("./routes/auth.js");
 const listingRoutes = require("./routes/listing.js");
-
+const bookingRoutes = require("./routes/booking.js");
+const userRoutes = require("./routes/user.js");
 // Middleware
 const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE;
 app.use(cors());
@@ -27,6 +28,8 @@ app.get("/health", (req, res) => {
 // Routes
 app.use("/auth", authRoutes);
 app.use("/listing", listingRoutes);
+app.use("/booking", bookingRoutes);
+app.use("/user", userRoutes);
 
 // ENV VARIABLES
 const PORT = process.env.PORT;

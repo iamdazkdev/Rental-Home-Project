@@ -43,12 +43,11 @@ export const API_ENDPOINTS = {
     GET_BY_SEARCH: `${API_BASE_URL}/listing/search`,
     GET_USER_LISTINGS: (userId) => `${API_BASE_URL}/listing/user/${userId}`,
   },
-
   // User endpoints
   USERS: {
     PROFILE: `${API_BASE_URL}/user/profile`,
     UPDATE_PROFILE: `${API_BASE_URL}/user/profile`,
-    GET_USER: (id) => `${API_BASE_URL}/user/${id}`,
+    GET_TRIPS: (id) => `${API_BASE_URL}/user/${id}/trips`,
     UPLOAD_AVATAR: `${API_BASE_URL}/user/avatar`,
   },
 

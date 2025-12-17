@@ -7,6 +7,7 @@ import CreateListingPage from "./pages/host/CreateListing";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ListDetailPage from "./pages/listing/ListDetailPage";
+import TripList from "./pages/listing/TripList";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/listing/:listingId" element={<ListDetailPage />} />
+          <Route path="/:userId/trips" element={<TripList />} />
         </Routes>
       </BrowserRouter>
     </div>

@@ -36,7 +36,6 @@ const Listing = () => {
       dispatch(setListings({ listings: data }));
     } catch (error) {
       console.error("Error fetching listings:", error.message);
-      // Set empty array on error
       dispatch(setListings({ listings: [] }));
     } finally {
       setLoading(false);
@@ -49,16 +48,21 @@ const Listing = () => {
   return (
     <>
       <div className="category-list">
-        {categories?.map((category, index) => (
-          <div
-            className={`category`}
-            key={index}
-            onClick={() => setSelectedCategory(category.label)}
-          >
-            <div className="category_icon">{category.icon}</div>
-            <p>{category.label}</p>
-          </div>
-        ))}
+        {categories?.map((category, index) => {
+          const isSelected = selectedCategory === category.label;
+          return (
+            <div
+              className={`category ${isSelected ? "selected" : ""}`}
+              key={index}
+              onClick={() => setSelectedCategory(category.label)}
+              role="button"
+              aria-pressed={isSelected}
+            >
+              <div className="category_icon">{category.icon}</div>
+              <p>{category.label}</p>
+            </div>
+          );
+        })}
       </div>
 
       {loading ? (
@@ -77,8 +81,9 @@ const Listing = () => {
               category,
               type,
               price,
+              booking = false,
             }) => {
-              const listingId = id || _id; // API returns _id; fallback to id if present
+              const listingId = id || _id;
               if (!listingId) return null;
               return (
                 <ListingCard
@@ -92,6 +97,7 @@ const Listing = () => {
                   category={category}
                   type={type}
                   price={price}
+                  booking={booking}
                 />
               );
             }

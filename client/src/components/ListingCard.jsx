@@ -15,6 +15,10 @@ const ListingCard = ({
   category,
   type,
   price,
+  startDate,
+  endDate,
+  totalPrice,
+  booking,
 }) => {
   /* SLIDER FOR IMAGES */
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -88,11 +92,26 @@ const ListingCard = ({
         {city}, {province}, {country}
       </h3>
       <p>{category}</p>
-      <p>{type}</p>
-      <p>
-        <span>${price}</span>
-        &nbsp;per night
-      </p>
+      {!booking ? (
+        <>
+          <p>{type}</p>
+          <p>
+            <span>${price}</span>
+            &nbsp;per night
+          </p>
+        </>
+      ) : (
+        <>
+          {" "}
+          <p>
+            {startDate} - {endDate}
+          </p>
+          <p>
+            <span>${totalPrice}</span>
+            &nbsp;total
+          </p>
+        </>
+      )}
     </div>
   );
 };

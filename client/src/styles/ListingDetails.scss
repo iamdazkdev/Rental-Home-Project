@@ -79,6 +79,21 @@
     margin-top: 20px;
   }
 
+  /* Booking button: half-screen width and centered */
+  .button {
+    @include buttonStyle;
+    width: 50vw; /* half of the viewport width */
+    max-width: 600px; /* safeguard on very large screens */
+    display: block;
+    margin: 30px auto 0 auto; /* top margin and center horizontally */
+    text-align: center;
+
+    @include sm {
+      width: 90vw; /* on small screens, use 90% of viewport */
+      max-width: none;
+    }
+  }
+
   .booking {
     display: flex;
     justify-content: space-between;
