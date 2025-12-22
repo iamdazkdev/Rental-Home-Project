@@ -25,32 +25,46 @@ router.get("/:userId/trips", async (req, res) => {
 router.patch("/:userId/:listingId", async (req, res) => {
   try {
     const { userId, listingId } = req.params;
-    const user = await User.findById(userId);
-    const listing = await Listing.findById(listingId);
 
-    const favoriteListing = user.wishList.find(
-      (item) => item.id.toString() || item._id.toString() === listingId
-    );
-    if (favoriteListing) {
-      user.wishList = user.wishList.filter(
-        (item) => item.id.toString() || item._id.toString() !== listingId
-      );
+    // Run both queries in parallel and use .exec() to get proper promises
+    const [user, listing] = await Promise.all([
+      User.findById(userId).exec(),
+      Listing.findById(listingId).exec()
+    ]);
+
+    if (!user) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ message: "User not found" });
+    }
+    if (!listing) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ message: "Listing not found" });
+    }
+
+    // Normalize id extraction and compare as strings
+    const favoriteIndex = user.wishList.findIndex((item) => {
+      const id = item && (item._id || item.id || item);
+      return String(id) === String(listingId);
+    });
+
+    if (favoriteIndex !== -1) {
+      // Remove from wishlist
+      user.wishList.splice(favoriteIndex, 1);
       await user.save();
-      res
+      return res
         .status(HTTP_STATUS.OK)
         .json({ message: "Removed from wishlist", wishList: user.wishList });
     } else {
-      user.wishList.push(listing);
+      // Add listing id to wishlist (store id instead of full doc)
+      user.wishList.push(listing._id);
       await user.save();
-      res
+      return res
         .status(HTTP_STATUS.OK)
         .json({ message: "Added to wishlist", wishList: user.wishList });
     }
   } catch (err) {
     console.log("ERROR: Fail to add listing to wishlist", err);
     res
-      .status(HTTP_STATUS.NOT_FOUND)
-      .json({ message: "Trips not found", error: err.message });
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ message: "Failed to update wishlist", error: err.message });
   }
 });
 module.exports = router;

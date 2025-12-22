@@ -47,17 +47,40 @@ const ListingCard = ({
   const user = useSelector((state) => state.user);
   const wishList = user?.wishList || [];
 
-  const isLiked = wishList?.find((item) => item.id === listingId === listingId);
+  // Check if listing is in wishlist - handle both object and string formats
+  const isLiked = wishList?.find((item) => {
+    const itemId = item?._id || item?.id || item;
+    return String(itemId) === String(listingId);
+  });
+
   const patchWishList = async () => {
-    if (user.id !== creator.id){
-    const url = API_ENDPOINTS.USERS.PATCH_WIST_LIST(user.id, listingId);
-    const response = await fetch(url, {
-      method: HTTP_METHODS.PATCH,
-      headers: DEFAULT_HEADERS,
-    });
-    const data = await response.json();
-    console.log("Patch Wishlist Response:", data);
-    dispatch(setWishList(data.wishList));} else {}
+    if (!user?.id) {
+      console.log("User not logged in");
+      return;
+    }
+
+    if (user.id === creator.id) {
+      console.log("Cannot add own listing to wishlist");
+      return;
+    }
+
+    try {
+      const url = API_ENDPOINTS.USERS.PATCH_WIST_LIST(user.id, listingId);
+      const response = await fetch(url, {
+        method: HTTP_METHODS.PATCH,
+        headers: DEFAULT_HEADERS,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update wishlist: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Wishlist updated:", data.message);
+      dispatch(setWishList(data.wishList));
+    } catch (error) {
+      console.error("Error updating wishlist:", error);
+    }
   }
   return (
     <div className="listing-card" onClick={handleNavigateToDetails}>

@@ -8,6 +8,7 @@ import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ListDetailPage from "./pages/listing/ListDetailPage";
 import TripList from "./pages/listing/TripList";
+import WishList from "./pages/listing/WishList";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/listing/:listingId" element={<ListDetailPage />} />
           <Route path="/:userId/trips" element={<TripList />} />
+          <Route path="/:userId/wishlist" element={<WishList />} />
         </Routes>
       </BrowserRouter>
     </div>

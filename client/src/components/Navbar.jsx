@@ -182,7 +182,7 @@ const Navbar = () => {
               ) : (
                 <div className="menu_section">
                   <Link
-                    to="/trips"
+                    to={`/${user._id || user.id}/trips`}
                     className="menu_item"
                     onClick={() => setDropdownMenu(false)}
                   >
@@ -190,7 +190,7 @@ const Navbar = () => {
                     <span>Trip List</span>
                   </Link>
                   <Link
-                    to="/wishlist"
+                    to={`/${user._id || user.id}/wishlist`}
                     className="menu_item"
                     onClick={() => setDropdownMenu(false)}
                   >
