@@ -1,10 +1,13 @@
 /* eslint-disable jsx-a11y/img-redundant-alt */
 import "../styles/ListingCard.scss";
-import { CONFIG } from "../constants/api";
-import { ArrowForwardIos, ArrowBackIosNew } from "@mui/icons-material";
+import {CONFIG, DEFAULT_HEADERS} from "../constants";
+import { ArrowForwardIos, ArrowBackIosNew, Favorite } from "@mui/icons-material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import {useDispatch, useSelector} from "react-redux";
+// import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
+import {API_ENDPOINTS, HTTP_METHODS} from "../constants/api";
+import {setWishList} from "../redux/state";
 const ListingCard = ({
   listingId,
   creator,
@@ -39,6 +42,23 @@ const ListingCard = ({
     navigate(`/listing/${listingId}`);
   };
 
+  const dispatch = useDispatch();
+  // ADD TO WISHLIST
+  const user = useSelector((state) => state.user);
+  const wishList = user?.wishList || [];
+
+  const isLiked = wishList?.find((item) => item.id === listingId === listingId);
+  const patchWishList = async () => {
+    if (user.id !== creator.id){
+    const url = API_ENDPOINTS.USERS.PATCH_WIST_LIST(user.id, listingId);
+    const response = await fetch(url, {
+      method: HTTP_METHODS.PATCH,
+      headers: DEFAULT_HEADERS,
+    });
+    const data = await response.json();
+    console.log("Patch Wishlist Response:", data);
+    dispatch(setWishList(data.wishList));} else {}
+  }
   return (
     <div className="listing-card" onClick={handleNavigateToDetails}>
       <div className="slider-container">
@@ -112,6 +132,14 @@ const ListingCard = ({
           </p>
         </>
       )}
+      <button className="favorite" disabled={!user} onClick={(e)=> {
+        e.stopPropagation();
+        patchWishList().then(r => {});
+      }} >
+        {isLiked ? (
+        <Favorite sx={{color: "red"}}/>
+        ) : (<Favorite sx={{color: "white"}}/>)}
+      </button>
     </div>
   );
 };

@@ -49,8 +49,15 @@ export const API_ENDPOINTS = {
     UPDATE_PROFILE: `${API_BASE_URL}/user/profile`,
     GET_TRIPS: (id) => `${API_BASE_URL}/user/${id}/trips`,
     UPLOAD_AVATAR: `${API_BASE_URL}/user/avatar`,
+    PATCH_WIST_LIST: (userId, listingId) => `${API_BASE_URL}/user/${userId}/${listingId}`,
   },
 
+  WISHLISTS: {
+    PROFILE: `${API_BASE_URL}/user/profile`,
+    UPDATE_PROFILE: `${API_BASE_URL}/user/profile`,
+    GET_TRIPS: (id) => `${API_BASE_URL}/user/${id}/trips`,
+    UPLOAD_AVATAR: `${API_BASE_URL}/user/avatar`,
+  },
   // Booking endpoints (future implementation)
   BOOKINGS: {
     CREATE: `${API_BASE_URL}/booking/create`,

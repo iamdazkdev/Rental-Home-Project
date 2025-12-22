@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import "../../styles/ListingDetails.scss";
 import { useNavigate, useParams } from "react-router-dom";
-import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from "../../constants/api";
+import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from "../../constants";
 import Loader from "../../components/Loader";
 import { facilities } from "../../data";
 import "react-date-range/dist/styles.css";
@@ -45,7 +45,9 @@ const ListingDetails = () => {
   useEffect(() => {
     if (listingId) {
       setLoading(true);
-      getListingDetails();
+      getListingDetails().then(r => {
+        console.log(`Listing details loaded: ${r.toString()}`);
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listingId]);

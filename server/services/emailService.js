@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 const createTransporter = () => {
   // Gmail SMTP configuration
   if (process.env.EMAIL_SERVICE === "gmail") {
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
@@ -15,7 +15,7 @@ const createTransporter = () => {
 
   // Custom SMTP configuration
   if (process.env.SMTP_HOST) {
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT) || 587,
       secure: process.env.SMTP_SECURE === "true",
@@ -27,7 +27,7 @@ const createTransporter = () => {
   }
 
   // Development mode - use ethereal email (fake SMTP)
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     host: "smtp.ethereal.email",
     port: 587,
     auth: {
@@ -204,15 +204,15 @@ const sendPasswordResetEmail = async (email, resetLink, firstName) => {
 
     console.log("Password reset email sent:", info.messageId);
 
-    // For development - log preview URL if using Ethereal
-    if (process.env.NODE_ENV === "development" && info.preview) {
-      console.log("Preview URL:", nodemailer.getTestMessageUrl(info));
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+    if (process.env.NODE_ENV === "development" && previewUrl) {
+      console.log("Preview URL:", previewUrl);
     }
 
     return {
       success: true,
       messageId: info.messageId,
-      previewUrl: nodemailer.getTestMessageUrl(info),
+      previewUrl,
     };
   } catch (error) {
     console.error("Error sending password reset email:", error);

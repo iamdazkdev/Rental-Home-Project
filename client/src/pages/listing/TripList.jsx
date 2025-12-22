@@ -1,5 +1,5 @@
 import "../../styles/List.scss";
-import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
+import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
 import { useState } from "react";
 import Loader from "../../components/Loader";
 import Navbar from "../../components/Navbar";
@@ -21,7 +21,7 @@ const TripList = () => {
       if (!response.ok) {
         const text = await response.text();
         throw new Error(
-          text || `Request failed with st   atus ${response.status}`
+          text || `Request failed with status ${response.status}`
         );
       }
       const data = await response.json();
@@ -35,13 +35,13 @@ const TripList = () => {
   };
 
   useEffect(() => {
-    getTripList();
+    getTripList().then(r => {});
   });
 
   return loading ? (
     <Loader />
   ) : (
-    <>
+  <>
       <Navbar />
       <h1 className="title-list">Your Trip List</h1>
       <div className="list">

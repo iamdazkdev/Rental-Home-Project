@@ -33,7 +33,7 @@ router.patch("/:userId/:listingId", async (req, res) => {
     );
     if (favoriteListing) {
       user.wishList = user.wishList.filter(
-        (item) => iitem.id.toString() || item._id.toString() !== listingId
+        (item) => item.id.toString() || item._id.toString() !== listingId
       );
       await user.save();
       res
