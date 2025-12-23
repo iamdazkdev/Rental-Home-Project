@@ -179,8 +179,6 @@ router.get("/listing/:listingId", async (req, res) => {
       ratingDistribution: []
     };
 
-    console.log(`✅ Found ${reviews.length} reviews for listing ${listingId}`);
-
     res.status(HTTP_STATUS.OK).json({
       reviews,
       pagination: {

@@ -315,6 +315,48 @@
           color: #9e9e9e;
         }
       }
+
+      // Suggested Reviews
+      .suggested-reviews {
+        margin: 16px 0;
+
+        .suggestions-label {
+          font-size: 13px;
+          color: $darkgrey;
+          margin: 0 0 10px 0;
+          font-weight: 500;
+        }
+
+        .suggestion-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+
+          .suggestion-chip {
+            padding: 8px 14px;
+            background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+            border: 1px solid #d0d0d0;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: $blue;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &:hover {
+              background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+              border-color: #ff9800;
+              color: white;
+              transform: translateY(-2px);
+              box-shadow: 0 4px 8px rgba(255, 152, 0, 0.2);
+            }
+
+            &:active {
+              transform: translateY(0);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -504,4 +546,3 @@
     }
   }
 }
-

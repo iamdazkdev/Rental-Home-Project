@@ -25,10 +25,46 @@ const Navbar = () => {
   const [dropdownMenu, setDropdownMenu] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Fetch unread message count
+  useEffect(() => {
+    if (user) {
+      fetchUnreadCount();
+      // Poll every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  const fetchUnreadCount = async () => {
+    if (!user) return;
+
+    try {
+      const userId = user._id || user.id;
+
+      if (!userId) {
+        console.warn("⚠️ Cannot fetch unread count: userId is undefined");
+        return;
+      }
+
+      const response = await fetch(
+        `${CONFIG.API_BASE_URL}/messages/unread/${userId}`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadCount(data.totalUnread || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+      setUnreadCount(0);
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -123,7 +159,12 @@ const Navbar = () => {
             <div className="navbar_right_accountmenu">
               <div className="menu_header">
                 {user && (
-                  <div className="user_info">
+                  <Link
+                    to={`/host/${user._id || user.id}`}
+                    className="user_info clickable"
+                    onClick={() => setDropdownMenu(false)}
+                    title="View my profile"
+                  >
                     <div className="user_avatar">
                       <img
                         src={(() => {
@@ -158,7 +199,7 @@ const Navbar = () => {
                       </h4>
                       <p>{user.email}</p>
                     </div>
-                  </div>
+                  </Link>
                 )}
               </div>
 
@@ -192,6 +233,17 @@ const Navbar = () => {
                   >
                     <ListAlt sx={{ fontSize: 20 }} />
                     <span>Trip List</span>
+                  </Link>
+                  <Link
+                    to="/messages"
+                    className="menu_item"
+                    onClick={() => setDropdownMenu(false)}
+                  >
+                    <span className="menu_icon">💬</span>
+                    <span>Messages</span>
+                    {unreadCount > 0 && (
+                      <span className="unread_badge">{unreadCount}</span>
+                    )}
                   </Link>
                   <Link
                     to="/booking-history"

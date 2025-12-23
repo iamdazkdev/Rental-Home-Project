@@ -11,6 +11,43 @@ const CheckoutModal = ({ booking, onClose, onConfirm }) => {
   const [hostRating, setHostRating] = useState(0);
   const [hostComment, setHostComment] = useState("");
 
+  // Suggested reviews
+  const suggestedListingReviews = [
+    "Clean and comfortable",
+    "Great location",
+    "Exactly as described",
+    "Beautiful property",
+    "Well-equipped",
+    "Peaceful and quiet",
+    "Perfect for our stay",
+    "Amazing views",
+  ];
+
+  const suggestedHostReviews = [
+    "Very responsive and helpful",
+    "Great communication",
+    "Welcoming and friendly",
+    "Clear instructions",
+    "Respectful and professional",
+    "Excellent host",
+    "Made us feel at home",
+    "Quick to resolve issues",
+  ];
+
+  const handleSuggestedReview = (suggestion, isHost = false) => {
+    if (isHost) {
+      setHostComment((prev) => {
+        if (prev.includes(suggestion)) return prev;
+        return prev ? `${prev}. ${suggestion}` : suggestion;
+      });
+    } else {
+      setListingComment((prev) => {
+        if (prev.includes(suggestion)) return prev;
+        return prev ? `${prev}. ${suggestion}` : suggestion;
+      });
+    }
+  };
+
   const handleConfirm = async () => {
     setLoading(true);
     try {
@@ -144,6 +181,24 @@ const CheckoutModal = ({ booking, onClose, onConfirm }) => {
                   </button>
                 ))}
               </div>
+
+              {/* Suggested Reviews */}
+              <div className="suggested-reviews">
+                <p className="suggestions-label">💡 Quick suggestions:</p>
+                <div className="suggestion-chips">
+                  {suggestedListingReviews.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className="suggestion-chip"
+                      onClick={() => handleSuggestedReview(suggestion, false)}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <textarea
                 placeholder="What did you like about the property? (Optional)"
                 value={listingComment}
@@ -167,6 +222,24 @@ const CheckoutModal = ({ booking, onClose, onConfirm }) => {
                   </button>
                 ))}
               </div>
+
+              {/* Suggested Host Reviews */}
+              <div className="suggested-reviews">
+                <p className="suggestions-label">💡 Quick suggestions:</p>
+                <div className="suggestion-chips">
+                  {suggestedHostReviews.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className="suggestion-chip"
+                      onClick={() => handleSuggestedReview(suggestion, true)}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <textarea
                 placeholder="How was your experience with the host? (Optional)"
                 value={hostComment}

@@ -15,20 +15,25 @@ import HostBookingHistory from "./pages/host/HostBookingHistory";
 import PropertyManagement from "./pages/host/PropertyManagement";
 import HostProfile from "./pages/host/HostProfile";
 import SearchPage from "./pages/search/SearchPage";
+import MessagesPage from "./pages/messages/MessagesPage";
+import { SocketProvider } from "./context/SocketContext";
 
 function App() {
   return (
     <div>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/create-listing" element={<CreateListingPage />} />
-          <Route path="/edit-listing/:listingId" element={<CreateListingPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/listing/:listingId" element={<ListDetailPage />} />
+        <SocketProvider>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/create-listing" element={<CreateListingPage />} />
+            <Route path="/edit-listing/:listingId" element={<CreateListingPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/listing/:listingId" element={<ListDetailPage />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/messages/:conversationId" element={<MessagesPage />} />
           <Route path="/:userId/trips" element={<TripList />} />
           <Route path="/:userId/wishlist" element={<WishList />} />
           <Route path="/reservations" element={<ReservationList />} />
@@ -38,6 +43,7 @@ function App() {
           <Route path="/host/:hostId" element={<HostProfile />} />
           <Route path="/search" element={<SearchPage />} />
         </Routes>
+        </SocketProvider>
       </BrowserRouter>
     </div>
   );

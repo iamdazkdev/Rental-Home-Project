@@ -92,10 +92,20 @@
         margin: 0;
       }
 
-      .view-host-profile-btn {
+      .host-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+
+        @include sm {
+          width: 100%;
+          flex-direction: column;
+        }
+      }
+
+      .view-host-profile-btn,
+      .contact-host-btn {
         padding: 10px 20px;
-        background: linear-gradient(135deg, $pinkred 0%, #e91e63 100%);
-        color: white;
         border: none;
         border-radius: 8px;
         font-size: 14px;
@@ -106,7 +116,28 @@
 
         &:hover {
           transform: translateY(-2px);
+        }
+
+        @include sm {
+          width: 100%;
+        }
+      }
+
+      .view-host-profile-btn {
+        background: linear-gradient(135deg, $pinkred 0%, #e91e63 100%);
+        color: white;
+
+        &:hover {
           box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+        }
+      }
+
+      .contact-host-btn {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        color: white;
+
+        &:hover {
+          box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
         }
       }
     }
@@ -273,6 +304,32 @@
       &:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
+      }
+    }
+
+    // Own Listing Message
+    &.own-listing-message {
+      background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+      border-color: #ff9800;
+
+      .message-icon {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+      }
+
+      h3 {
+        color: #e65100;
+      }
+
+      > p {
+        color: #ef6c00;
+      }
+
+      .view-property-btn {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+
+        &:hover {
+          box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+        }
       }
     }
   }

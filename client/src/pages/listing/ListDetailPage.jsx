@@ -217,19 +217,50 @@ const ListingDetails = () => {
               <h3>
                 Hosted by {listing.creator.firstName} {listing.creator.lastName}
               </h3>
-              <button
-                className="view-host-profile-btn"
-                onClick={() => {
-                  // Get creator ID - handle both populated object and plain ID
+              <div className="host-actions">
+                <button
+                  className="view-host-profile-btn"
+                  onClick={() => {
+                    // Get creator ID - handle both populated object and plain ID
+                    const creatorId = typeof listing.creator === 'string'
+                      ? listing.creator
+                      : (listing.creator._id || listing.creator.id);
+                    console.log("Navigating to host profile:", creatorId);
+                    navigate(`/host/${creatorId}`);
+                  }}
+                >
+                  👤 View Profile
+                </button>
+
+                {/* Contact Host Button - only show if not own listing */}
+                {(() => {
                   const creatorId = typeof listing.creator === 'string'
                     ? listing.creator
                     : (listing.creator._id || listing.creator.id);
-                  console.log("Navigating to host profile:", creatorId);
-                  navigate(`/host/${creatorId}`);
-                }}
-              >
-                👤 View Host Profile
-              </button>
+                  const isOwnListing = customerId && (String(creatorId) === String(customerId));
+
+                  if (!isOwnListing) {
+                    return (
+                      <button
+                        className="contact-host-btn"
+                        onClick={() => {
+                          navigate(`/messages`, {
+                            state: {
+                              receiverId: creatorId,
+                              listingId: listing._id,
+                              receiverName: `${listing.creator.firstName} ${listing.creator.lastName}`,
+                              listingTitle: listing.title,
+                            }
+                          });
+                        }}
+                      >
+                        💬 Contact Host
+                      </button>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
             </div>
           </div>
         )}
@@ -362,7 +393,35 @@ const ListingDetails = () => {
         <div>
           <h2>How long do you want to stay?</h2>
 
-          {hasActiveBooking ? (
+          {/* Check if user is viewing their own listing */}
+          {(() => {
+            const creatorId = listing.creator?._id || listing.creator?.id || listing.creator;
+            const isOwnListing = customerId && (String(creatorId) === String(customerId));
+
+            console.log("🔍 Booking visibility check:");
+            console.log("   - Creator ID:", creatorId);
+            console.log("   - Current User ID:", customerId);
+            console.log("   - Is own listing?", isOwnListing);
+
+            // If user is viewing their own listing, don't show booking
+            if (isOwnListing) {
+              return (
+                <div className="already-booked-message own-listing-message">
+                  <div className="message-icon">🏠</div>
+                  <h3>This is Your Listing</h3>
+                  <p>You cannot book your own property</p>
+                  <button
+                    className="button view-property-btn"
+                    onClick={() => navigate("/properties")}
+                  >
+                    📋 Manage Properties
+                  </button>
+                </div>
+              );
+            }
+
+            // Show booking section for other users
+            return hasActiveBooking ? (
             // Show message if already booked
             <div className="already-booked-message">
               <div className="message-icon">✓</div>
@@ -422,7 +481,8 @@ const ListingDetails = () => {
                 {submitting ? "Submitting..." : "BOOKING"}
               </button>
             </>
-          )}
+          );
+          })()}
         </div>
 
         {/* Reviews Section */}

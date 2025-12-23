@@ -12,11 +12,42 @@ const HostProfile = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [hostData, setHostData] = useState(null);
+  const [hostReviews, setHostReviews] = useState({
+    averageRating: 0,
+    totalReviews: 0,
+    reviews: [],
+  });
 
   useEffect(() => {
     fetchHostProfile();
+    fetchHostReviews();
     // eslint-disable-next-line
   }, [hostId]);
+
+  const fetchHostReviews = async () => {
+    try {
+      console.log("🔍 Fetching host reviews for ID:", hostId);
+      const url = `${CONFIG.API_BASE_URL}/host-reviews/host/${hostId}`;
+      console.log("📡 Host reviews URL:", url);
+
+      const response = await fetch(url, { method: HTTP_METHODS.GET });
+      console.log("📥 Host reviews response status:", response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("✅ Host reviews data:", data);
+        console.log("   - Average rating:", data.averageRating);
+        console.log("   - Total reviews:", data.totalReviews);
+        console.log("   - Reviews count:", data.reviews?.length);
+        setHostReviews(data);
+      } else {
+        const errorText = await response.text();
+        console.error("❌ Host reviews error:", errorText);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching host reviews:", error);
+    }
+  };
 
   const fetchHostProfile = async () => {
     try {
@@ -91,6 +122,10 @@ const HostProfile = () => {
 
   const { host, statistics, listings, reviews } = hostData;
 
+  console.log("🎯 Rendering HostProfile:");
+  console.log("   - Host Reviews State:", hostReviews);
+  console.log("   - Will show host reviews section?", hostReviews.totalReviews > 0);
+
   return (
     <>
       <Navbar />
@@ -121,7 +156,9 @@ const HostProfile = () => {
                 <div className="stat-item">
                   <div className="stat-icon">⭐</div>
                   <div className="stat-content">
-                    <span className="stat-value">{statistics.averageHostRating}</span>
+                    <span className="stat-value">
+                      {hostReviews.averageRating > 0 ? hostReviews.averageRating : "N/A"}
+                    </span>
                     <span className="stat-label">Rating</span>
                   </div>
                 </div>
@@ -129,7 +166,7 @@ const HostProfile = () => {
                 <div className="stat-item">
                   <div className="stat-icon">💬</div>
                   <div className="stat-content">
-                    <span className="stat-value">{statistics.totalReviews}</span>
+                    <span className="stat-value">{hostReviews.totalReviews}</span>
                     <span className="stat-label">Reviews</span>
                   </div>
                 </div>
@@ -248,6 +285,72 @@ const HostProfile = () => {
             </div>
           )}
         </div>
+
+        {/* Host Rating & Reviews */}
+        {hostReviews.totalReviews > 0 && (
+          <div className="host-section host-reviews-section">
+            <div className="reviews-header">
+              <h2 className="section-title">
+                👤 Reviews as Host ({hostReviews.totalReviews})
+              </h2>
+              <div className="overall-rating">
+                <div className="rating-display">
+                  <span className="rating-number-large">{hostReviews.averageRating}</span>
+                  <div className="rating-stars-large">
+                    {renderStars(hostReviews.averageRating)}
+                    <p className="rating-text">out of 5</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="reviews-list">
+              {hostReviews.reviews.map((review) => (
+                <div key={review._id} className="host-review-card">
+                  <div className="review-header">
+                    <div className="reviewer-info">
+                      <img
+                        src={
+                          review.reviewer?.profileImagePath?.startsWith("https://")
+                            ? review.reviewer.profileImagePath
+                            : `${CONFIG.API_BASE_URL}/${review.reviewer?.profileImagePath?.replace("public/", "") || "assets/default-avatar.png"}`
+                        }
+                        alt={review.reviewer?.firstName || "Guest"}
+                        className="reviewer-avatar"
+                      />
+                      <div>
+                        <h4>
+                          {review.reviewer?.firstName || "Anonymous"} {review.reviewer?.lastName || "Guest"}
+                        </h4>
+                        <p className="review-property">
+                          Stayed at: <strong>{review.listing?.title || "Property"}</strong>
+                        </p>
+                        <p className="review-date">
+                          {new Date(review.createdAt).toLocaleDateString("en-US", {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="review-rating">
+                      {renderStars(review.hostRating)}
+                      <span className="rating-number">{review.hostRating}/5</span>
+                    </div>
+                  </div>
+
+                  {review.hostComment && (
+                    <div className="review-comment">
+                      <p>"{review.hostComment}"</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       <Footer />
     </>
