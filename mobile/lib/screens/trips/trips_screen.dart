@@ -164,11 +164,13 @@ class _BookingCard extends StatelessWidget {
       case 'pending':
         return AppTheme.warningColor;
       case 'approved':
+      case 'accepted':  // Backend uses 'accepted'
         return AppTheme.successColor;
       case 'rejected':
         return AppTheme.errorColor;
       case 'completed':
       case 'checkedOut':
+      case 'checked_out':  // Backend uses 'checked_out'
         return Colors.grey;
       default:
         return Colors.grey;
@@ -180,12 +182,14 @@ class _BookingCard extends StatelessWidget {
       case 'pending':
         return 'Pending Approval';
       case 'approved':
+      case 'accepted':  // Backend uses 'accepted'
         return 'Approved';
       case 'rejected':
         return 'Rejected';
       case 'completed':
         return 'Completed';
       case 'checkedOut':
+      case 'checked_out':  // Backend uses 'checked_out'
         return 'Checked Out';
       default:
         return booking.status;

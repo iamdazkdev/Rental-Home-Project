@@ -48,6 +48,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
       });
 
       // Update user in provider
+      if (!mounted) return;
       final authProvider = context.read<AuthProvider>();
       final updatedUser = authProvider.user!.copyWith(
         wishlist: List<String>.from(result['wishlist']),
