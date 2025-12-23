@@ -9,6 +9,7 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ListDetailPage from "./pages/listing/ListDetailPage";
 import TripList from "./pages/listing/TripList";
 import WishList from "./pages/listing/WishList";
+import ReservationList from "./pages/host/ReservationList";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="/listing/:listingId" element={<ListDetailPage />} />
           <Route path="/:userId/trips" element={<TripList />} />
           <Route path="/:userId/wishlist" element={<WishList />} />
+          <Route path="/reservations" element={<ReservationList />} />
         </Routes>
       </BrowserRouter>
     </div>

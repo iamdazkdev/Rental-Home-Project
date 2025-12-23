@@ -33,4 +33,34 @@
       margin: 0;
     }
   }
+
+  .trip-item {
+    position: relative;
+
+    .booking-status {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+      &.status-pending {
+        background: rgba(255, 152, 0, 0.95);
+      }
+
+      &.status-accepted {
+        background: rgba(76, 175, 80, 0.95);
+      }
+
+      &.status-rejected {
+        background: rgba(244, 67, 54, 0.95);
+      }
+    }
+  }
 }

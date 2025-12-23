@@ -1,6 +1,6 @@
 import "../../styles/List.scss";
 import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Loader from "../../components/Loader";
 import Navbar from "../../components/Navbar";
 import { useSelector } from "react-redux";
@@ -13,6 +13,14 @@ const WishList = () => {
   const user = useSelector((state) => state.user);
   const wishList = user?.wishList || [];
 
+  // Create a stable reference for wishlist IDs
+  const wishListIds = useMemo(() => {
+    return wishList.map(item => {
+      const id = item?._id || item?.id || item;
+      return String(id);
+    }).join(',');
+  }, [wishList]);
+
   const getWishListDetails = async () => {
     try {
       setLoading(true);
@@ -23,6 +31,8 @@ const WishList = () => {
         return;
       }
 
+      console.log(`📋 Fetching details for ${wishList.length} wishlist items...`);
+
       // Fetch details for each listing in wishlist
       const listingPromises = wishList.map(async (item) => {
         const listingId = item?._id || item?.id || item;
@@ -30,30 +40,35 @@ const WishList = () => {
           const url = API_ENDPOINTS.LISTINGS.GET_BY_ID(listingId);
           const response = await fetch(url, { method: HTTP_METHODS.GET });
           if (!response.ok) {
-            console.error(`Failed to fetch listing ${listingId}`);
+            console.error(`❌ Failed to fetch listing ${listingId}`);
             return null;
           }
-          return await response.json();
+          const data = await response.json();
+          console.log(`✅ Fetched listing: ${data.title || listingId}`);
+          return data;
         } catch (err) {
-          console.error(`Error fetching listing ${listingId}:`, err);
+          console.error(`❌ Error fetching listing ${listingId}:`, err);
           return null;
         }
       });
 
       const listings = await Promise.all(listingPromises);
       // Filter out null values (failed fetches)
-      setWishListListings(listings.filter((listing) => listing !== null));
+      const validListings = listings.filter((listing) => listing !== null);
+      console.log(`✅ Successfully loaded ${validListings.length} wishlist items`);
+      setWishListListings(validListings);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching wishlist details:", err);
+      console.error("❌ Error fetching wishlist details:", err);
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log(`🔄 WishList changed, re-fetching... (${wishList.length} items)`);
     getWishListDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wishList?.length]); // Re-fetch when wishlist length changes
+  }, [wishListIds]); // Re-fetch when wishlist IDs change
 
   return loading ? (
     <Loader />

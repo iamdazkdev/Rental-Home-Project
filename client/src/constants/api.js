@@ -58,13 +58,24 @@ export const API_ENDPOINTS = {
     GET_TRIPS: (id) => `${API_BASE_URL}/user/${id}/trips`,
     UPLOAD_AVATAR: `${API_BASE_URL}/user/avatar`,
   },
-  // Booking endpoints (future implementation)
+  // Booking endpoints
   BOOKINGS: {
     CREATE: `${API_BASE_URL}/booking/create`,
     GET_USER_BOOKINGS: (userId) => `${API_BASE_URL}/booking/user/${userId}`,
     GET_BOOKING: (id) => `${API_BASE_URL}/booking/${id}`,
+    GET_HOST_RESERVATIONS: `${API_BASE_URL}/booking/host`,
+    ACCEPT: `${API_BASE_URL}/booking`,
+    REJECT: `${API_BASE_URL}/booking`,
     UPDATE_STATUS: (id) => `${API_BASE_URL}/booking/${id}/status`,
     CANCEL: (id) => `${API_BASE_URL}/booking/${id}/cancel`,
+  },
+
+  // Notification endpoints
+  NOTIFICATIONS: {
+    GET_USER: (userId) => `${API_BASE_URL}/notifications/${userId}`,
+    MARK_READ: (notificationId) => `${API_BASE_URL}/notifications/${notificationId}/read`,
+    MARK_ALL_READ: (userId) => `${API_BASE_URL}/notifications/user/${userId}/read-all`,
+    DELETE: (notificationId) => `${API_BASE_URL}/notifications/${notificationId}`,
   },
 
   // Upload endpoints
@@ -72,6 +83,9 @@ export const API_ENDPOINTS = {
     IMAGES: `${API_BASE_URL}/upload/images`,
     PROFILE_IMAGE: `${API_BASE_URL}/upload/profile`,
   },
+
+  // Base URL for images
+  API_BASE_URL: API_BASE_URL,
 };
 
 // HTTP Methods

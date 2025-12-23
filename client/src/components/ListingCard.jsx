@@ -54,41 +54,52 @@ const ListingCard = ({
   });
 
   const patchWishList = async () => {
-    if (!user?._id) {
-      console.log("User not logged in");
+    // Check if user is logged in
+    if (!user?.id) {
+      console.log("❌ User not logged in");
       return;
     }
 
-    // Safely get creator ID
-    const creatorId = creator?._id || creator?.id;
     const userId = user._id || user.id;
 
-    if (!creatorId) {
-      console.log("Creator information not available");
-      return;
+    // Only check creator when ADDING (not when REMOVING)
+    if (!isLiked) {
+      // We're trying to ADD to wishlist
+      const creatorId = creator?._id || creator?.id;
+
+      if (!creatorId) {
+        console.log("⚠️ Creator information not available - cannot add to wishlist");
+        return;
+      }
+
+      if (String(userId) === String(creatorId)) {
+        console.log("⚠️ Cannot add own listing to wishlist");
+        return;
+      }
     }
 
-    if (userId === creatorId) {
-      console.log("Cannot add own listing to wishlist");
-      return;
-    }
-
+    // Call API to toggle wishlist
     try {
       const url = API_ENDPOINTS.USERS.PATCH_WIST_LIST(userId, listingId);
+      console.log(`🔄 ${isLiked ? 'Removing from' : 'Adding to'} wishlist...`);
+
       const response = await fetch(url, {
         method: HTTP_METHODS.PATCH,
         headers: DEFAULT_HEADERS,
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to update wishlist: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`Failed to update wishlist: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log("Wishlist updated:", data.message);
+      console.log(`✅ ${data.message}`);
+
+      // Update Redux state
       dispatch(setWishList(data.wishList));
     } catch (error) {
-      console.error("Error updating wishlist:", error);
+      console.error("❌ Error updating wishlist:", error);
     }
   }
   return (
@@ -164,13 +175,19 @@ const ListingCard = ({
           </p>
         </>
       )}
-      <button className="favorite" disabled={!user} onClick={(e)=> {
-        e.stopPropagation();
-        patchWishList().then(r => {});
-      }} >
+      <button
+        className="favorite"
+        disabled={!user}
+        onClick={(e) => {
+          e.stopPropagation();
+          patchWishList();
+        }}
+      >
         {isLiked ? (
-        <Favorite sx={{color: "red"}}/>
-        ) : (<Favorite sx={{color: "white"}}/>)}
+          <Favorite sx={{color: "red"}}/>
+        ) : (
+          <Favorite sx={{color: "white"}}/>
+        )}
       </button>
     </div>
   );

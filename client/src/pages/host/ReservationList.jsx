@@ -1,0 +1,260 @@
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
+import Loader from "../../components/Loader";
+import "../../styles/ReservationList.scss";
+
+const ReservationList = () => {
+  const [loading, setLoading] = useState(true);
+  const [reservations, setReservations] = useState([]);
+  const [filter, setFilter] = useState("all"); // all, pending, accepted, rejected
+  const user = useSelector((state) => state.user);
+  const userId = user?._id || user?.id;
+
+  const getReservations = async () => {
+    try {
+      setLoading(true);
+      const url = `${API_ENDPOINTS.BOOKINGS.GET_HOST_RESERVATIONS}/${userId}`;
+      const response = await fetch(url, { method: HTTP_METHODS.GET });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch reservations: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ Loaded ${data.length} reservations`);
+      setReservations(data);
+      setLoading(false);
+    } catch (error) {
+      console.error("❌ Error fetching reservations:", error);
+      setLoading(false);
+    }
+  };
+
+  const handleAccept = async (bookingId) => {
+    try {
+      console.log(`🔄 Accepting booking ${bookingId}...`);
+      const url = `${API_ENDPOINTS.BOOKINGS.ACCEPT}/${bookingId}/accept`;
+      const response = await fetch(url, {
+        method: HTTP_METHODS.PATCH,
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to accept booking: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ ${data.message}`);
+
+      // Refresh reservations
+      await getReservations();
+    } catch (error) {
+      console.error("❌ Error accepting booking:", error);
+      alert("Failed to accept booking. Please try again.");
+    }
+  };
+
+  const handleReject = async (bookingId) => {
+    const reason = prompt("Please provide a reason for rejection (optional):");
+
+    try {
+      console.log(`🔄 Rejecting booking ${bookingId}...`);
+      const url = `${API_ENDPOINTS.BOOKINGS.REJECT}/${bookingId}/reject`;
+      const response = await fetch(url, {
+        method: HTTP_METHODS.PATCH,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reason || "No reason provided" }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to reject booking: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ ${data.message}`);
+
+      // Refresh reservations
+      await getReservations();
+    } catch (error) {
+      console.error("❌ Error rejecting booking:", error);
+      alert("Failed to reject booking. Please try again.");
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      getReservations();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  const filteredReservations = reservations.filter((reservation) => {
+    if (filter === "all") return true;
+    return reservation.status === filter;
+  });
+
+  const getStatusBadgeClass = (status) => {
+    switch (status) {
+      case "pending":
+        return "status-badge pending";
+      case "accepted":
+        return "status-badge accepted";
+      case "rejected":
+        return "status-badge rejected";
+      default:
+        return "status-badge";
+    }
+  };
+
+  return loading ? (
+    <Loader />
+  ) : (
+    <>
+      <Navbar />
+      <div className="reservation-list">
+        <h1 className="title">Your Reservations</h1>
+
+        {/* Filter Tabs */}
+        <div className="filter-tabs">
+          <button
+            className={filter === "all" ? "active" : ""}
+            onClick={() => setFilter("all")}
+          >
+            All ({reservations.length})
+          </button>
+          <button
+            className={filter === "pending" ? "active" : ""}
+            onClick={() => setFilter("pending")}
+          >
+            Pending ({reservations.filter((r) => r.status === "pending").length})
+          </button>
+          <button
+            className={filter === "accepted" ? "active" : ""}
+            onClick={() => setFilter("accepted")}
+          >
+            Accepted ({reservations.filter((r) => r.status === "accepted").length})
+          </button>
+          <button
+            className={filter === "rejected" ? "active" : ""}
+            onClick={() => setFilter("rejected")}
+          >
+            Rejected ({reservations.filter((r) => r.status === "rejected").length})
+          </button>
+        </div>
+
+        {/* Reservations List */}
+        {filteredReservations.length === 0 ? (
+          <div className="no-reservations">
+            <p>No {filter !== "all" ? filter : ""} reservations found.</p>
+          </div>
+        ) : (
+          <div className="reservations-grid">
+            {filteredReservations.map((reservation) => (
+              <div key={reservation._id} className="reservation-card">
+                {/* Listing Image */}
+                <div className="reservation-image">
+                  <img
+                    src={
+                      reservation.listingId?.listingPhotoPaths?.[0]?.startsWith("https://")
+                        ? reservation.listingId.listingPhotoPaths[0]
+                        : `${API_ENDPOINTS.API_BASE_URL}/${reservation.listingId?.listingPhotoPaths?.[0]?.replace("public/", "")}`
+                    }
+                    alt={reservation.listingId?.title}
+                  />
+                  <span className={getStatusBadgeClass(reservation.status)}>
+                    {reservation.status.toUpperCase()}
+                  </span>
+                </div>
+
+                {/* Reservation Details */}
+                <div className="reservation-details">
+                  <h3>{reservation.listingId?.title}</h3>
+                  <p className="location">
+                    {reservation.listingId?.city}, {reservation.listingId?.province},{" "}
+                    {reservation.listingId?.country}
+                  </p>
+
+                  <div className="guest-info">
+                    <img
+                      src={
+                        reservation.customerId?.profileImagePath?.startsWith("https://")
+                          ? reservation.customerId.profileImagePath
+                          : `${API_ENDPOINTS.API_BASE_URL}/${reservation.customerId?.profileImagePath?.replace("public/", "")}`
+                      }
+                      alt={`${reservation.customerId?.firstName} ${reservation.customerId?.lastName}`}
+                      className="guest-avatar"
+                    />
+                    <div>
+                      <p className="guest-name">
+                        {reservation.customerId?.firstName} {reservation.customerId?.lastName}
+                      </p>
+                      <p className="guest-email">{reservation.customerId?.email}</p>
+                    </div>
+                  </div>
+
+                  <div className="booking-info">
+                    <p>
+                      <strong>Check-in:</strong> {reservation.startDate}
+                    </p>
+                    <p>
+                      <strong>Check-out:</strong> {reservation.endDate}
+                    </p>
+                    <p>
+                      <strong>Total:</strong> ${reservation.totalPrice}
+                    </p>
+                    <p className="booking-date">
+                      Requested: {new Date(reservation.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  {reservation.rejectionReason && reservation.status === "rejected" && (
+                    <div className="rejection-reason">
+                      <strong>Rejection Reason:</strong> {reservation.rejectionReason}
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  {reservation.status === "pending" && (
+                    <div className="action-buttons">
+                      <button
+                        className="btn-accept"
+                        onClick={() => handleAccept(reservation._id)}
+                      >
+                        ✓ Accept
+                      </button>
+                      <button
+                        className="btn-reject"
+                        onClick={() => handleReject(reservation._id)}
+                      >
+                        ✗ Reject
+                      </button>
+                    </div>
+                  )}
+
+                  {reservation.status === "accepted" && (
+                    <div className="status-message accepted-message">
+                      ✓ You accepted this booking
+                    </div>
+                  )}
+
+                  {reservation.status === "rejected" && (
+                    <div className="status-message rejected-message">
+                      ✗ You rejected this booking
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <Footer />
+    </>
+  );
+};
+
+export default ReservationList;
+

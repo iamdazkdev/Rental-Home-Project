@@ -45,29 +45,35 @@ const TripList = () => {
       <Navbar />
       <h1 className="title-list">Your Trip List</h1>
       <div className="list">
-        {tripList?.map(
-          ({
-            listingId,
-            hostId,
-            startDate,
-            endDate,
-            totalPrice,
-            booking = true,
-          }) => (
-            <ListingCard
-              listingId={listingId._id || listingId.id}
-              creator={hostId._id || hostId.id}
-              listingPhotoPaths={listingId.listingPhotoPaths}
-              city={listingId.city}
-              province={listingId.province}
-              country={listingId.country}
-              category={listingId.category}
-              startDate={startDate}
-              endDate={endDate}
-              totalPrice={totalPrice}
-              booking={booking}
-            />
-          )
+        {tripList?.length === 0 ? (
+          <div className="no-listings">
+            <p>You haven't booked any trips yet.</p>
+          </div>
+        ) : (
+          tripList?.map((trip) => (
+            <div key={trip._id} className="trip-item">
+              {trip.status && (
+                <div className={`booking-status status-${trip.status}`}>
+                  {trip.status === "pending" && "⏳ Pending"}
+                  {trip.status === "accepted" && "✓ Accepted"}
+                  {trip.status === "rejected" && "✗ Rejected"}
+                </div>
+              )}
+              <ListingCard
+                listingId={trip.listingId?._id || trip.listingId?.id}
+                creator={trip.hostId?._id || trip.hostId?.id}
+                listingPhotoPaths={trip.listingId?.listingPhotoPaths}
+                city={trip.listingId?.city}
+                province={trip.listingId?.province}
+                country={trip.listingId?.country}
+                category={trip.listingId?.category}
+                startDate={trip.startDate}
+                endDate={trip.endDate}
+                totalPrice={trip.totalPrice}
+                booking={true}
+              />
+            </div>
+          ))
         )}
       </div>
       <Footer />
