@@ -25,6 +25,9 @@ class Listing {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
+  // Populated creator data (if available)
+  final Map<String, dynamic>? creatorData;
+
   Listing({
     required this.id,
     required this.creator,
@@ -49,6 +52,7 @@ class Listing {
     this.priceType,
     this.isAvailable = true,
     this.isHidden = false,
+    this.creatorData,
     this.createdAt,
     this.updatedAt,
   });
@@ -90,12 +94,51 @@ class Listing {
     return price;
   }
 
+  String get hostName {
+    if (creatorData != null) {
+      final firstName = creatorData!['firstName'] ?? '';
+      final lastName = creatorData!['lastName'] ?? '';
+      if (firstName.isNotEmpty || lastName.isNotEmpty) {
+        return '$firstName $lastName'.trim();
+      }
+    }
+    return 'Host';
+  }
+
+  String? get hostProfileImage {
+    return creatorData?['profileImagePath'];
+  }
+
+  String get hostInitial {
+    if (creatorData != null) {
+      final firstName = creatorData!['firstName'];
+      if (firstName != null && firstName.isNotEmpty) {
+        return firstName[0].toUpperCase();
+      }
+    }
+    return 'H';
+  }
+
   factory Listing.fromJson(Map<String, dynamic> json) {
+    // Extract creator ID and data
+    String creatorId;
+    Map<String, dynamic>? creatorData;
+
+    if (json['creator'] is String) {
+      creatorId = json['creator'];
+      creatorData = null;
+    } else if (json['creator'] is Map) {
+      creatorData = Map<String, dynamic>.from(json['creator']);
+      creatorId = creatorData['_id'] ?? creatorData['id'] ?? '';
+    } else {
+      creatorId = '';
+      creatorData = null;
+    }
+
     return Listing(
       id: json['_id'] ?? json['id'] ?? '',
-      creator: json['creator'] is String
-          ? json['creator']
-          : json['creator']?['_id'] ?? '',
+      creator: creatorId,
+      creatorData: creatorData,
       category: json['category'] ?? '',
       type: json['type'] ?? '',
       streetAddress: json['streetAddress'] ?? '',

@@ -16,6 +16,11 @@ class DateFormatter {
     return DateFormat('EEEE, MMMM dd, yyyy').format(date);
   }
 
+  // Format month and year (e.g., December 2025)
+  static String formatMonthYear(DateTime date) {
+    return DateFormat('MMMM yyyy').format(date);
+  }
+
   // Format time to HH:mm
   static String formatTime(DateTime date) {
     return DateFormat('HH:mm').format(date);

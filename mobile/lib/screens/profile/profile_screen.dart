@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../config/app_theme.dart';
 import '../wishlist/wishlist_screen.dart';
+import '../properties/my_properties_screen.dart';
+import '../bookings/booking_history_screen.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -57,14 +60,15 @@ class ProfileScreen extends StatelessWidget {
                   _MenuItem(
                     icon: Icons.home_work_outlined,
                     title: 'My Properties',
-                    subtitle: '${user.propertyList.length} listings',
-                    onTap: () {},
-                  ),
-                  _MenuItem(
-                    icon: Icons.favorite_outline,
-                    title: 'Wishlist',
-                    subtitle: '${user.wishlist.length} saved',
-                    onTap: () {},
+                    subtitle: 'Manage your listings',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyPropertiesScreen(),
+                        ),
+                      );
+                    },
                   ),
                   _MenuItem(
                     icon: Icons.favorite_outline,
@@ -83,19 +87,27 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.history,
                     title: 'Booking History',
                     subtitle: 'View past bookings',
-                    onTap: () {},
-                  ),
-                  _MenuItem(
-                    icon: Icons.star_outline,
-                    title: 'Reviews',
-                    subtitle: 'See your reviews',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const BookingHistoryScreen(),
+                        ),
+                      );
+                    },
                   ),
                   _MenuItem(
                     icon: Icons.person_outline,
                     title: 'Edit Profile',
                     subtitle: 'Update your information',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EditProfileScreen(),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
                   // Logout Button

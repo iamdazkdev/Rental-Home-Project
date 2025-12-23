@@ -7,6 +7,7 @@ import '../../models/booking.dart';
 import '../../services/booking_service.dart';
 import '../../utils/date_formatter.dart';
 import '../../utils/price_formatter.dart';
+import '../checkout/checkout_screen.dart';
 
 class TripsScreen extends StatefulWidget {
   const TripsScreen({super.key});
@@ -247,21 +248,7 @@ class _BookingCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _getStatusColor().withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        _getStatusText(),
-                        style: TextStyle(
-                          color: _getStatusColor(),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+
                   ],
                 ),
 
@@ -296,12 +283,33 @@ class _BookingCard extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 // Total Price
-                Text(
-                  PriceFormatter.formatPriceInteger(booking.totalPrice),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.bold,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        PriceFormatter.formatPriceInteger(booking.totalPrice),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor().withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        _getStatusText(),
+                        style: TextStyle(
+                          color: _getStatusColor(),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
 
                 // Action Buttons
@@ -360,11 +368,13 @@ class _BookingCard extends StatelessWidget {
   }
 
   void _showCheckoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => _CheckoutDialog(
-        booking: booking,
-        onSuccess: onRefresh,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CheckoutScreen(
+          booking: booking,
+          onSuccess: onRefresh,
+        ),
       ),
     );
   }
@@ -376,181 +386,6 @@ class _BookingCard extends StatelessWidget {
         booking: booking,
         onSuccess: onRefresh,
       ),
-    );
-  }
-}
-
-// Checkout Dialog
-class _CheckoutDialog extends StatefulWidget {
-  final Booking booking;
-  final VoidCallback onSuccess;
-
-  const _CheckoutDialog({
-    required this.booking,
-    required this.onSuccess,
-  });
-
-  @override
-  State<_CheckoutDialog> createState() => _CheckoutDialogState();
-}
-
-class _CheckoutDialogState extends State<_CheckoutDialog> {
-  final BookingService _bookingService = BookingService();
-  final _homeReviewController = TextEditingController();
-  final _hostReviewController = TextEditingController();
-  double _homeRating = 5.0;
-  double _hostRating = 5.0;
-  bool _isSubmitting = false;
-
-  @override
-  void dispose() {
-    _homeReviewController.dispose();
-    _hostReviewController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _checkout() async {
-    setState(() => _isSubmitting = true);
-
-    final result = await _bookingService.checkout(
-      bookingId: widget.booking.id,
-      homeReview: _homeReviewController.text.trim().isNotEmpty
-          ? _homeReviewController.text.trim()
-          : null,
-      homeRating: _homeRating,
-      hostReview: _hostReviewController.text.trim().isNotEmpty
-          ? _hostReviewController.text.trim()
-          : null,
-      hostRating: _hostRating,
-    );
-
-    if (mounted) {
-      setState(() => _isSubmitting = false);
-
-      if (result['success']) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Checked out successfully!'),
-            backgroundColor: AppTheme.successColor,
-          ),
-        );
-        widget.onSuccess();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Checkout failed'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Checkout'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Rate your stay:'),
-            const SizedBox(height: 8),
-
-            // Home Rating
-            Text(
-              'Property Rating',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            Slider(
-              value: _homeRating,
-              min: 1,
-              max: 5,
-              divisions: 4,
-              label: _homeRating.toStringAsFixed(1),
-              onChanged: (value) => setState(() => _homeRating = value),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(5, (index) {
-                return Icon(
-                  index < _homeRating ? Icons.star : Icons.star_border,
-                  color: Colors.amber,
-                  size: 20,
-                );
-              }),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _homeReviewController,
-              decoration: const InputDecoration(
-                labelText: 'Property Review (optional)',
-                hintText: 'How was the property?',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-
-            const SizedBox(height: 16),
-
-            // Host Rating
-            Text(
-              'Host Rating',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            Slider(
-              value: _hostRating,
-              min: 1,
-              max: 5,
-              divisions: 4,
-              label: _hostRating.toStringAsFixed(1),
-              onChanged: (value) => setState(() => _hostRating = value),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(5, (index) {
-                return Icon(
-                  index < _hostRating ? Icons.star : Icons.star_border,
-                  color: Colors.amber,
-                  size: 20,
-                );
-              }),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _hostReviewController,
-              decoration: const InputDecoration(
-                labelText: 'Host Review (optional)',
-                hintText: 'How was your host?',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _isSubmitting ? null : _checkout,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.primaryColor,
-            foregroundColor: Colors.white,
-          ),
-          child: _isSubmitting
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Checkout'),
-        ),
-      ],
     );
   }
 }

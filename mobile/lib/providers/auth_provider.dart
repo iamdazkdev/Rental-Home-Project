@@ -126,6 +126,19 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Refresh user data
+  Future<void> refreshUser() async {
+    try {
+      final updatedUser = await _authService.getCurrentUser();
+      if (updatedUser != null) {
+        _user = updatedUser;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('❌ Error refreshing user: $e');
+    }
+  }
+
   // Clear error
   void clearError() {
     _error = null;

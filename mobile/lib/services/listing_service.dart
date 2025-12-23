@@ -286,5 +286,32 @@ class ListingService {
       };
     }
   }
-}
 
+  // Get user's properties
+  Future<List<Listing>> getUserProperties(String userId) async {
+    try {
+      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.properties}/$userId/properties');
+      final token = await _storageService.getToken();
+
+      debugPrint('🔍 Fetching user properties: $uri');
+
+      final response = await http.get(
+        uri,
+        headers: ApiConfig.headers(token: token),
+      );
+
+      debugPrint('📥 Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        debugPrint('✅ Found ${data.length} properties');
+        return data.map((json) => Listing.fromJson(json)).toList();
+      }
+
+      return [];
+    } catch (e) {
+      debugPrint('❌ Error fetching user properties: $e');
+      return [];
+    }
+  }
+}

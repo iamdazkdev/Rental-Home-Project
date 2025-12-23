@@ -14,12 +14,31 @@ class ReviewService {
       final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.listingReviews}/$listingId');
       final response = await http.get(uri, headers: ApiConfig.headers());
 
-      debugPrint('🔍 Get listing reviews: ${response.statusCode}');
+      debugPrint('🔍 Get listing reviews URL: $uri');
+      debugPrint('📥 Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => Review.fromJson(json)).toList();
+        final dynamic decoded = json.decode(response.body);
+
+        // Handle different response formats
+        List<dynamic> reviewsData;
+
+        if (decoded is List) {
+          // Response is directly an array
+          reviewsData = decoded;
+        } else if (decoded is Map) {
+          // Response is an object, try to get reviews array
+          reviewsData = decoded['reviews'] ?? decoded['data'] ?? [];
+        } else {
+          debugPrint('⚠️ Unexpected response format');
+          return [];
+        }
+
+        debugPrint('✅ Found ${reviewsData.length} reviews');
+        return reviewsData.map((json) => Review.fromJson(json)).toList();
       }
+
+      debugPrint('❌ Failed to fetch reviews: ${response.statusCode}');
       return [];
     } catch (e) {
       debugPrint('❌ Error fetching listing reviews: $e');

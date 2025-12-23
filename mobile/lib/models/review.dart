@@ -1,55 +1,71 @@
 class Review {
   final String id;
   final String listingId;
-  final String customerId;
-  final String hostId;
+  final String reviewerId;
   final String bookingId;
-  final double homeRating;
-  final String? homeReview;
+  final double listingRating;
+  final String? listingComment;
   final double hostRating;
-  final String? hostReview;
+  final String? hostComment;
   final DateTime? createdAt;
 
   // Populated fields
-  final dynamic customer;
+  final dynamic reviewer;
   final dynamic listing;
 
   Review({
     required this.id,
     required this.listingId,
-    required this.customerId,
-    required this.hostId,
+    required this.reviewerId,
     required this.bookingId,
-    required this.homeRating,
-    this.homeReview,
+    required this.listingRating,
+    this.listingComment,
     required this.hostRating,
-    this.hostReview,
+    this.hostComment,
     this.createdAt,
-    this.customer,
+    this.reviewer,
     this.listing,
   });
 
+  // Backward compatibility getters
+  String get customerId => reviewerId;
+  dynamic get customer => reviewer;
+  double get homeRating => listingRating;
+  String? get homeReview => listingComment;
+  String? get hostReview => hostComment;
+
   factory Review.fromJson(Map<String, dynamic> json) {
+    // Helper to extract ID from either string or object
+    String extractId(dynamic value) {
+      if (value is String) return value;
+      if (value is Map) return value['_id'] ?? value['id'] ?? '';
+      return '';
+    }
+
+    // Get reviewerId with fallback to customerId
+    final reviewerId = json['reviewerId'] != null
+        ? extractId(json['reviewerId'])
+        : extractId(json['customerId']);
+
     return Review(
       id: json['_id'] ?? json['id'] ?? '',
-      listingId: json['listingId'] is String
-          ? json['listingId']
-          : json['listingId']?['_id'] ?? '',
-      customerId: json['customerId'] is String
-          ? json['customerId']
-          : json['customerId']?['_id'] ?? '',
-      hostId: json['hostId'] is String
-          ? json['hostId']
-          : json['hostId']?['_id'] ?? '',
-      bookingId: json['bookingId'] ?? '',
-      homeRating: (json['homeRating'] ?? 0).toDouble(),
-      homeReview: json['homeReview'],
+      listingId: extractId(json['listingId']),
+      reviewerId: reviewerId,
+      bookingId: extractId(json['bookingId']),
+      // Support both listingRating and homeRating
+      listingRating: (json['listingRating'] ?? json['homeRating'] ?? 0).toDouble(),
+      // Support both listingComment and homeReview
+      listingComment: json['listingComment'] ?? json['homeReview'],
       hostRating: (json['hostRating'] ?? 0).toDouble(),
-      hostReview: json['hostReview'],
+      // Support both hostComment and hostReview
+      hostComment: json['hostComment'] ?? json['hostReview'],
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : null,
-      customer: json['customerId'] is Map ? json['customerId'] : null,
+      // Support both reviewerId and customerId as populated fields
+      reviewer: json['reviewerId'] is Map
+          ? json['reviewerId']
+          : (json['customerId'] is Map ? json['customerId'] : null),
       listing: json['listingId'] is Map ? json['listingId'] : null,
     );
   }
@@ -58,13 +74,12 @@ class Review {
     return {
       '_id': id,
       'listingId': listingId,
-      'customerId': customerId,
-      'hostId': hostId,
+      'reviewerId': reviewerId,
       'bookingId': bookingId,
-      'homeRating': homeRating,
-      'homeReview': homeReview,
+      'listingRating': listingRating,
+      'listingComment': listingComment,
       'hostRating': hostRating,
-      'hostReview': hostReview,
+      'hostComment': hostComment,
       'createdAt': createdAt?.toIso8601String(),
     };
   }
