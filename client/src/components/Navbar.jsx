@@ -47,7 +47,6 @@ const Navbar = () => {
     setDropdownMenu(false);
     navigate("/login");
   };
-  console.log("User in Navbar:", user);
   return (
     <div className="navbar">
       <div className="navbar_left">
@@ -87,18 +86,8 @@ const Navbar = () => {
               <div className="profile_image_container">
                 <img
                   src={(() => {
-                    console.log("Profile Image Debug:");
-                    console.log(
-                      "- user.profileImagePath:",
-                      user.profileImagePath
-                    );
-                    console.log("- CONFIG.API_BASE_URL:", CONFIG.API_BASE_URL);
                     // Check if it's already a full Cloudinary URL
                     if (user.profileImagePath?.startsWith("https://")) {
-                      console.log(
-                        "- Using Cloudinary URL directly:",
-                        user.profileImagePath
-                      );
                       return user.profileImagePath;
                     }
 
@@ -106,7 +95,6 @@ const Navbar = () => {
                     const localPath = `${CONFIG.API_BASE_URL}/${
                       user.profileImagePath?.replace("public/", "") || ""
                     }`;
-                    console.log("- Using local path:", localPath);
                     return localPath;
                   })()}
                   alt="Profile"

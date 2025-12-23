@@ -40,6 +40,7 @@ app.use("/reviews", reviewRoutes);
 app.use("/history", bookingHistoryRoutes);
 app.use("/properties", propertyManagementRoutes);
 app.use("/host", hostProfileRoutes);
+app.use("/host", hostProfileRoutes);
 
 // ENV VARIABLES
 const PORT = process.env.PORT;

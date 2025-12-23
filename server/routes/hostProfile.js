@@ -10,12 +10,26 @@ router.get("/:hostId", async (req, res) => {
   try {
     const { hostId } = req.params;
 
+    console.log("🔍 Fetching host profile for ID:", hostId);
+
+    // Validate ObjectId format
+    const mongoose = require("mongoose");
+    if (!mongoose.Types.ObjectId.isValid(hostId)) {
+      console.log("❌ Invalid ObjectId format:", hostId);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: "Invalid host ID format",
+      });
+    }
+
     // Get host information
     const host = await User.findById(hostId).select(
       "firstName lastName email profileImagePath createdAt"
     );
 
+    console.log("📥 Host found:", host ? "Yes" : "No");
+
     if (!host) {
+      console.log("❌ Host not found in database");
       return res.status(HTTP_STATUS.NOT_FOUND).json({
         message: "Host not found",
       });

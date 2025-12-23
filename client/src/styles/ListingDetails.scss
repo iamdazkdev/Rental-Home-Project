@@ -70,7 +70,45 @@
     img {
       width: 60px;
       height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
       margin: 0;
+    }
+
+    .host-info-section {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+
+      @include sm {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      h3 {
+        margin: 0;
+      }
+
+      .view-host-profile-btn {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, $pinkred 0%, #e91e63 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+        }
+      }
     }
   }
 

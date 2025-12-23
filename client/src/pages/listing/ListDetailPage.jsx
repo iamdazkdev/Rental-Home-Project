@@ -213,9 +213,24 @@ const ListingDetails = () => {
               })()}
               alt="host profile"
             />
-            <h3>
-              Hosted by {listing.creator.firstName} {listing.creator.lastName}
-            </h3>
+            <div className="host-info-section">
+              <h3>
+                Hosted by {listing.creator.firstName} {listing.creator.lastName}
+              </h3>
+              <button
+                className="view-host-profile-btn"
+                onClick={() => {
+                  // Get creator ID - handle both populated object and plain ID
+                  const creatorId = typeof listing.creator === 'string'
+                    ? listing.creator
+                    : (listing.creator._id || listing.creator.id);
+                  console.log("Navigating to host profile:", creatorId);
+                  navigate(`/host/${creatorId}`);
+                }}
+              >
+                👤 View Host Profile
+              </button>
+            </div>
           </div>
         )}
         <hr />
