@@ -24,6 +24,7 @@ import { setLogout } from "../redux/state";
 const Navbar = () => {
   const [dropdownMenu, setDropdownMenu] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef(null);
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -47,6 +48,15 @@ const Navbar = () => {
     setDropdownMenu(false);
     navigate("/login");
   };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate("/search");
+    }
+  };
   return (
     <div className="navbar">
       <div className="navbar_left">
@@ -57,15 +67,19 @@ const Navbar = () => {
       </div>
 
       <div className={`navbar_search ${searchFocused ? "focused" : ""}`}>
-        <input
-          type="text"
-          placeholder="Search ..."
-          onFocus={() => setSearchFocused(true)}
-          onBlur={() => setSearchFocused(false)}
-        />
-        <IconButton className="search_btn">
-          <Search sx={{ color: variables.pinkred }} />
-        </IconButton>
+        <form onSubmit={handleSearch}>
+          <input
+            type="text"
+            placeholder="Search ..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
+          />
+          <IconButton className="search_btn" type="submit">
+            <Search sx={{ color: variables.pinkred }} />
+          </IconButton>
+        </form>
       </div>
 
       <div className="navbar_right">
@@ -204,7 +218,7 @@ const Navbar = () => {
                     onClick={() => setDropdownMenu(false)}
                   >
                     <Home sx={{ fontSize: 20 }} />
-                    <span>Property List</span>
+                    <span>Manage Properties</span>
                   </Link>
                   <Link
                     to="/reservations"

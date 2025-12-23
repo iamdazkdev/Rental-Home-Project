@@ -19,7 +19,8 @@ const ListingSchema = new mongoose.Schema(
     },
     aptSuite: {
       type: String,
-      required: true,
+      required: false, // Optional - not all properties have apt/suite numbers
+      default: "",
     },
     city: {
       type: String,

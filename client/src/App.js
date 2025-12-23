@@ -14,6 +14,7 @@ import UserBookingHistory from "./pages/user/UserBookingHistory";
 import HostBookingHistory from "./pages/host/HostBookingHistory";
 import PropertyManagement from "./pages/host/PropertyManagement";
 import HostProfile from "./pages/host/HostProfile";
+import SearchPage from "./pages/search/SearchPage";
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path="/hosting-history" element={<HostBookingHistory />} />
           <Route path="/properties" element={<PropertyManagement />} />
           <Route path="/host/:hostId" element={<HostProfile />} />
+          <Route path="/search" element={<SearchPage />} />
         </Routes>
       </BrowserRouter>
     </div>

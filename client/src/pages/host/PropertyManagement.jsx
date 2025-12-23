@@ -10,6 +10,7 @@ import { CONFIG, HTTP_METHODS } from "../../constants/api";
 const PropertyManagement = () => {
   const [loading, setLoading] = useState(true);
   const [properties, setProperties] = useState([]);
+  const [allProperties, setAllProperties] = useState([]); // Store raw data
   const [filter, setFilter] = useState("active"); // active, hidden, all
 
   const user = useSelector((state) => state.user);
@@ -47,15 +48,31 @@ const PropertyManagement = () => {
         const data = await response.json();
         console.log("✅ Properties data:", data);
 
+        // Store raw data
+        setAllProperties(data);
+
+        // Debug: Check isActive values
+        data.forEach((p, i) => {
+          console.log(`Property ${i}:`, {
+            title: p.title,
+            isActive: p.isActive,
+            hasActiveBooking: p.hasActiveBooking
+          });
+        });
+
         // Filter based on selected tab
         let filteredData = data;
         if (filter === "active") {
-          filteredData = data.filter(p => p.isActive);
+          // Show active listings (isActive === true OR isActive is undefined/null)
+          filteredData = data.filter(p => p.isActive !== false);
         } else if (filter === "hidden") {
-          filteredData = data.filter(p => !p.isActive);
+          // Show hidden listings (isActive === false)
+          filteredData = data.filter(p => p.isActive === false);
         }
+        // "all" tab shows everything (no filtering)
 
         console.log("✅ Filtered properties:", filteredData.length);
+        console.log("Filter mode:", filter);
         setProperties(filteredData);
       } else {
         const errorText = await response.text();
@@ -156,19 +173,19 @@ const PropertyManagement = () => {
             className={filter === "active" ? "active" : ""}
             onClick={() => setFilter("active")}
           >
-            ✓ Active ({properties.filter(p => p.isActive).length})
+            ✓ Active ({allProperties.filter(p => p.isActive !== false).length})
           </button>
           <button
             className={filter === "hidden" ? "active" : ""}
             onClick={() => setFilter("hidden")}
           >
-            👁️ Hidden ({properties.filter(p => !p.isActive).length})
+            👁️ Hidden ({allProperties.filter(p => p.isActive === false).length})
           </button>
           <button
             className={filter === "all" ? "active" : ""}
             onClick={() => setFilter("all")}
           >
-            📊 All ({properties.length})
+            📊 All ({allProperties.length})
           </button>
         </div>
 

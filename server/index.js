@@ -14,6 +14,7 @@ const reviewRoutes = require("./routes/review.js");
 const bookingHistoryRoutes = require("./routes/bookingHistory.js");
 const propertyManagementRoutes = require("./routes/propertyManagement.js");
 const hostProfileRoutes = require("./routes/hostProfile.js");
+const searchRoutes = require("./routes/search.js");
 // Middleware
 const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE;
 app.use(cors());
@@ -40,7 +41,7 @@ app.use("/reviews", reviewRoutes);
 app.use("/history", bookingHistoryRoutes);
 app.use("/properties", propertyManagementRoutes);
 app.use("/host", hostProfileRoutes);
-app.use("/host", hostProfileRoutes);
+app.use("/search", searchRoutes);
 
 // ENV VARIABLES
 const PORT = process.env.PORT;
