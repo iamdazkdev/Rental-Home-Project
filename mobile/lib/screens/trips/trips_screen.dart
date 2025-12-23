@@ -303,6 +303,10 @@ class _BookingCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                 ),
+
+                // Action Buttons
+                const SizedBox(height: 12),
+                _buildActionButtons(context),
               ],
             ),
           ),
@@ -310,7 +314,412 @@ class _BookingCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildActionButtons(BuildContext context) {
+    // Only show buttons for accepted/approved bookings
+    if (!booking.isApproved) {
+      return const SizedBox.shrink();
+    }
+
+    final now = DateTime.now();
+    final canCheckout = booking.startDate.isBefore(now) && !booking.isCheckedOut;
+    final canExtend = !booking.isCheckedOut && booking.endDate.isAfter(now);
+
+    if (!canCheckout && !canExtend) {
+      return const SizedBox.shrink();
+    }
+
+    return Row(
+      children: [
+        if (canCheckout)
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () => _showCheckoutDialog(context),
+              icon: const Icon(Icons.check_circle, size: 18),
+              label: const Text('Checkout'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+        if (canCheckout && canExtend) const SizedBox(width: 8),
+        if (canExtend)
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => _showExtendStayDialog(context),
+              icon: const Icon(Icons.add_circle_outline, size: 18),
+              label: const Text('Extend'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.primaryColor,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _showCheckoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => _CheckoutDialog(
+        booking: booking,
+        onSuccess: onRefresh,
+      ),
+    );
+  }
+
+  void _showExtendStayDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => _ExtendStayDialog(
+        booking: booking,
+        onSuccess: onRefresh,
+      ),
+    );
+  }
 }
 
+// Checkout Dialog
+class _CheckoutDialog extends StatefulWidget {
+  final Booking booking;
+  final VoidCallback onSuccess;
 
+  const _CheckoutDialog({
+    required this.booking,
+    required this.onSuccess,
+  });
 
+  @override
+  State<_CheckoutDialog> createState() => _CheckoutDialogState();
+}
+
+class _CheckoutDialogState extends State<_CheckoutDialog> {
+  final BookingService _bookingService = BookingService();
+  final _homeReviewController = TextEditingController();
+  final _hostReviewController = TextEditingController();
+  double _homeRating = 5.0;
+  double _hostRating = 5.0;
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _homeReviewController.dispose();
+    _hostReviewController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkout() async {
+    setState(() => _isSubmitting = true);
+
+    final result = await _bookingService.checkout(
+      bookingId: widget.booking.id,
+      homeReview: _homeReviewController.text.trim().isNotEmpty
+          ? _homeReviewController.text.trim()
+          : null,
+      homeRating: _homeRating,
+      hostReview: _hostReviewController.text.trim().isNotEmpty
+          ? _hostReviewController.text.trim()
+          : null,
+      hostRating: _hostRating,
+    );
+
+    if (mounted) {
+      setState(() => _isSubmitting = false);
+
+      if (result['success']) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Checked out successfully!'),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+        widget.onSuccess();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Checkout failed'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Checkout'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Rate your stay:'),
+            const SizedBox(height: 8),
+
+            // Home Rating
+            Text(
+              'Property Rating',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            Slider(
+              value: _homeRating,
+              min: 1,
+              max: 5,
+              divisions: 4,
+              label: _homeRating.toStringAsFixed(1),
+              onChanged: (value) => setState(() => _homeRating = value),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(5, (index) {
+                return Icon(
+                  index < _homeRating ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                  size: 20,
+                );
+              }),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _homeReviewController,
+              decoration: const InputDecoration(
+                labelText: 'Property Review (optional)',
+                hintText: 'How was the property?',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+
+            const SizedBox(height: 16),
+
+            // Host Rating
+            Text(
+              'Host Rating',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            Slider(
+              value: _hostRating,
+              min: 1,
+              max: 5,
+              divisions: 4,
+              label: _hostRating.toStringAsFixed(1),
+              onChanged: (value) => setState(() => _hostRating = value),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(5, (index) {
+                return Icon(
+                  index < _hostRating ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                  size: 20,
+                );
+              }),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _hostReviewController,
+              decoration: const InputDecoration(
+                labelText: 'Host Review (optional)',
+                hintText: 'How was your host?',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isSubmitting ? null : _checkout,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.primaryColor,
+            foregroundColor: Colors.white,
+          ),
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Checkout'),
+        ),
+      ],
+    );
+  }
+}
+
+// Extend Stay Dialog
+class _ExtendStayDialog extends StatefulWidget {
+  final Booking booking;
+  final VoidCallback onSuccess;
+
+  const _ExtendStayDialog({
+    required this.booking,
+    required this.onSuccess,
+  });
+
+  @override
+  State<_ExtendStayDialog> createState() => _ExtendStayDialogState();
+}
+
+class _ExtendStayDialogState extends State<_ExtendStayDialog> {
+  final BookingService _bookingService = BookingService();
+  int _additionalDays = 1;
+  bool _isSubmitting = false;
+
+  double get _extensionCost {
+    final listing = widget.booking.listing as Map?;
+    final pricePerNight = listing?['price']?.toDouble() ?? widget.booking.totalPrice / widget.booking.numberOfNights;
+    return pricePerNight * _additionalDays * 1.3; // 30% surcharge
+  }
+
+  Future<void> _extendStay() async {
+    setState(() => _isSubmitting = true);
+
+    final result = await _bookingService.extendStay(
+      bookingId: widget.booking.id,
+      additionalDays: _additionalDays,
+    );
+
+    if (mounted) {
+      setState(() => _isSubmitting = false);
+
+      if (result['success']) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Extension request sent to host!'),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+        widget.onSuccess();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Extension request failed'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final newEndDate = widget.booking.endDate.add(Duration(days: _additionalDays));
+
+    return AlertDialog(
+      title: const Text('Extend Stay'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Current checkout: ${DateFormatter.formatDate(widget.booking.endDate)}',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 16),
+
+          Text(
+            'Additional Days',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              IconButton(
+                onPressed: _additionalDays > 1
+                    ? () => setState(() => _additionalDays--)
+                    : null,
+                icon: const Icon(Icons.remove_circle_outline),
+              ),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    '$_additionalDays days',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: () => setState(() => _additionalDays++),
+                icon: const Icon(Icons.add_circle_outline),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.backgroundColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('New checkout:'),
+                    Text(
+                      DateFormatter.formatDate(newEndDate),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Extension cost:'),
+                    Text(
+                      PriceFormatter.formatPriceInteger(_extensionCost),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  '(30% surcharge)',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isSubmitting ? null : _extendStay,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.primaryColor,
+            foregroundColor: Colors.white,
+          ),
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Request Extension'),
+        ),
+      ],
+    );
+  }
+}

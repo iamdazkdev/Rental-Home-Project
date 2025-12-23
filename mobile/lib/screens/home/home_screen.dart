@@ -207,6 +207,7 @@ class _ListingCardState extends State<_ListingCard> {
       });
 
       // Update user wishlist in provider
+      if (!mounted) return;
       final authProvider = context.read<AuthProvider>();
       final updatedUser = authProvider.user!.copyWith(
         wishlist: List<String>.from(result['wishlist']),

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import '../../models/listing.dart';
-import '../../models/booking.dart';
 import '../../services/booking_service.dart';
-import '../../providers/auth_provider.dart';
 import '../../config/app_theme.dart';
 import '../../utils/date_formatter.dart';
 import '../../utils/price_formatter.dart';
