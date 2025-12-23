@@ -85,6 +85,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         // Update auth provider
         await context.read<AuthProvider>().refreshUser();
 
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile updated successfully!'),
