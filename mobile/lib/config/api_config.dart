@@ -1,5 +1,8 @@
 class ApiConfig {
-  // Base URL - Change this for production
+  // Base URL - Change this based on your platform
+  // For iOS Simulator: use 'http://localhost:3001'
+  // For Android Emulator: use 'http://10.0.2.2:3001'
+  // For Physical Device: use your computer's IP, e.g., 'http://192.168.1.100:3001'
   static const String baseUrl = 'http://localhost:3001';
 
   // API Endpoints
@@ -9,9 +12,9 @@ class ApiConfig {
   static const String forgotPassword = '/auth/forgot-password';
   static const String resetPassword = '/auth/reset-password';
 
-  static const String listings = '/listings';
+  static const String listings = '/listing';  // Backend uses /listing not /listings
   static const String search = '/search';
-  static const String listingDetails = '/listings';
+  static const String listingDetails = '/listing';
 
   static const String bookings = '/bookings';
   static const String trips = '/users/trips';

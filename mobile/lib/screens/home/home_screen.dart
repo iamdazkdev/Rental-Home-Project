@@ -5,6 +5,8 @@ import '../../config/app_theme.dart';
 import '../../config/app_constants.dart';
 import '../../models/listing.dart';
 import '../../services/listing_service.dart';
+import '../../services/wishlist_service.dart';
+import '../listings/listing_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,6 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadListings() async {
+    debugPrint('🏠 HomeScreen: Loading listings for category: $_selectedCategory');
+
     setState(() {
       _isLoading = true;
     });
@@ -34,10 +38,16 @@ class _HomeScreenState extends State<HomeScreen> {
       category: _selectedCategory == 'All' ? null : _selectedCategory,
     );
 
+    debugPrint('🏠 HomeScreen: Received ${listings.length} listings');
+
     setState(() {
       _listings = listings;
       _isLoading = false;
     });
+
+    if (listings.isEmpty) {
+      debugPrint('⚠️ HomeScreen: No listings found!');
+    }
   }
 
   @override
@@ -155,16 +165,77 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _ListingCard extends StatelessWidget {
+class _ListingCard extends StatefulWidget {
   final Listing listing;
 
   const _ListingCard({required this.listing});
 
   @override
+  State<_ListingCard> createState() => _ListingCardState();
+}
+
+class _ListingCardState extends State<_ListingCard> {
+  final WishlistService _wishlistService = WishlistService();
+  bool _isInWishlist = false;
+  bool _isToggling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkWishlistStatus();
+  }
+
+  void _checkWishlistStatus() {
+    final user = context.read<AuthProvider>().user;
+    if (user != null) {
+      setState(() {
+        _isInWishlist = user.wishlist.contains(widget.listing.id);
+      });
+    }
+  }
+
+  Future<void> _toggleWishlist() async {
+    if (_isToggling) return;
+
+    setState(() => _isToggling = true);
+
+    final result = await _wishlistService.toggleWishlist(widget.listing.id);
+
+    if (result['success']) {
+      setState(() {
+        _isInWishlist = !_isInWishlist;
+      });
+
+      // Update user wishlist in provider
+      final authProvider = context.read<AuthProvider>();
+      final updatedUser = authProvider.user!.copyWith(
+        wishlist: List<String>.from(result['wishlist']),
+      );
+      authProvider.updateUser(updatedUser);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isInWishlist ? 'Added to wishlist' : 'Removed from wishlist'),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      }
+    }
+
+    setState(() => _isToggling = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navigate to listing details
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ListingDetailScreen(listingId: widget.listing.id),
+          ),
+        );
       },
       child: Container(
         decoration: BoxDecoration(
@@ -175,28 +246,58 @@ class _ListingCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
+            // Image with wishlist button
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              child: listing.mainPhoto != null
-                  ? Image.network(
-                      listing.mainPhoto!,
-                      height: 120,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
+              child: Stack(
+                children: [
+                  widget.listing.mainPhoto != null
+                      ? Image.network(
+                          widget.listing.mainPhoto!,
+                          height: 120,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 120,
+                              color: AppTheme.backgroundColor,
+                              child: const Icon(Icons.home_work_outlined, size: 40),
+                            );
+                          },
+                        )
+                      : Container(
                           height: 120,
                           color: AppTheme.backgroundColor,
                           child: const Icon(Icons.home_work_outlined, size: 40),
-                        );
-                      },
-                    )
-                  : Container(
-                      height: 120,
-                      color: AppTheme.backgroundColor,
-                      child: const Icon(Icons.home_work_outlined, size: 40),
+                        ),
+                  // Wishlist button
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: _toggleWishlist,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: _isToggling
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Icon(
+                                _isInWishlist ? Icons.favorite : Icons.favorite_border,
+                                color: _isInWishlist ? Colors.red : Colors.grey.shade700,
+                                size: 20,
+                              ),
+                      ),
                     ),
+                  ),
+                ],
+              ),
             ),
             // Details
             Expanded(
@@ -210,14 +311,14 @@ class _ListingCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          listing.title,
+                          widget.listing.title,
                           style: Theme.of(context).textTheme.titleMedium,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          listing.shortAddress,
+                          widget.listing.shortAddress,
                           style: Theme.of(context).textTheme.bodySmall,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -227,14 +328,14 @@ class _ListingCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          '\$${listing.price.toStringAsFixed(0)}',
+                          '\$${widget.listing.price.toStringAsFixed(0)}',
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                         Text(
-                          '/${listing.priceType ?? 'night'}',
+                          '/${widget.listing.priceType ?? 'night'}',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],

@@ -16,16 +16,24 @@ class ListingService {
         url += '?category=$category';
       }
 
+      debugPrint('🔍 Fetching listings from: $url');
+
       final uri = Uri.parse(url);
       final response = await http.get(uri, headers: ApiConfig.headers());
 
+      debugPrint('📥 Response status: ${response.statusCode}');
+      debugPrint('📦 Response body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}...');
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
+        debugPrint('✅ Parsed ${data.length} listings');
         return data.map((json) => Listing.fromJson(json)).toList();
       }
+
+      debugPrint('❌ Failed to fetch listings: ${response.statusCode}');
       return [];
     } catch (e) {
-      debugPrint('Error fetching listings: $e');
+      debugPrint('❌ Error fetching listings: $e');
       return [];
     }
   }

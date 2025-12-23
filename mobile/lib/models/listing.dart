@@ -58,7 +58,9 @@ class Listing {
   String get shortAddress => '$city, $province';
 
   List<String> get photoUrls {
-    return listingPhotoPaths.map((path) {
+    return listingPhotoPaths
+        .where((path) => !path.startsWith('blob:')) // Filter out blob URLs
+        .map((path) {
       // If already a full URL (Cloudinary), return as is
       if (path.startsWith('http')) {
         return path;
@@ -69,12 +71,9 @@ class Listing {
   }
 
   String? get mainPhoto {
-    if (listingPhotoPaths.isEmpty) return null;
-    final path = listingPhotoPaths.first;
-    if (path.startsWith('http')) {
-      return path;
-    }
-    return 'http://localhost:3001/$path';
+    final validPhotos = photoUrls;
+    if (validPhotos.isEmpty) return null;
+    return validPhotos.first;
   }
 
   double get dailyPrice {

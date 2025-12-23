@@ -19,7 +19,6 @@ class AuthProvider with ChangeNotifier {
   // Initialize - Load user from storage
   Future<void> init() async {
     _isLoading = true;
-    notifyListeners();
 
     try {
       _user = await _authService.getCurrentUser();
@@ -28,7 +27,11 @@ class AuthProvider with ChangeNotifier {
     }
 
     _isLoading = false;
-    notifyListeners();
+
+    // Use addPostFrameCallback to notify listeners after build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   // Register
