@@ -22,6 +22,10 @@ const ListingCard = ({
   endDate,
   totalPrice,
   booking,
+  isExtended,
+  onCheckout,
+  onReview,
+  onExtend,
 }) => {
   /* SLIDER FOR IMAGES */
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -54,13 +58,15 @@ const ListingCard = ({
   });
 
   const patchWishList = async () => {
-    // Check if user is logged in
-    if (!user?.id) {
-      console.log("❌ User not logged in");
+    // Check if user is logged in - check both id and _id
+    const userId = user?._id || user?.id;
+
+    if (!userId) {
+      console.log("❌ User not logged in - no userId found");
       return;
     }
 
-    const userId = user._id || user.id;
+    console.log(`🔍 User ID found: ${userId}`);
 
     // Only check creator when ADDING (not when REMOVING)
     if (!isLiked) {
@@ -113,17 +119,17 @@ const ListingCard = ({
             <div key={index} className="slide">
               <img
                 src={(() => {
-                  console.log("ListingCard Image Debug:");
+                  // console.log("ListingCard Image Debug:");
                   // Check if it's already a full Cloudinary URL
                   if (photo?.startsWith("https://")) {
-                    console.log("- Using Cloudinary URL directly:", photo);
+                    // console.log("- Using Cloudinary URL directly:", photo);
                     return photo;
                   }
                   // Legacy local path handling
                   const localPath = `${CONFIG.API_BASE_URL}/${
                     photo?.replace("public/", "") || ""
                   }`;
-                  console.log("- Using local path:", localPath);
+                  // console.log("- Using local path:", localPath);
                   return localPath;
                 })()}
                 alt={`photo ${index + 1}`}
@@ -168,13 +174,59 @@ const ListingCard = ({
           {" "}
           <p>
             {startDate} - {endDate}
+            {isExtended && (
+              <span className="extended-badge"> Extended</span>
+            )}
           </p>
           <p>
-            <span>${totalPrice}</span>
+            <span>${typeof totalPrice === 'number' ? totalPrice.toFixed(2) : totalPrice}</span>
             &nbsp;total
+            {isExtended && (
+              <span className="updated-badge"> Updated</span>
+            )}
           </p>
         </>
       )}
+
+      {/* Action Buttons for Bookings */}
+      {booking && (
+        <div className="booking-actions">
+          {onCheckout && (
+            <button
+              className="action-btn checkout-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCheckout();
+              }}
+            >
+              🏠 Check Out
+            </button>
+          )}
+          {onReview && (
+            <button
+              className="action-btn review-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onReview();
+              }}
+            >
+              ⭐ Review
+            </button>
+          )}
+          {onExtend && (
+            <button
+              className="action-btn extend-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onExtend();
+              }}
+            >
+              📅 Extend Stay
+            </button>
+          )}
+        </div>
+      )}
+
       <button
         className="favorite"
         disabled={!user}

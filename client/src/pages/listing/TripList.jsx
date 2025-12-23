@@ -1,22 +1,48 @@
 import "../../styles/List.scss";
-import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
-import { useState } from "react";
+import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
+import { useState, useEffect } from "react";
 import Loader from "../../components/Loader";
 import Navbar from "../../components/Navbar";
 import { useDispatch, useSelector } from "react-redux";
 import { setTripList } from "../../redux/state";
-import { useEffect } from "react";
 import ListingCard from "../../components/ListingCard";
 import Footer from "../../components/Footer";
+import ReviewModal from "../../components/ReviewModal";
+import ExtendStayModal from "../../components/ExtendStayModal";
 
 const TripList = () => {
   const [loading, setLoading] = useState(true);
-  const userId = useSelector((state) => state.user?.id || state.user?._id);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [extendModalOpen, setExtendModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+
+  // Get user from Redux
+  const user = useSelector((state) => state.user);
+  const userId = user?._id || user?.id;
+
+  // Debug logging
+  console.log("🔍 TripList - User state:", {
+    user,
+    userId,
+    hasUser: !!user,
+    userKeys: user ? Object.keys(user) : []
+  });
+
   const dispatch = useDispatch();
   const tripList = useSelector((state) => state.user?.tripList || []);
+
   const getTripList = async () => {
     try {
+      // Validate userId before making API call
+      if (!userId) {
+        console.error("❌ User ID is undefined, cannot fetch trips");
+        setLoading(false);
+        return;
+      }
+
       const url = API_ENDPOINTS.USERS.GET_TRIPS(userId);
+      console.log(`🔄 Fetching trips for user: ${userId}`);
+
       const response = await fetch(url, { method: HTTP_METHODS.GET });
       if (!response.ok) {
         const text = await response.text();
@@ -25,27 +51,126 @@ const TripList = () => {
         );
       }
       const data = await response.json();
-      console.log("TripList fetch:", { url, data });
+      console.log("✅ TripList fetch:", { url, data });
       setTripList({ tripList: data });
       dispatch(setTripList(data));
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching trip list:", err);
+      console.error("❌ Error fetching trip list:", err);
+      setLoading(false);
     }
   };
 
+  const handleCheckout = async (bookingId) => {
+    if (!window.confirm("Are you sure you want to check out? This will mark your stay as completed.")) {
+      return;
+    }
+
+    try {
+      console.log(`🔄 Checking out booking ${bookingId}...`);
+      const url = `${API_ENDPOINTS.BOOKINGS.ACCEPT}/${bookingId}/checkout`;
+      const response = await fetch(url, {
+        method: HTTP_METHODS.PATCH,
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to checkout: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ ${data.message}`);
+
+      // Refresh trips
+      await getTripList();
+    } catch (error) {
+      console.error("❌ Error checking out:", error);
+      alert("Failed to checkout. Please try again.");
+    }
+  };
+
+  const handleReview = (booking) => {
+    setSelectedBooking(booking);
+    setReviewModalOpen(true);
+  };
+
+  const handleReviewSubmitted = () => {
+    // Refresh trips to update status
+    getTripList();
+  };
+
+  const handleExtensionRequest = (booking) => {
+    setSelectedBooking(booking);
+    setExtendModalOpen(true);
+  };
+
+  const handleExtensionSubmit = async (additionalDays) => {
+    if (!selectedBooking) return;
+
+    try {
+      console.log(`🔄 Requesting extension for booking ${selectedBooking._id}...`);
+      const url = `${API_ENDPOINTS.BOOKINGS.ACCEPT}/${selectedBooking._id}/extension`;
+      const response = await fetch(url, {
+        method: HTTP_METHODS.POST,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ additionalDays }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to request extension: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ ${data.message}`);
+
+      alert(`Extension request submitted! Additional cost: $${data.extensionRequest.additionalPrice}`);
+      await getTripList();
+    } catch (error) {
+      console.error("❌ Error requesting extension:", error);
+      alert(error.message || "Failed to request extension. Please try again.");
+      throw error; // Re-throw to let modal handle it
+    }
+  };
+
+  const canCheckout = (booking) => {
+    // User có thể checkout bất kỳ lúc nào sau khi booking được accept
+    // Không cần chờ đến endDate
+    return booking.status === "accepted" && !booking.isCheckedOut;
+  };
+
+  const canReview = (booking) => {
+    // Có thể review sau khi checkout hoặc booking accepted (đã thuê)
+    return booking.isCheckedOut || booking.status === "completed" || booking.status === "checked_out";
+  };
+
+  const canExtend = (booking) => {
+    return booking.status === "accepted" && !booking.isCheckedOut;
+  };
+
   useEffect(() => {
-    getTripList().then(r => {});
-  });
+    if (userId) {
+      console.log(`🔄 TripList mounted, userId: ${userId}`);
+      getTripList();
+    } else {
+      console.warn("⚠️ No userId found, skipping trip fetch");
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   return loading ? (
     <Loader />
   ) : (
-  <>
+    <>
       <Navbar />
       <h1 className="title-list">Your Trip List</h1>
       <div className="list">
-        {tripList?.length === 0 ? (
+        {!userId ? (
+          <div className="no-listings">
+            <p>Please log in to view your trips.</p>
+          </div>
+        ) : tripList?.length === 0 ? (
           <div className="no-listings">
             <p>You haven't booked any trips yet.</p>
           </div>
@@ -68,15 +193,33 @@ const TripList = () => {
                 country={trip.listingId?.country}
                 category={trip.listingId?.category}
                 startDate={trip.startDate}
-                endDate={trip.endDate}
-                totalPrice={trip.totalPrice}
+                endDate={trip.finalEndDate || trip.endDate}
+                totalPrice={trip.finalTotalPrice || trip.totalPrice}
                 booking={true}
+                isExtended={!!trip.finalEndDate}
+                onCheckout={canCheckout(trip) ? () => handleCheckout(trip._id) : null}
+                onReview={canReview(trip) ? () => handleReview(trip) : null}
+                onExtend={canExtend(trip) ? () => handleExtensionRequest(trip) : null}
               />
             </div>
           ))
         )}
       </div>
       <Footer />
+      {reviewModalOpen && (
+        <ReviewModal
+          booking={selectedBooking}
+          onClose={() => setReviewModalOpen(false)}
+          onReviewSubmitted={handleReviewSubmitted}
+        />
+      )}
+      {extendModalOpen && (
+        <ExtendStayModal
+          booking={selectedBooking}
+          onClose={() => setExtendModalOpen(false)}
+          onSubmit={handleExtensionSubmit}
+        />
+      )}
     </>
   );
 };

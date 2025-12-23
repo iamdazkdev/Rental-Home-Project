@@ -10,6 +10,7 @@ const listingRoutes = require("./routes/listing.js");
 const bookingRoutes = require("./routes/booking.js");
 const userRoutes = require("./routes/user.js");
 const notificationRoutes = require("./routes/notification.js");
+const reviewRoutes = require("./routes/review.js");
 // Middleware
 const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE;
 app.use(cors());
@@ -32,6 +33,7 @@ app.use("/listing", listingRoutes);
 app.use("/booking", bookingRoutes);
 app.use("/user", userRoutes);
 app.use("/notifications", notificationRoutes);
+app.use("/reviews", reviewRoutes);
 
 // ENV VARIABLES
 const PORT = process.env.PORT;

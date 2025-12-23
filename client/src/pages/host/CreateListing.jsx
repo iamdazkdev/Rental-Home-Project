@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useSelector } from "react-redux";
-import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
+import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 import { useNavigate } from "react-router-dom";
 
 // Simple and Beautiful Photo Item Component

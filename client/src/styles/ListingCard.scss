@@ -71,6 +71,29 @@
 
   p {
     font-size: 16px;
+
+    .extended-badge,
+    .updated-badge {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      vertical-align: middle;
+    }
+
+    .extended-badge {
+      background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+      color: white;
+    }
+
+    .updated-badge {
+      background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+      color: white;
+    }
   }
 
   span {
@@ -87,5 +110,58 @@
     cursor: pointer;
     z-index: 999;
     background: none;
+  }
+
+  .booking-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+
+    .action-btn {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &.checkout-btn {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+        color: white;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+      }
+
+      &.review-btn {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        color: white;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+        }
+      }
+
+      &.extend-btn {
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        color: white;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
   }
 }

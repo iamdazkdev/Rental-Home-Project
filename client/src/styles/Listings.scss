@@ -48,4 +48,16 @@
   @include lg {
     padding: 0 20px 120px;
   }
+
+  .no-listings {
+    text-align: center;
+    padding: 60px 20px;
+    width: 100%;
+
+    p {
+      font-size: 18px;
+      color: $darkgrey;
+      margin: 0;
+    }
+  }
 }

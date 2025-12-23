@@ -3,6 +3,7 @@ const Booking = require("../models/Booking");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
 const Listing = require("../models/Listing");
+const Review = require("../models/Review");
 const { HTTP_STATUS } = require("../constants");
 
 // Helper function to create notification
@@ -20,6 +21,13 @@ const createNotification = async (userId, type, bookingId, message, link = "") =
   } catch (error) {
     console.error("❌ Error creating notification:", error);
   }
+};
+
+// Helper function to calculate extension price (30% of daily rate)
+const calculateExtensionPrice = (listingPrice, additionalDays) => {
+  const dailyRate = listingPrice; // Assuming listingPrice is daily rate
+  const extensionRate = dailyRate * 1.3; // 30% surcharge
+  return extensionRate * additionalDays;
 };
 
 // CREATE BOOKING
@@ -47,6 +55,8 @@ router.post("/create", async (req, res) => {
       endDate,
       totalPrice,
       status: "pending",
+      finalEndDate: endDate,
+      finalTotalPrice: totalPrice,
     });
 
     const savedBooking = await newBooking.save();
@@ -79,7 +89,7 @@ router.get("/host/:hostId", async (req, res) => {
 
     const reservations = await Booking.find({ hostId })
       .populate("customerId", "firstName lastName email profileImagePath")
-      .populate("listingId", "title listingPhotoPaths city province country")
+      .populate("listingId", "title listingPhotoPaths city province country price")
       .sort({ createdAt: -1 });
 
     console.log(`✅ Found ${reservations.length} reservations for host ${hostId}`);
@@ -189,6 +199,250 @@ router.patch("/:bookingId/reject", async (req, res) => {
     console.error("❌ Error rejecting booking:", error);
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       message: "Failed to reject booking",
+      error: error.message,
+    });
+  }
+});
+
+// CHECKOUT BOOKING (manual checkout)
+router.patch("/:bookingId/checkout", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    const booking = await Booking.findById(bookingId)
+      .populate("customerId", "firstName lastName")
+      .populate("listingId", "title");
+
+    if (!booking) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        message: "Booking not found",
+      });
+    }
+
+    if (booking.status !== "accepted") {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: `Cannot checkout booking with status: ${booking.status}`,
+      });
+    }
+
+    // Update booking status
+    booking.status = "checked_out";
+    booking.isCheckedOut = true;
+    booking.checkedOutAt = new Date();
+    await booking.save();
+
+    // Create notification for customer
+    await createNotification(
+      booking.customerId._id,
+      "booking_checked_out",
+      booking._id,
+      `You have successfully checked out from "${booking.listingId.title}". Please leave a review!`,
+      `/${booking.customerId._id}/trips`
+    );
+
+    console.log(`✅ Booking ${bookingId} checked out`);
+
+    res.status(HTTP_STATUS.OK).json({
+      message: "Checkout successful",
+      booking,
+    });
+  } catch (error) {
+    console.error("❌ Error checking out:", error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Failed to checkout",
+      error: error.message,
+    });
+  }
+});
+
+// REQUEST EXTENSION
+router.post("/:bookingId/extension", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { additionalDays } = req.body;
+
+    if (!additionalDays || additionalDays < 1) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: "Additional days must be at least 1",
+      });
+    }
+
+    const booking = await Booking.findById(bookingId).populate("listingId", "price");
+
+    if (!booking) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        message: "Booking not found",
+      });
+    }
+
+    if (booking.status !== "accepted") {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: `Cannot request extension for booking with status: ${booking.status}`,
+      });
+    }
+
+    // Calculate extension price (30% surcharge)
+    const additionalPrice = calculateExtensionPrice(booking.listingId.price, additionalDays);
+
+    // Calculate new end date
+    const currentEndDate = new Date(booking.finalEndDate || booking.endDate);
+    const newEndDate = new Date(currentEndDate);
+    newEndDate.setDate(newEndDate.getDate() + additionalDays);
+    const requestedEndDate = newEndDate.toISOString().split('T')[0];
+
+    // Add extension request
+    const extensionRequest = {
+      requestedEndDate,
+      additionalDays,
+      additionalPrice,
+      status: "pending",
+    };
+
+    booking.extensionRequests.push(extensionRequest);
+    await booking.save();
+
+    // Create notification for host
+    const customer = await User.findById(booking.customerId);
+    await createNotification(
+      booking.hostId,
+      "extension_request",
+      booking._id,
+      `${customer.firstName} ${customer.lastName} has requested to extend their stay by ${additionalDays} days (+$${additionalPrice})`,
+      `/reservations`
+    );
+
+    console.log(`✅ Extension request created for booking ${bookingId}`);
+
+    res.status(HTTP_STATUS.OK).json({
+      message: "Extension request submitted successfully",
+      extensionRequest,
+    });
+  } catch (error) {
+    console.error("❌ Error requesting extension:", error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Failed to request extension",
+      error: error.message,
+    });
+  }
+});
+
+// APPROVE EXTENSION
+router.patch("/:bookingId/extension/:extensionIndex/approve", async (req, res) => {
+  try {
+    const { bookingId, extensionIndex } = req.params;
+
+    const booking = await Booking.findById(bookingId)
+      .populate("customerId", "firstName lastName")
+      .populate("listingId", "title");
+
+    if (!booking) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        message: "Booking not found",
+      });
+    }
+
+    const extension = booking.extensionRequests[extensionIndex];
+    if (!extension) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        message: "Extension request not found",
+      });
+    }
+
+    if (extension.status !== "pending") {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: `Extension request is already ${extension.status}`,
+      });
+    }
+
+    // Approve extension
+    extension.status = "approved";
+    extension.approvedAt = new Date();
+
+    // Update booking dates and price
+    booking.finalEndDate = extension.requestedEndDate;
+    booking.finalTotalPrice = (booking.finalTotalPrice || booking.totalPrice) + extension.additionalPrice;
+
+    await booking.save();
+
+    // Create notification for customer
+    await createNotification(
+      booking.customerId._id,
+      "extension_approved",
+      booking._id,
+      `Your extension request for "${booking.listingId.title}" has been approved! New checkout: ${extension.requestedEndDate}`,
+      `/${booking.customerId._id}/trips`
+    );
+
+    console.log(`✅ Extension approved for booking ${bookingId}`);
+
+    res.status(HTTP_STATUS.OK).json({
+      message: "Extension approved successfully",
+      booking,
+    });
+  } catch (error) {
+    console.error("❌ Error approving extension:", error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Failed to approve extension",
+      error: error.message,
+    });
+  }
+});
+
+// REJECT EXTENSION
+router.patch("/:bookingId/extension/:extensionIndex/reject", async (req, res) => {
+  try {
+    const { bookingId, extensionIndex } = req.params;
+    const { reason } = req.body;
+
+    const booking = await Booking.findById(bookingId)
+      .populate("customerId", "firstName lastName")
+      .populate("listingId", "title");
+
+    if (!booking) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        message: "Booking not found",
+      });
+    }
+
+    const extension = booking.extensionRequests[extensionIndex];
+    if (!extension) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        message: "Extension request not found",
+      });
+    }
+
+    if (extension.status !== "pending") {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: `Extension request is already ${extension.status}`,
+      });
+    }
+
+    // Reject extension
+    extension.status = "rejected";
+    extension.rejectedAt = new Date();
+    extension.rejectionReason = reason || "No reason provided";
+
+    await booking.save();
+
+    // Create notification for customer
+    await createNotification(
+      booking.customerId._id,
+      "extension_rejected",
+      booking._id,
+      `Your extension request for "${booking.listingId.title}" has been rejected. Reason: ${extension.rejectionReason}`,
+      `/${booking.customerId._id}/trips`
+    );
+
+    console.log(`✅ Extension rejected for booking ${bookingId}`);
+
+    res.status(HTTP_STATUS.OK).json({
+      message: "Extension rejected successfully",
+      booking,
+    });
+  } catch (error) {
+    console.error("❌ Error rejecting extension:", error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Failed to reject extension",
       error: error.message,
     });
   }

@@ -69,38 +69,44 @@ const Listing = () => {
         <Loader />
       ) : (
         <div className="listings">
-          {listings.map(
-            ({
-              _id,
-              id,
-              creator,
-              listingPhotoPaths,
-              city,
-              province,
-              country,
-              category,
-              type,
-              price,
-              booking = false,
-            }) => {
-              const listingId = id || _id;
-              if (!listingId) return null;
-              return (
-                <ListingCard
-                  key={listingId}
-                  listingId={listingId}
-                  creator={creator}
-                  listingPhotoPaths={listingPhotoPaths}
-                  city={city}
-                  province={province}
-                  country={country}
-                  category={category}
-                  type={type}
-                  price={price}
-                  booking={booking}
-                />
-              );
-            }
+          {listings && listings.length > 0 ? (
+            listings.map(
+              ({
+                _id,
+                id,
+                creator,
+                listingPhotoPaths,
+                city,
+                province,
+                country,
+                category,
+                type,
+                price,
+                booking = false,
+              }) => {
+                const listingId = id || _id;
+                if (!listingId) return null;
+                return (
+                  <ListingCard
+                    key={listingId}
+                    listingId={listingId}
+                    creator={creator}
+                    listingPhotoPaths={listingPhotoPaths}
+                    city={city}
+                    province={province}
+                    country={country}
+                    category={category}
+                    type={type}
+                    price={price}
+                    booking={booking}
+                  />
+                );
+              }
+            )
+          ) : (
+            <div className="no-listings">
+              <p>No listings found. Try a different category.</p>
+            </div>
           )}
         </div>
       )}

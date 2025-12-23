@@ -1,5 +1,5 @@
 import "../../styles/List.scss";
-import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
+import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 import { useState, useEffect, useMemo } from "react";
 import Loader from "../../components/Loader";
 import Navbar from "../../components/Navbar";
@@ -113,4 +113,3 @@ const WishList = () => {
 };
 
 export default WishList;
-

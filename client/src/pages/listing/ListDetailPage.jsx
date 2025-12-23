@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from "react";
 import "../../styles/ListingDetails.scss";
 import { useNavigate, useParams } from "react-router-dom";
-import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from "../../constants";
+import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from "../../constants/api";
 import Loader from "../../components/Loader";
+import Reviews from "../../components/Reviews";
 import { facilities } from "../../data";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
@@ -228,6 +229,9 @@ const ListingDetails = () => {
             BOOKING
           </button>
         </div>
+
+        {/* Reviews Section */}
+        <Reviews listingId={listingId} />
       </div>
     </>
   );

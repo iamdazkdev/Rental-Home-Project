@@ -78,6 +78,15 @@ export const API_ENDPOINTS = {
     DELETE: (notificationId) => `${API_BASE_URL}/notifications/${notificationId}`,
   },
 
+  // Review endpoints
+  REVIEWS: {
+    CREATE: `${API_BASE_URL}/reviews`,
+    GET_LISTING: (listingId) => `${API_BASE_URL}/reviews/listing/${listingId}`,
+    GET_USER: (userId) => `${API_BASE_URL}/reviews/user/${userId}`,
+    UPDATE: (reviewId) => `${API_BASE_URL}/reviews/${reviewId}`,
+    DELETE: (reviewId) => `${API_BASE_URL}/reviews/${reviewId}`,
+  },
+
   // Upload endpoints
   UPLOADS: {
     IMAGES: `${API_BASE_URL}/upload/images`,

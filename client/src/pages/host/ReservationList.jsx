@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
+import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Loader from "../../components/Loader";
@@ -81,6 +81,57 @@ const ReservationList = () => {
     } catch (error) {
       console.error("❌ Error rejecting booking:", error);
       alert("Failed to reject booking. Please try again.");
+    }
+  };
+
+  const handleApproveExtension = async (bookingId, extensionIndex) => {
+    try {
+      console.log(`🔄 Approving extension ${extensionIndex} for booking ${bookingId}...`);
+      const url = `${API_ENDPOINTS.BOOKINGS.ACCEPT}/${bookingId}/extension/${extensionIndex}/approve`;
+      const response = await fetch(url, {
+        method: HTTP_METHODS.PATCH,
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to approve extension: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ ${data.message}`);
+
+      // Refresh reservations
+      await getReservations();
+    } catch (error) {
+      console.error("❌ Error approving extension:", error);
+      alert("Failed to approve extension. Please try again.");
+    }
+  };
+
+  const handleRejectExtension = async (bookingId, extensionIndex) => {
+    const reason = prompt("Please provide a reason for rejecting the extension (optional):");
+
+    try {
+      console.log(`🔄 Rejecting extension ${extensionIndex} for booking ${bookingId}...`);
+      const url = `${API_ENDPOINTS.BOOKINGS.REJECT}/${bookingId}/extension/${extensionIndex}/reject`;
+      const response = await fetch(url, {
+        method: HTTP_METHODS.PATCH,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reason || "No reason provided" }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to reject extension: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ ${data.message}`);
+
+      // Refresh reservations
+      await getReservations();
+    } catch (error) {
+      console.error("❌ Error rejecting extension:", error);
+      alert("Failed to reject extension. Please try again.");
     }
   };
 
@@ -200,10 +251,18 @@ const ReservationList = () => {
                       <strong>Check-in:</strong> {reservation.startDate}
                     </p>
                     <p>
-                      <strong>Check-out:</strong> {reservation.endDate}
+                      <strong>Check-out:</strong>{" "}
+                      {reservation.finalEndDate || reservation.endDate}
+                      {reservation.finalEndDate && (
+                        <span className="extended-badge"> (Extended)</span>
+                      )}
                     </p>
                     <p>
-                      <strong>Total:</strong> ${reservation.totalPrice}
+                      <strong>Total:</strong> $
+                      {(reservation.finalTotalPrice || reservation.totalPrice).toFixed(2)}
+                      {reservation.finalTotalPrice && (
+                        <span className="updated-price"> (Updated)</span>
+                      )}
                     </p>
                     <p className="booking-date">
                       Requested: {new Date(reservation.createdAt).toLocaleDateString()}
@@ -243,6 +302,79 @@ const ReservationList = () => {
                   {reservation.status === "rejected" && (
                     <div className="status-message rejected-message">
                       ✗ You rejected this booking
+                    </div>
+                  )}
+
+                  {/* Extension Requests */}
+                  {reservation.extensionRequests?.length > 0 && (
+                    <div className="extension-requests">
+                      <h4>Extension Requests</h4>
+                      {reservation.extensionRequests.map((extension, index) => (
+                        <div key={index} className="extension-request">
+                          <div className="request-details">
+                            <p>
+                              <strong>Additional Days</strong>
+                              <span>{extension.additionalDays} day{extension.additionalDays !== 1 ? 's' : ''}</span>
+                            </p>
+                            <p>
+                              <strong>New End Date</strong>
+                              <span>{new Date(extension.requestedEndDate).toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              })}</span>
+                            </p>
+                            <p>
+                              <strong>Additional Cost</strong>
+                              <span>${extension.additionalPrice.toFixed(2)}</span>
+                            </p>
+                            <p className="request-date">
+                              Requested on {new Date(extension.requestedAt).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </p>
+                          </div>
+
+                          <div className="request-actions">
+                            {extension.status === "pending" && (
+                              <>
+                                <button
+                                  className="btn-approve"
+                                  onClick={() => handleApproveExtension(reservation._id, index)}
+                                >
+                                  <span>✓</span> Approve
+                                </button>
+                                <button
+                                  className="btn-reject"
+                                  onClick={() => handleRejectExtension(reservation._id, index)}
+                                >
+                                  <span>✗</span> Reject
+                                </button>
+                              </>
+                            )}
+
+                            {extension.status === "approved" && (
+                              <div className="status-message accepted-message">
+                                Extension approved
+                              </div>
+                            )}
+
+                            {extension.status === "rejected" && (
+                              <div className="status-message rejected-message">
+                                Extension rejected
+                                {extension.rejectionReason && (
+                                  <div className="rejection-reason">
+                                    Reason: {extension.rejectionReason}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "../../styles/Register.scss";
 import { useNavigate } from "react-router-dom";
-import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
+import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({

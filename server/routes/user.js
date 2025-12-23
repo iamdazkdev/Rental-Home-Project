@@ -9,12 +9,26 @@ const { HTTP_STATUS } = require("../constants");
 router.get("/:userId/trips", async (req, res) => {
   try {
     const { userId } = req.params;
+
+    // Validate userId
+    if (!userId || userId === 'undefined' || userId === 'null') {
+      console.log("❌ Invalid userId:", userId);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: "Invalid user ID. Please log in again.",
+        error: "User ID is required"
+      });
+    }
+
+    // console.log(`🔍 Fetching trips for userId: ${userId}`);
+
     const trips = await Booking.find({ customerId: userId }).populate(
       "customerId hostId listingId"
     );
+
+    // console.log(`✅ Found ${trips.length} trips for user ${userId}`);
     res.status(HTTP_STATUS.ACCEPTED).json(trips);
   } catch (err) {
-    console.log("ERROR: Fail to get trips", err);
+    console.log("❌ ERROR: Fail to get trips", err);
     res
       .status(HTTP_STATUS.NOT_FOUND)
       .json({ message: "Trips not found", error: err.message });
@@ -53,7 +67,6 @@ router.patch("/:userId/:listingId", async (req, res) => {
         .status(HTTP_STATUS.OK)
         .json({ message: "Removed from wishlist", wishList: user.wishList });
     } else {
-      // Add listing id to wishlist (store id instead of full doc)
       user.wishList.push(listing._id);
       await user.save();
       return res

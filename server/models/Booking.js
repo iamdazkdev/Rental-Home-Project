@@ -31,12 +31,50 @@ const BookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "accepted", "rejected", "cancelled"],
+      enum: ["pending", "accepted", "rejected", "cancelled", "checked_out", "completed"],
       default: "pending",
     },
     rejectionReason: {
       type: String,
       default: "",
+    },
+    // Checkout fields
+    checkedOutAt: {
+      type: Date,
+      default: null,
+    },
+    isCheckedOut: {
+      type: Boolean,
+      default: false,
+    },
+    // Extension requests
+    extensionRequests: [
+      {
+        requestedEndDate: String,
+        additionalDays: Number,
+        additionalPrice: Number,
+        status: {
+          type: String,
+          enum: ["pending", "approved", "rejected"],
+          default: "pending",
+        },
+        requestedAt: {
+          type: Date,
+          default: Date.now,
+        },
+        approvedAt: Date,
+        rejectedAt: Date,
+        rejectionReason: String,
+      },
+    ],
+    // Final dates after extensions
+    finalEndDate: {
+      type: String,
+      default: null,
+    },
+    finalTotalPrice: {
+      type: Number,
+      default: null,
     },
   },
   { timestamps: true }

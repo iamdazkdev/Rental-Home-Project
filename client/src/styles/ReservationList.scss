@@ -174,6 +174,32 @@
           strong {
             color: $blue;
           }
+
+          .extended-badge {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+
+          .updated-price {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
         }
 
         .booking-date {
@@ -250,6 +276,229 @@
         &.rejected-message {
           background: #ffebee;
           color: #c62828;
+        }
+      }
+
+      // Extension Requests Section
+      .extension-requests {
+        margin-top: 25px;
+        padding: 20px;
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        border-radius: 12px;
+        border-left: 4px solid #ff9800;
+
+        h4 {
+          margin: 0 0 20px 0;
+          font-size: 18px;
+          font-weight: 700;
+          color: #e65100;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          &:before {
+            content: "📅";
+            font-size: 20px;
+          }
+        }
+
+        .extension-request {
+          background: white;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 15px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          transition: all 0.3s ease;
+
+          &:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+          }
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          .request-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+
+            @include sm {
+              grid-template-columns: 1fr;
+              gap: 12px;
+            }
+
+            p {
+              margin: 0;
+              padding: 12px 16px;
+              background: #f5f5f5;
+              border-radius: 8px;
+              font-size: 14px;
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+
+              strong {
+                color: $darkgrey;
+                font-size: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              }
+
+              &:not(.request-date) {
+                font-size: 18px;
+                font-weight: 700;
+                color: $blue;
+              }
+
+              &.request-date {
+                grid-column: 1 / -1;
+                background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+                color: #1976d2;
+                font-weight: 600;
+                text-align: center;
+
+                strong {
+                  display: none;
+                }
+
+                &:before {
+                  content: "⏰ ";
+                }
+              }
+
+              // Specific styling for each field
+              &:nth-child(1) {
+                // Additional Days
+                strong:after {
+                  content: " 📊";
+                }
+              }
+
+              &:nth-child(2) {
+                // New End Date
+                strong:after {
+                  content: " 📆";
+                }
+              }
+
+              &:nth-child(3) {
+                // Additional Cost
+                color: $pinkred;
+
+                strong {
+                  color: $darkgrey;
+
+                  &:after {
+                    content: " 💰";
+                  }
+                }
+              }
+            }
+          }
+
+          .request-actions {
+            display: flex;
+            gap: 12px;
+
+            @include sm {
+              flex-direction: column;
+            }
+
+            button {
+              flex: 1;
+              padding: 14px 20px;
+              border: none;
+              border-radius: 10px;
+              font-weight: 700;
+              font-size: 15px;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+
+              &.btn-approve {
+                background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+                color: white;
+                box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+
+                &:hover {
+                  transform: translateY(-3px);
+                  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+                }
+
+                &:active {
+                  transform: translateY(-1px);
+                }
+              }
+
+              &.btn-reject {
+                background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+                color: white;
+                box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+
+                &:hover {
+                  transform: translateY(-3px);
+                  box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+                }
+
+                &:active {
+                  transform: translateY(-1px);
+                }
+              }
+            }
+
+            .status-message {
+              width: 100%;
+              padding: 16px;
+              border-radius: 10px;
+              text-align: center;
+              font-weight: 700;
+              font-size: 15px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 8px;
+
+              &.accepted-message {
+                background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+                color: #2e7d32;
+                border: 2px solid #4caf50;
+
+                &:before {
+                  content: "✓";
+                  font-size: 20px;
+                }
+              }
+
+              &.rejected-message {
+                background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+                color: #c62828;
+                border: 2px solid #f44336;
+
+                &:before {
+                  content: "✗";
+                  font-size: 20px;
+                }
+
+                .rejection-reason {
+                  margin-top: 8px;
+                  padding: 8px 12px;
+                  background: rgba(255, 255, 255, 0.5);
+                  border-radius: 6px;
+                  font-size: 13px;
+                  font-style: italic;
+                }
+              }
+            }
+          }
         }
       }
     }
