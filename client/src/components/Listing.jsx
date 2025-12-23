@@ -13,6 +13,8 @@ const Listing = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const listings = useSelector((state) => state.listings);
+  const user = useSelector((state) => state.user);
+  const currentUserId = user?._id || user?.id;
   const getFeedListing = useCallback(async () => {
     try {
       setLoading(true);
@@ -70,7 +72,13 @@ const Listing = () => {
       ) : (
         <div className="listings">
           {listings && listings.length > 0 ? (
-            listings.map(
+            listings
+              .filter((listing) => {
+                // Filter out user's own listings
+                const creatorId = listing.creator?._id || listing.creator?.id || listing.creator;
+                return currentUserId ? String(creatorId) !== String(currentUserId) : true;
+              })
+              .map(
               ({
                 _id,
                 id,

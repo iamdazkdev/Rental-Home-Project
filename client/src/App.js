@@ -10,6 +10,8 @@ import ListDetailPage from "./pages/listing/ListDetailPage";
 import TripList from "./pages/listing/TripList";
 import WishList from "./pages/listing/WishList";
 import ReservationList from "./pages/host/ReservationList";
+import UserBookingHistory from "./pages/user/UserBookingHistory";
+import HostBookingHistory from "./pages/host/HostBookingHistory";
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
           <Route path="/:userId/trips" element={<TripList />} />
           <Route path="/:userId/wishlist" element={<WishList />} />
           <Route path="/reservations" element={<ReservationList />} />
+          <Route path="/booking-history" element={<UserBookingHistory />} />
+          <Route path="/hosting-history" element={<HostBookingHistory />} />
         </Routes>
       </BrowserRouter>
     </div>

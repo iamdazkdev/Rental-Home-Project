@@ -42,6 +42,22 @@ router.post("/create", async (req, res) => {
       });
     }
 
+    // Check if user already has an active booking for this listing
+    const existingBooking = await Booking.findOne({
+      customerId,
+      listingId,
+      status: { $in: ["pending", "accepted"] },
+      isCheckedOut: false,
+    });
+
+    if (existingBooking) {
+      console.log(`⚠️ Duplicate booking attempt prevented for listing ${listingId} by user ${customerId}`);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: "You already have an active booking for this listing",
+        existingBooking,
+      });
+    }
+
     // Get listing details for notification
     const listing = await Listing.findById(listingId);
     const customer = await User.findById(customerId);

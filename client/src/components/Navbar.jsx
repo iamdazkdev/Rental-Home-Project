@@ -11,6 +11,8 @@ import {
   Logout,
   Login,
   PersonAdd,
+  History,
+  Assessment,
 } from "@mui/icons-material";
 import variables from "../styles/variables.scss";
 import { CONFIG } from "../constants/api";
@@ -190,6 +192,14 @@ const Navbar = () => {
                     <span>Trip List</span>
                   </Link>
                   <Link
+                    to="/booking-history"
+                    className="menu_item"
+                    onClick={() => setDropdownMenu(false)}
+                  >
+                    <History sx={{ fontSize: 20 }} />
+                    <span>Booking History</span>
+                  </Link>
+                  <Link
                     to={`/${user._id || user.id}/wishlist`}
                     className="menu_item"
                     onClick={() => setDropdownMenu(false)}
@@ -197,6 +207,9 @@ const Navbar = () => {
                     <FavoriteBorder sx={{ fontSize: 20 }} />
                     <span>Wish List</span>
                   </Link>
+
+                  <div className="menu_divider"></div>
+
                   <Link
                     to="/properties"
                     className="menu_item"
@@ -212,6 +225,14 @@ const Navbar = () => {
                   >
                     <EventNote sx={{ fontSize: 20 }} />
                     <span>Reservation List</span>
+                  </Link>
+                  <Link
+                    to="/hosting-history"
+                    className="menu_item"
+                    onClick={() => setDropdownMenu(false)}
+                  >
+                    <Assessment sx={{ fontSize: 20 }} />
+                    <span>Hosting History</span>
                   </Link>
 
                   <div className="menu_divider"></div>

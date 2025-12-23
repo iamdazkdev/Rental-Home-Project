@@ -19,13 +19,9 @@ router.get("/:userId/trips", async (req, res) => {
       });
     }
 
-    // console.log(`🔍 Fetching trips for userId: ${userId}`);
-
     const trips = await Booking.find({ customerId: userId }).populate(
       "customerId hostId listingId"
     );
-
-    // console.log(`✅ Found ${trips.length} trips for user ${userId}`);
     res.status(HTTP_STATUS.ACCEPTED).json(trips);
   } catch (err) {
     console.log("❌ ERROR: Fail to get trips", err);

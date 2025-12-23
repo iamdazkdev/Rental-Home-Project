@@ -18,6 +18,9 @@ const ListingDetails = () => {
   const [error, setError] = useState(null);
   const { listingId } = useParams();
   const [listing, setListing] = useState(null);
+  const [hasActiveBooking, setHasActiveBooking] = useState(false);
+  const [userBooking, setUserBooking] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const getListingDetails = async () => {
     try {
@@ -79,9 +82,57 @@ const ListingDetails = () => {
   const customerIdSource = user?._id ? "_id" : user?.id ? "id" : null;
   console.log("Customer ID:", customerId, "(source:", customerIdSource, ")");
 
+  // Check if user has already booked this listing
+  const checkExistingBooking = async () => {
+    if (!customerId || !listingId) return;
+
+    try {
+      const url = API_ENDPOINTS.USERS.GET_TRIPS(customerId);
+      const response = await fetch(url, { method: HTTP_METHODS.GET });
+
+      if (response.ok) {
+        const bookings = await response.json();
+
+        // Find active booking for this listing (pending or accepted, not checked out)
+        const existingBooking = bookings.find(
+          (booking) =>
+            (booking.listingId?._id === listingId || booking.listingId?.id === listingId) &&
+            (booking.status === "pending" || booking.status === "accepted") &&
+            !booking.isCheckedOut
+        );
+
+        if (existingBooking) {
+          console.log("✅ Found existing booking:", existingBooking);
+          setHasActiveBooking(true);
+          setUserBooking(existingBooking);
+        } else {
+          setHasActiveBooking(false);
+          setUserBooking(null);
+        }
+      }
+    } catch (error) {
+      console.error("Error checking existing booking:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (customerId && listingId) {
+      checkExistingBooking();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customerId, listingId]);
+
   const navigate = useNavigate();
   const handleSubmit = async () => {
+    // Prevent double submission
+    if (submitting) {
+      console.log("⚠️ Already submitting, please wait...");
+      return;
+    }
+
     try {
+      setSubmitting(true);
+
       const bookingForm = {
         customerId,
         listingId,
@@ -90,6 +141,9 @@ const ListingDetails = () => {
         endDate: dateRange[0].endDate.toDateString(),
         totalPrice: listing.price * dayCount,
       };
+
+      console.log("📤 Submitting booking:", bookingForm);
+
       const url = API_ENDPOINTS.BOOKINGS.CREATE;
       const response = await fetch(url, {
         method: HTTP_METHODS.POST,
@@ -98,13 +152,21 @@ const ListingDetails = () => {
         },
         body: JSON.stringify(bookingForm),
       });
+
       if (response.ok) {
         const data = await response.json();
-        console.log("Booking successful:", data);
+        console.log("✅ Booking successful:", data);
         navigate(`/${customerId}/trips`);
+      } else {
+        const errorData = await response.json();
+        console.error("❌ Booking failed:", errorData);
+        alert(errorData.message || "Failed to create booking");
+        setSubmitting(false);
       }
     } catch (err) {
-      console.error("Error submitting booking:", err);
+      console.error("❌ Error submitting booking:", err);
+      alert("Failed to create booking. Please try again.");
+      setSubmitting(false);
     }
   };
 
@@ -210,24 +272,68 @@ const ListingDetails = () => {
 
         <div>
           <h2>How long do you want to stay?</h2>
-          <div className="date-range-calendar"></div>
-          <DateRange ranges={dateRange} onChange={handleSelect} locale={enUS} />
-          {dayCount > 1 ? (
-            <h2>
-              ${listing.price} x {dayCount} nights
-            </h2>
-          ) : (
-            <h2>
-              ${listing.price} x {dayCount} night
-            </h2>
-          )}
-          <h2>Total price: ${listing.price * dayCount}</h2>
-          <p>Start Date: {dateRange[0].startDate.toDateString()}</p>
-          <p>End Date: {dateRange[0].endDate.toDateString()}</p>
 
-          <button className="button" type="submit" onClick={handleSubmit}>
-            BOOKING
-          </button>
+          {hasActiveBooking ? (
+            // Show message if already booked
+            <div className="already-booked-message">
+              <div className="message-icon">✓</div>
+              <h3>You've Already Booked This Property</h3>
+              <p>You have an active booking for this listing.</p>
+
+              <div className="booking-details">
+                <p>
+                  <strong>Status:</strong>{" "}
+                  <span className={`status-badge status-${userBooking?.status}`}>
+                    {userBooking?.status === "pending" && "⏳ Pending Approval"}
+                    {userBooking?.status === "accepted" && "✓ Confirmed"}
+                  </span>
+                </p>
+                <p>
+                  <strong>Check-in:</strong> {userBooking?.startDate}
+                </p>
+                <p>
+                  <strong>Check-out:</strong> {userBooking?.finalEndDate || userBooking?.endDate}
+                </p>
+                <p>
+                  <strong>Total:</strong> ${(userBooking?.finalTotalPrice || userBooking?.totalPrice)?.toFixed(2)}
+                </p>
+              </div>
+
+              <button
+                className="button view-booking-btn"
+                onClick={() => navigate(`/${customerId}/trips`)}
+              >
+                View My Trips
+              </button>
+            </div>
+          ) : (
+            // Show booking form if not booked yet
+            <>
+              <div className="date-range-calendar"></div>
+              <DateRange ranges={dateRange} onChange={handleSelect} locale={enUS} />
+              {dayCount > 1 ? (
+                <h2>
+                  ${listing.price} x {dayCount} nights
+                </h2>
+              ) : (
+                <h2>
+                  ${listing.price} x {dayCount} night
+                </h2>
+              )}
+              <h2>Total price: ${listing.price * dayCount}</h2>
+              <p>Start Date: {dateRange[0].startDate.toDateString()}</p>
+              <p>End Date: {dateRange[0].endDate.toDateString()}</p>
+
+              <button
+                className="button"
+                type="submit"
+                onClick={handleSubmit}
+                disabled={submitting}
+              >
+                {submitting ? "Submitting..." : "BOOKING"}
+              </button>
+            </>
+          )}
         </div>
 
         {/* Reviews Section */}

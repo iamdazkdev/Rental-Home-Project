@@ -202,17 +202,6 @@ const ListingCard = ({
               🏠 Check Out
             </button>
           )}
-          {onReview && (
-            <button
-              className="action-btn review-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                onReview();
-              }}
-            >
-              ⭐ Review
-            </button>
-          )}
           {onExtend && (
             <button
               className="action-btn extend-btn"

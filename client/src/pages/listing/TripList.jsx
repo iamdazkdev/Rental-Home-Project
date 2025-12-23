@@ -7,13 +7,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { setTripList } from "../../redux/state";
 import ListingCard from "../../components/ListingCard";
 import Footer from "../../components/Footer";
-import ReviewModal from "../../components/ReviewModal";
 import ExtendStayModal from "../../components/ExtendStayModal";
+import CheckoutModal from "../../components/CheckoutModal";
 
 const TripList = () => {
   const [loading, setLoading] = useState(true);
-  const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [extendModalOpen, setExtendModalOpen] = useState(false);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   // Get user from Redux
@@ -52,7 +52,6 @@ const TripList = () => {
       }
       const data = await response.json();
       console.log("✅ TripList fetch:", { url, data });
-      setTripList({ tripList: data });
       dispatch(setTripList(data));
       setLoading(false);
     } catch (err) {
@@ -61,42 +60,64 @@ const TripList = () => {
     }
   };
 
-  const handleCheckout = async (bookingId) => {
-    if (!window.confirm("Are you sure you want to check out? This will mark your stay as completed.")) {
-      return;
-    }
+  const handleCheckout = (booking) => {
+    setSelectedBooking(booking);
+    setCheckoutModalOpen(true);
+  };
+
+  const handleCheckoutConfirm = async (feedback, reviewData) => {
+    if (!selectedBooking) return;
 
     try {
-      console.log(`🔄 Checking out booking ${bookingId}...`);
-      const url = `${API_ENDPOINTS.BOOKINGS.ACCEPT}/${bookingId}/checkout`;
-      const response = await fetch(url, {
+      console.log(`🔄 Checking out booking ${selectedBooking._id}...`);
+
+      // 1. Checkout
+      const checkoutUrl = `${API_ENDPOINTS.BOOKINGS.ACCEPT}/${selectedBooking._id}/checkout`;
+      const checkoutResponse = await fetch(checkoutUrl, {
         method: HTTP_METHODS.PATCH,
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ feedback }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to checkout: ${response.status}`);
+      if (!checkoutResponse.ok) {
+        throw new Error(`Failed to checkout: ${checkoutResponse.status}`);
       }
 
-      const data = await response.json();
-      console.log(`✅ ${data.message}`);
+      const checkoutData = await checkoutResponse.json();
+      console.log(`✅ ${checkoutData.message}`);
 
-      // Refresh trips
+      // 2. Submit review if provided
+      if (reviewData && reviewData.listingRating > 0) {
+        console.log(`🔄 Submitting review...`);
+        const reviewPayload = {
+          bookingId: selectedBooking._id,
+          reviewerId: userId,
+          listingRating: reviewData.listingRating,
+          listingComment: reviewData.listingComment,
+          hostRating: reviewData.hostRating || 0,
+          hostComment: reviewData.hostComment,
+        };
+
+        const reviewResponse = await fetch(API_ENDPOINTS.REVIEWS.CREATE, {
+          method: HTTP_METHODS.POST,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(reviewPayload),
+        });
+
+        if (reviewResponse.ok) {
+          console.log(`✅ Review submitted successfully!`);
+        } else {
+          console.warn(`⚠️ Review submission failed, but checkout succeeded`);
+        }
+      }
+
+      // 3. Refresh trips
       await getTripList();
     } catch (error) {
       console.error("❌ Error checking out:", error);
       alert("Failed to checkout. Please try again.");
+      throw error;
     }
-  };
-
-  const handleReview = (booking) => {
-    setSelectedBooking(booking);
-    setReviewModalOpen(true);
-  };
-
-  const handleReviewSubmitted = () => {
-    // Refresh trips to update status
-    getTripList();
   };
 
   const handleExtensionRequest = (booking) => {
@@ -137,11 +158,6 @@ const TripList = () => {
     // User có thể checkout bất kỳ lúc nào sau khi booking được accept
     // Không cần chờ đến endDate
     return booking.status === "accepted" && !booking.isCheckedOut;
-  };
-
-  const canReview = (booking) => {
-    // Có thể review sau khi checkout hoặc booking accepted (đã thuê)
-    return booking.isCheckedOut || booking.status === "completed" || booking.status === "checked_out";
   };
 
   const canExtend = (booking) => {
@@ -197,8 +213,7 @@ const TripList = () => {
                 totalPrice={trip.finalTotalPrice || trip.totalPrice}
                 booking={true}
                 isExtended={!!trip.finalEndDate}
-                onCheckout={canCheckout(trip) ? () => handleCheckout(trip._id) : null}
-                onReview={canReview(trip) ? () => handleReview(trip) : null}
+                onCheckout={canCheckout(trip) ? () => handleCheckout(trip) : null}
                 onExtend={canExtend(trip) ? () => handleExtensionRequest(trip) : null}
               />
             </div>
@@ -206,18 +221,18 @@ const TripList = () => {
         )}
       </div>
       <Footer />
-      {reviewModalOpen && (
-        <ReviewModal
-          booking={selectedBooking}
-          onClose={() => setReviewModalOpen(false)}
-          onReviewSubmitted={handleReviewSubmitted}
-        />
-      )}
       {extendModalOpen && (
         <ExtendStayModal
           booking={selectedBooking}
           onClose={() => setExtendModalOpen(false)}
           onSubmit={handleExtensionSubmit}
+        />
+      )}
+      {checkoutModalOpen && (
+        <CheckoutModal
+          booking={selectedBooking}
+          onClose={() => setCheckoutModalOpen(false)}
+          onConfirm={handleCheckoutConfirm}
         />
       )}
     </>

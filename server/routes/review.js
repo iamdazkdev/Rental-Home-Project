@@ -160,7 +160,7 @@ router.get("/listing/:listingId", async (req, res) => {
 
     // Calculate average rating
     const ratingStats = await Review.aggregate([
-      { $match: { listingId: mongoose.Types.ObjectId(listingId), isVisible: true } },
+      { $match: { listingId: new mongoose.Types.ObjectId(listingId), isVisible: true } },
       {
         $group: {
           _id: null,
