@@ -113,9 +113,10 @@ const TripList = () => {
 
       // 3. Refresh trips
       await getTripList();
+      // Success - modal will close automatically
     } catch (error) {
       console.error("❌ Error checking out:", error);
-      alert("Failed to checkout. Please try again.");
+      // Just log error, modal will handle it
       throw error;
     }
   };
@@ -145,11 +146,11 @@ const TripList = () => {
       const data = await response.json();
       console.log(`✅ ${data.message}`);
 
-      alert(`Extension request submitted! Additional cost: $${data.extensionRequest.additionalPrice}`);
+      // Refresh trips to show updated extension request
       await getTripList();
+      // Success - modal will close automatically
     } catch (error) {
       console.error("❌ Error requesting extension:", error);
-      alert(error.message || "Failed to request extension. Please try again.");
       throw error; // Re-throw to let modal handle it
     }
   };

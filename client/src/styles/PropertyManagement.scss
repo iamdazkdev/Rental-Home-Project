@@ -1,0 +1,313 @@
+@import "./variables.scss";
+@import "./breakpoints.scss";
+
+.property-management {
+  padding: 40px 100px 120px;
+  min-height: 100vh;
+  background: #f8f9fa;
+
+  @include lg {
+    padding: 40px 50px 100px;
+  }
+
+  @include sm {
+    padding: 30px 20px 80px;
+  }
+
+  .management-header {
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+
+    h1 {
+      font-size: 36px;
+      font-weight: 700;
+      color: $blue;
+      margin-bottom: 10px;
+
+      @include sm {
+        font-size: 28px;
+      }
+    }
+
+    p {
+      font-size: 16px;
+      color: $darkgrey;
+      margin-bottom: 24px;
+    }
+
+    .create-new-btn {
+      @include buttonStyle;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    button {
+      padding: 12px 24px;
+      border: 2px solid #dee2e6;
+      background: white;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: $pinkred;
+        color: $pinkred;
+      }
+
+      &.active {
+        background: linear-gradient(135deg, $pinkred 0%, #e91e63 100%);
+        color: white;
+        border-color: $pinkred;
+      }
+    }
+  }
+
+  .no-properties,
+  .no-access {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    .empty-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: $blue;
+      margin-bottom: 12px;
+    }
+
+    p {
+      font-size: 16px;
+      color: $darkgrey;
+      margin-bottom: 24px;
+    }
+
+    button {
+      @include buttonStyle;
+      padding: 12px 32px;
+    }
+  }
+
+  .properties-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+
+    @include sm {
+      grid-template-columns: 1fr;
+    }
+
+    .property-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      }
+
+      .property-image {
+        position: relative;
+        width: 100%;
+        height: 220px;
+        overflow: hidden;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+        }
+
+        &:hover img {
+          transform: scale(1.05);
+        }
+
+        .status-badges {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+
+          .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+
+            &.hidden {
+              background: rgba(158, 158, 158, 0.9);
+              color: white;
+            }
+
+            &.occupied {
+              background: rgba(255, 152, 0, 0.9);
+              color: white;
+            }
+          }
+        }
+      }
+
+      .property-info {
+        padding: 20px;
+
+        h3 {
+          font-size: 18px;
+          font-weight: 700;
+          color: $blue;
+          margin: 0 0 8px 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .location {
+          font-size: 14px;
+          color: $darkgrey;
+          margin: 0 0 6px 0;
+        }
+
+        .category {
+          font-size: 13px;
+          color: $grey;
+          margin: 0 0 12px 0;
+        }
+
+        .property-stats {
+          display: flex;
+          gap: 16px;
+          margin-bottom: 12px;
+
+          span {
+            font-size: 13px;
+            color: $darkgrey;
+          }
+        }
+
+        .price-info {
+          display: flex;
+          align-items: baseline;
+          gap: 4px;
+          margin-bottom: 12px;
+
+          .price {
+            font-size: 22px;
+            font-weight: 700;
+            color: $pinkred;
+          }
+
+          .period {
+            font-size: 14px;
+            color: $darkgrey;
+          }
+        }
+
+        .active-booking-info {
+          padding: 12px;
+          background: #fff3e0;
+          border-left: 4px solid #ff9800;
+          border-radius: 6px;
+          margin-bottom: 12px;
+
+          .booking-warning {
+            margin: 0 0 4px 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: #e65100;
+          }
+
+          .booking-dates {
+            margin: 0;
+            font-size: 12px;
+            color: #f57c00;
+          }
+        }
+
+        .created-date {
+          font-size: 12px;
+          color: $grey;
+          margin: 0 0 16px 0;
+        }
+
+        .action-buttons {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+
+          button {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &.btn-edit {
+              background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+              color: white;
+
+              &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+              }
+            }
+
+            &.btn-toggle {
+              background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+              color: white;
+
+              &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+              }
+            }
+
+            &.btn-delete {
+              background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+              color: white;
+
+              &:hover:not(.disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+              }
+
+              &.disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                transform: none;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

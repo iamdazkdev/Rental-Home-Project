@@ -2,7 +2,7 @@ import React from "react";
 import "../../styles/CreateListing.scss";
 import Navbar from "../../components/Navbar";
 import { categories, types, facilities } from "../../data";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   DndContext,
@@ -21,8 +21,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useSelector } from "react-redux";
-import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
-import { useNavigate } from "react-router-dom";
+import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from "../../constants/api";
+import { useNavigate, useParams } from "react-router-dom";
 
 // Simple and Beautiful Photo Item Component
 const SortablePhotoItem = ({ id, photo, index, onDelete }) => {
@@ -81,6 +81,10 @@ const SortablePhotoItem = ({ id, photo, index, onDelete }) => {
 };
 
 const CreateListingPage = () => {
+  // DETECT EDIT MODE
+  const { listingId } = useParams();
+  const isEditMode = !!listingId;
+
   // FORM STATE
   const [category, setCategory] = useState("");
   const [type, setType] = useState("");
@@ -106,6 +110,7 @@ const CreateListingPage = () => {
     price: 0,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingListing, setLoadingListing] = useState(isEditMode);
 
   // REDUX STATE
   const user = useSelector((state) => state.user);
@@ -149,33 +154,102 @@ const CreateListingPage = () => {
     }
   };
 
+  // FETCH LISTING DATA IN EDIT MODE
+  useEffect(() => {
+    if (isEditMode && listingId) {
+      const fetchListing = async () => {
+        try {
+          setLoadingListing(true);
+          const url = `${CONFIG.API_BASE_URL}/listing/${listingId}`;
+          const response = await fetch(url, { method: HTTP_METHODS.GET });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log("📥 Loaded listing for edit:", data);
+
+            // Populate form with existing data
+            setCategory(data.category || "");
+            setType(data.type || "");
+            setFormLocation({
+              streetAddress: data.streetAddress || "",
+              aptSuite: data.aptSuite || "",
+              city: data.city || "",
+              province: data.province || "",
+              country: data.country || "",
+            });
+            setGuestCount(data.guestCount || 1);
+            setBedroomCount(data.bedroomCount || 1);
+            setBedCount(data.bedCount || 1);
+            setBathroomCount(data.bathroomCount || 1);
+            setAmenities(data.amenities || []);
+            setFormDescription({
+              title: data.title || "",
+              description: data.description || "",
+              highlight: data.highlight || "",
+              highlightDesc: data.highlightDesc || "",
+              price: data.price || 0,
+            });
+
+            // Convert existing photos to display format
+            if (data.listingPhotoPaths && data.listingPhotoPaths.length > 0) {
+              const existingPhotos = data.listingPhotoPaths.map((path, index) => {
+                // Construct proper URL for existing photos
+                let photoUrl;
+                if (path.startsWith("https://")) {
+                  // Cloudinary URL - use directly
+                  photoUrl = path;
+                } else {
+                  // Local path - construct URL
+                  photoUrl = `${CONFIG.API_BASE_URL}/${path.replace("public/", "")}`;
+                }
+
+                return {
+                  id: `existing-${index}`,
+                  file: null,
+                  url: photoUrl, // Use 'url' not 'preview' for compatibility with SortablePhotoItem
+                  isExisting: true,
+                  originalPath: path, // Keep original path for backend
+                };
+              });
+
+              console.log("📷 Loaded existing photos:", existingPhotos);
+              setPhotos(existingPhotos);
+            }
+          }
+        } catch (error) {
+          console.error("❌ Error loading listing:", error);
+          alert("Failed to load listing data");
+        } finally {
+          setLoadingListing(false);
+        }
+      };
+
+      fetchListing();
+    }
+  }, [isEditMode, listingId]);
+
   const handleUploadPhotos = (e) => {
     const newPhotos = Array.from(e.target.files);
     const currentPhotoCount = photos.length;
     const maxPhotos = 6;
 
-    // Kiểm tra nếu đã đủ 6 ảnh
     if (currentPhotoCount >= maxPhotos) {
       setPhotoWarning("⚠️ Bạn đã đủ 6 ảnh rồi! Không thể thêm ảnh nữa.");
       setTimeout(() => setPhotoWarning(""), 3000);
       return;
     }
 
-    // Tính số ảnh có thể thêm
     const availableSlots = maxPhotos - currentPhotoCount;
 
-    // Nếu user chọn quá nhiều ảnh, chỉ lấy số lượng cho phép
     if (newPhotos.length > availableSlots) {
       setPhotoWarning(
         `⚠️ Bạn chỉ có thể thêm ${availableSlots} ảnh nữa. Đã chọn ${availableSlots} ảnh đầu tiên.`
       );
       setTimeout(() => setPhotoWarning(""), 4000);
     } else {
-      // Xóa warning nếu upload thành công
       setPhotoWarning("");
     }
 
-    // Chỉ lấy số ảnh cho phép
     const photosToAdd = newPhotos.slice(0, availableSlots);
 
     const processedPhotos = photosToAdd.map((photo) => ({
@@ -186,7 +260,6 @@ const CreateListingPage = () => {
 
     setPhotos((prev) => [...prev, ...processedPhotos]);
 
-    // Reset input để có thể chọn lại file
     e.target.value = "";
   };
 
@@ -231,60 +304,89 @@ const CreateListingPage = () => {
         return;
       }
 
-      const listingForm = new FormData();
-      listingForm.append("creator", creatorId);
-      listingForm.append("category", category);
-      listingForm.append("type", type);
-      listingForm.append("streetAddress", formLocation.streetAddress);
-      listingForm.append("aptSuite", formLocation.aptSuite);
-      listingForm.append("city", formLocation.city);
-      listingForm.append("province", formLocation.province);
-      listingForm.append("country", formLocation.country);
-      listingForm.append("guestCount", guestCount);
-      listingForm.append("bedroomCount", bedroomCount);
-      listingForm.append("bedCount", bedCount);
-      listingForm.append("bathroomCount", bathroomCount);
-      listingForm.append("amenities", JSON.stringify(amenities));
-      listingForm.append("title", formDescription.title);
-      listingForm.append("description", formDescription.description);
-      listingForm.append("highlight", formDescription.highlight);
-      listingForm.append("highlightDesc", formDescription.highlightDesc);
-      listingForm.append("price", formDescription.price);
+      if (isEditMode) {
+        // UPDATE EXISTING LISTING
+        const updateData = {
+          category,
+          type,
+          streetAddress: formLocation.streetAddress,
+          aptSuite: formLocation.aptSuite,
+          city: formLocation.city,
+          province: formLocation.province,
+          country: formLocation.country,
+          guestCount,
+          bedroomCount,
+          bedCount,
+          bathroomCount,
+          amenities,
+          title: formDescription.title,
+          description: formDescription.description,
+          highlight: formDescription.highlight,
+          highlightDesc: formDescription.highlightDesc,
+          price: formDescription.price,
+          // Keep existing photos that weren't changed
+          listingPhotoPaths: photos.map(p => p.isExisting ? p.originalPath : p.url),
+        };
 
-      photos.forEach((photo) => {
-        if (photo.file) {
-          listingForm.append("listingPhotos", photo.file);
+        const url = `${CONFIG.API_BASE_URL}/properties/${listingId}/update`;
+        const response = await fetch(url, {
+          method: HTTP_METHODS.PATCH,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updateData),
+        });
+
+        if (response.ok) {
+          console.log("✅ Listing updated successfully");
+          navigate("/properties");
+        } else {
+          const errorData = await response.text();
+          throw new Error(`Update failed: ${errorData}`);
         }
-      });
-
-      // Debug log
-      console.log("Form data being sent:");
-      for (let [key, value] of listingForm.entries()) {
-        console.log(key, value);
-      }
-
-      const response = await fetch(API_ENDPOINTS.LISTINGS.CREATE, {
-        method: HTTP_METHODS.POST,
-        body: listingForm,
-      });
-
-      if (response.ok) {
-        console.log("Listing created successfully");
-        // Small delay to show success state
-        setTimeout(() => {
-          navigate("/");
-        }, 500);
       } else {
-        // Get error details from server
-        const errorData = await response.text();
-        console.error("Server error:", errorData);
-        throw new Error(
-          `HTTP error! status: ${response.status} - ${errorData}`
-        );
+        // CREATE NEW LISTING
+        const listingForm = new FormData();
+        listingForm.append("creator", creatorId);
+        listingForm.append("category", category);
+        listingForm.append("type", type);
+        listingForm.append("streetAddress", formLocation.streetAddress);
+        listingForm.append("aptSuite", formLocation.aptSuite);
+        listingForm.append("city", formLocation.city);
+        listingForm.append("province", formLocation.province);
+        listingForm.append("country", formLocation.country);
+        listingForm.append("guestCount", guestCount);
+        listingForm.append("bedroomCount", bedroomCount);
+        listingForm.append("bedCount", bedCount);
+        listingForm.append("bathroomCount", bathroomCount);
+        listingForm.append("amenities", JSON.stringify(amenities));
+        listingForm.append("title", formDescription.title);
+        listingForm.append("description", formDescription.description);
+        listingForm.append("highlight", formDescription.highlight);
+        listingForm.append("highlightDesc", formDescription.highlightDesc);
+        listingForm.append("price", formDescription.price);
+
+        photos.forEach((photo) => {
+          if (photo.file) {
+            listingForm.append("listingPhotos", photo.file);
+          }
+        });
+
+        const response = await fetch(API_ENDPOINTS.LISTINGS.CREATE, {
+          method: HTTP_METHODS.POST,
+          body: listingForm,
+        });
+
+        if (response.ok) {
+          console.log("✅ Listing created successfully");
+          setTimeout(() => {
+            navigate("/");
+          }, 500);
+        } else {
+          const errorData = await response.text();
+          throw new Error(`HTTP error! status: ${response.status} - ${errorData}`);
+        }
       }
     } catch (error) {
-      console.error("Error creating listing:", error);
-      // Show more detailed error message
+      console.error("❌ Error submitting listing:", error);
       const errorMessage = error.message.includes("HTTP error")
         ? `Server error: ${error.message}`
         : "Network error. Please check your connection and try again.";
@@ -297,39 +399,24 @@ const CreateListingPage = () => {
   return (
     <>
       <Navbar />
-      <div className="modern-create-listing">
-        {/* Debug Panel */}
-        <div className="debug-panel">
-          <h4>🚀 Create Listing Dashboard</h4>
-          <div className="grid-info">
-            <div>
-              <strong>👤 User:</strong>{" "}
-              {user ? `${user.firstName} ${user.lastName}` : "Not logged in"}
-            </div>
-            <div>
-              <strong>🔑 Token:</strong> {token ? "✅ Active" : "❌ Missing"}
-            </div>
-            <div style={{ gridColumn: "1 / -1" }}>
-              <strong>🆔 Creator ID:</strong> {creatorId || "undefined"}
-            </div>
-            <div className="status-info">
-              <strong>
-                {creatorId
-                  ? "✅ Ready to create listing!"
-                  : "❌ Please login first"}
-              </strong>
+      {loadingListing ? (
+        <div className="modern-create-listing">
+          <div className="form-background">
+            <div className="form-container" style={{ textAlign: 'center', padding: '60px' }}>
+              <h2>Loading listing data...</h2>
             </div>
           </div>
         </div>
-
-        {/* Form Container */}
-        <div className="form-background">
-          <div className="form-container">
-            {/* Header */}
-            <div className="header-section">
-              <h1>✨ Create Your Dream Listing</h1>
-              <p>Share your space with the world</p>
-            </div>
+      ) : (
+        <div className="modern-create-listing">
+          {/* Form Container */}
+          <div className="form-background">
+            <div className="form-container">
+              {/* Header */}
+              <div className="header-section">
+                <h1>{isEditMode ? "✏️ Edit Your Listing" : "✨ Create Your Dream Listing"}</h1>
+                <p>{isEditMode ? "Update your property details" : "Share your space with the world"}</p>
+              </div>
 
             {/* Form Content */}
             <form onSubmit={handleSubmit} className="form-content">
@@ -712,22 +799,23 @@ const CreateListingPage = () => {
                   {isLoading ? (
                     <>
                       <div className="loading-spinner"></div>
-                      <span>Creating Your Dream Listing...</span>
+                      <span>{isEditMode ? "Updating..." : "Creating Your Dream Listing..."}</span>
                     </>
                   ) : (
-                    <>✨ CREATE YOUR DREAM LISTING</>
+                    <>{isEditMode ? "💾 UPDATE LISTING" : "✨ CREATE YOUR DREAM LISTING"}</>
                   )}
                 </button>
                 <p className={`note ${isLoading ? "loading" : ""}`}>
                   {isLoading
-                    ? "🚀 Almost there! Your listing is being created..."
-                    : "🎉 Ready to share your space with the world!"}
+                    ? `🚀 Almost there! Your listing is being ${isEditMode ? "updated" : "created"}...`
+                    : `🎉 Ready to ${isEditMode ? "update" : "share"} your space with the world!`}
                 </p>
               </div>
             </form>
           </div>
         </div>
-      </div>
+        </div>
+      )}
     </>
   );
 };

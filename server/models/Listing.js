@@ -79,6 +79,10 @@ const ListingSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    isActive: {
+      type: Boolean,
+      default: true, // true = visible, false = hidden
+    },
   },
   { timestamps: true }
 );

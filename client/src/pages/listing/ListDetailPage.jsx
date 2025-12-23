@@ -160,12 +160,12 @@ const ListingDetails = () => {
       } else {
         const errorData = await response.json();
         console.error("❌ Booking failed:", errorData);
+        // Only show error, no success alert
         alert(errorData.message || "Failed to create booking");
         setSubmitting(false);
       }
     } catch (err) {
       console.error("❌ Error submitting booking:", err);
-      alert("Failed to create booking. Please try again.");
       setSubmitting(false);
     }
   };

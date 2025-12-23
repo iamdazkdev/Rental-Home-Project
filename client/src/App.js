@@ -12,6 +12,8 @@ import WishList from "./pages/listing/WishList";
 import ReservationList from "./pages/host/ReservationList";
 import UserBookingHistory from "./pages/user/UserBookingHistory";
 import HostBookingHistory from "./pages/host/HostBookingHistory";
+import PropertyManagement from "./pages/host/PropertyManagement";
+import HostProfile from "./pages/host/HostProfile";
 
 function App() {
   return (
@@ -22,6 +24,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/create-listing" element={<CreateListingPage />} />
+          <Route path="/edit-listing/:listingId" element={<CreateListingPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/listing/:listingId" element={<ListDetailPage />} />
@@ -30,6 +33,8 @@ function App() {
           <Route path="/reservations" element={<ReservationList />} />
           <Route path="/booking-history" element={<UserBookingHistory />} />
           <Route path="/hosting-history" element={<HostBookingHistory />} />
+          <Route path="/properties" element={<PropertyManagement />} />
+          <Route path="/host/:hostId" element={<HostProfile />} />
         </Routes>
       </BrowserRouter>
     </div>

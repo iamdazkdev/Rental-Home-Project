@@ -53,7 +53,6 @@ const ReservationList = () => {
       await getReservations();
     } catch (error) {
       console.error("❌ Error accepting booking:", error);
-      alert("Failed to accept booking. Please try again.");
     }
   };
 
@@ -80,7 +79,6 @@ const ReservationList = () => {
       await getReservations();
     } catch (error) {
       console.error("❌ Error rejecting booking:", error);
-      alert("Failed to reject booking. Please try again.");
     }
   };
 
@@ -104,7 +102,6 @@ const ReservationList = () => {
       await getReservations();
     } catch (error) {
       console.error("❌ Error approving extension:", error);
-      alert("Failed to approve extension. Please try again.");
     }
   };
 
@@ -131,7 +128,6 @@ const ReservationList = () => {
       await getReservations();
     } catch (error) {
       console.error("❌ Error rejecting extension:", error);
-      alert("Failed to reject extension. Please try again.");
     }
   };
 

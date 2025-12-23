@@ -118,15 +118,33 @@ router.post("/create", upload.array("listingPhotos"), async (req, res) => {
 router.get("/", async (req, res) => {
   const qCategory = req.query.category;
   try {
-    let listings;
+    const Booking = require("../models/Booking");
+
+    let query = { isActive: true }; // Only show active listings
     if (qCategory) {
-      listings = await Listing.find({ category: qCategory }).populate(
-        "creator"
-      );
-    } else {
-      listings = await Listing.find().populate("creator");
+      query.category = qCategory;
     }
-    res.status(HTTP_STATUS.OK).json(listings);
+
+    const listings = await Listing.find(query).populate("creator");
+
+    // Filter out listings with active bookings (prevent double booking)
+    const availableListings = await Promise.all(
+      listings.map(async (listing) => {
+        const activeBooking = await Booking.findOne({
+          listingId: listing._id,
+          status: { $in: ["pending", "accepted"] },
+          isCheckedOut: false,
+        });
+
+        // Return listing only if no active booking
+        return activeBooking ? null : listing;
+      })
+    );
+
+    // Filter out null values
+    const filteredListings = availableListings.filter((listing) => listing !== null);
+
+    res.status(HTTP_STATUS.OK).json(filteredListings);
   } catch (error) {
     res
       .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
