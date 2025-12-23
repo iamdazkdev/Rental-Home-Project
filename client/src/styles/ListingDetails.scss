@@ -276,4 +276,73 @@
       }
     }
   }
+
+  // Host Profile Info Section
+  .host-profile-info {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 24px;
+    border-radius: 16px;
+    border: 2px solid #e0e0e0;
+    margin: 20px 0;
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+
+      @include sm {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-item {
+        background: white;
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .profile-label {
+          font-size: 14px;
+          font-weight: 600;
+          color: $pinkred;
+        }
+
+        .profile-value {
+          font-size: 15px;
+          color: $blue;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .profile-section {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #e9ecef;
+      margin-bottom: 16px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      h4 {
+        font-size: 16px;
+        font-weight: 700;
+        color: $pinkred;
+        margin: 0 0 12px 0;
+      }
+
+      p {
+        font-size: 15px;
+        color: $darkgrey;
+        line-height: 1.6;
+        margin: 0;
+        white-space: pre-wrap;
+      }
+    }
+  }
 }

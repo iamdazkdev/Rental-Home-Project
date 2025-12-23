@@ -237,6 +237,80 @@ const ListingDetails = () => {
         <h3>Description</h3>
         <p>{listing.description}</p>
         <hr />
+
+        {/* Host Profile Section for Room/Shared Room */}
+        {listing.hostProfile && (listing.type === "Room(s)" || listing.type === "A Shared Room") && (
+          <>
+            <h3>👤 About Your Host</h3>
+            <div className="host-profile-info">
+              <div className="profile-grid">
+                <div className="profile-item">
+                  <span className="profile-label">🌙 Sleep Schedule</span>
+                  <span className="profile-value">
+                    {listing.hostProfile.sleepSchedule === "early_bird" && "Early Bird (Sleep before 10 PM)"}
+                    {listing.hostProfile.sleepSchedule === "night_owl" && "Night Owl (Sleep after midnight)"}
+                    {listing.hostProfile.sleepSchedule === "flexible" && "Flexible"}
+                  </span>
+                </div>
+
+                <div className="profile-item">
+                  <span className="profile-label">🚬 Smoking</span>
+                  <span className="profile-value">
+                    {listing.hostProfile.smoking === "no" && "Non-smoker"}
+                    {listing.hostProfile.smoking === "outside_only" && "Smoke outside only"}
+                    {listing.hostProfile.smoking === "yes" && "Smoker"}
+                  </span>
+                </div>
+
+                <div className="profile-item">
+                  <span className="profile-label">😊 Personality</span>
+                  <span className="profile-value">
+                    {listing.hostProfile.personality === "introvert" && "Introvert (Quiet, private)"}
+                    {listing.hostProfile.personality === "extrovert" && "Extrovert (Social, outgoing)"}
+                    {listing.hostProfile.personality === "ambivert" && "Ambivert (Balanced)"}
+                  </span>
+                </div>
+
+                <div className="profile-item">
+                  <span className="profile-label">🧹 Cleanliness</span>
+                  <span className="profile-value">
+                    {listing.hostProfile.cleanliness === "very_clean" && "Very Clean (Everything organized)"}
+                    {listing.hostProfile.cleanliness === "moderate" && "Moderate (Tidy but lived-in)"}
+                    {listing.hostProfile.cleanliness === "relaxed" && "Relaxed (Clean but casual)"}
+                  </span>
+                </div>
+
+                <div className="profile-item">
+                  <span className="profile-label">💼 Occupation</span>
+                  <span className="profile-value">{listing.hostProfile.occupation}</span>
+                </div>
+              </div>
+
+              {listing.hostProfile.hobbies && (
+                <div className="profile-section">
+                  <h4>🎨 Hobbies & Interests</h4>
+                  <p>{listing.hostProfile.hobbies}</p>
+                </div>
+              )}
+
+              {listing.hostProfile.houseRules && (
+                <div className="profile-section">
+                  <h4>📋 House Rules</h4>
+                  <p>{listing.hostProfile.houseRules}</p>
+                </div>
+              )}
+
+              {listing.hostProfile.additionalInfo && (
+                <div className="profile-section">
+                  <h4>💬 Additional Information</h4>
+                  <p>{listing.hostProfile.additionalInfo}</p>
+                </div>
+              )}
+            </div>
+            <hr />
+          </>
+        )}
+
         <h3>Highlight</h3>
         <p>{listing.highlightDesc}</p>
         <hr />

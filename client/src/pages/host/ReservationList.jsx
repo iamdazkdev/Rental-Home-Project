@@ -265,6 +265,37 @@ const ReservationList = () => {
                     </p>
                   </div>
 
+                  {/* Guest Profile - For Room/Shared Room Only */}
+                  {reservation.listingId?.hostProfile &&
+                   (reservation.listingId?.type === "Room(s)" || reservation.listingId?.type === "A Shared Room") && (
+                    <div className="guest-compatibility">
+                      <h4>👤 Guest should know about you:</h4>
+                      <div className="host-profile-summary">
+                        <div className="profile-tags">
+                          <span className="tag">
+                            🌙 {reservation.listingId.hostProfile.sleepSchedule === "early_bird" ? "Early Bird" :
+                                reservation.listingId.hostProfile.sleepSchedule === "night_owl" ? "Night Owl" : "Flexible"}
+                          </span>
+                          <span className="tag">
+                            🚬 {reservation.listingId.hostProfile.smoking === "no" ? "Non-smoker" :
+                                reservation.listingId.hostProfile.smoking === "outside_only" ? "Outside only" : "Smoker"}
+                          </span>
+                          <span className="tag">
+                            😊 {reservation.listingId.hostProfile.personality === "introvert" ? "Introvert" :
+                                reservation.listingId.hostProfile.personality === "extrovert" ? "Extrovert" : "Ambivert"}
+                          </span>
+                          <span className="tag">
+                            🧹 {reservation.listingId.hostProfile.cleanliness === "very_clean" ? "Very Clean" :
+                                reservation.listingId.hostProfile.cleanliness === "moderate" ? "Moderate" : "Relaxed"}
+                          </span>
+                        </div>
+                        {reservation.listingId.hostProfile.occupation && (
+                          <p className="occupation">💼 {reservation.listingId.hostProfile.occupation}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {reservation.rejectionReason && reservation.status === "rejected" && (
                     <div className="rejection-reason">
                       <strong>Rejection Reason:</strong> {reservation.rejectionReason}

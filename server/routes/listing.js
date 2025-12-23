@@ -55,10 +55,18 @@ router.post("/create", upload.array("listingPhotos"), async (req, res) => {
       highlight,
       highlightDesc,
       price,
+      monthlyPrice,
+      pricingType,
+      hostProfile: hostProfileString,
     } = req.body;
 
     // Parse amenities from JSON string
     const amenities = amenitiesString ? JSON.parse(amenitiesString) : [];
+
+    // Parse host profile if provided
+    const hostProfile = hostProfileString ? JSON.parse(hostProfileString) : null;
+
+    console.log("📋 Received host profile:", hostProfile);
 
     const listingPhotos = req.files;
     if (!listingPhotos || listingPhotos.length === 0) {
@@ -98,7 +106,13 @@ router.post("/create", upload.array("listingPhotos"), async (req, res) => {
       highlight,
       highlightDesc,
       price,
+      ...(monthlyPrice && { monthlyPrice: parseFloat(monthlyPrice) }),
+      ...(pricingType && { pricingType }),
+      ...(hostProfile && { hostProfile }),
     });
+
+    console.log("💾 Saving listing with host profile:", newListing.hostProfile);
+
     await newListing.save();
     res
       .status(HTTP_STATUS.CREATED)

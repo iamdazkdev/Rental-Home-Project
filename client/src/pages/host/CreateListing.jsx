@@ -109,6 +109,21 @@ const CreateListingPage = () => {
     highlightDesc: "",
     price: 0,
   });
+  // Pricing type for Room/Shared Room
+  const [pricingType, setPricingType] = useState("daily"); // "daily" or "monthly"
+  const [dailyPrice, setDailyPrice] = useState(0);
+  const [monthlyPrice, setMonthlyPrice] = useState(0);
+  // Host Profile for Room/Shared Room
+  const [hostProfile, setHostProfile] = useState({
+    sleepSchedule: "", // early_bird, night_owl, flexible
+    smoking: "", // yes, no, outside_only
+    personality: "", // introvert, extrovert, ambivert
+    cleanliness: "", // very_clean, moderate, relaxed
+    occupation: "",
+    hobbies: "",
+    houseRules: "",
+    additionalInfo: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [loadingListing, setLoadingListing] = useState(isEditMode);
 
@@ -282,6 +297,30 @@ const CreateListingPage = () => {
     });
   };
 
+  const handleHostProfileChange = (e) => {
+    const { name, value } = e.target;
+    setHostProfile({
+      ...hostProfile,
+      [name]: value,
+    });
+  };
+
+  // Handle pricing changes with auto-conversion
+  const handleDailyPriceChange = (e) => {
+    const value = parseFloat(e.target.value) || 0;
+    setDailyPrice(value);
+    setMonthlyPrice(Math.round(value * 30)); // Auto-calculate monthly price
+  };
+
+  const handleMonthlyPriceChange = (e) => {
+    const value = parseFloat(e.target.value) || 0;
+    setMonthlyPrice(value);
+    setDailyPrice(Math.round((value / 30) * 100) / 100); // Auto-calculate daily price (rounded to 2 decimals)
+  };
+
+  // Check if host profile is required
+  const requiresHostProfile = type === "Room(s)" || type === "A Shared Room";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -302,6 +341,22 @@ const CreateListingPage = () => {
         alert("Please upload at least one photo");
         setIsLoading(false);
         return;
+      }
+
+      // Validate host profile for Room/Shared Room
+      if (requiresHostProfile) {
+        if (!hostProfile.sleepSchedule || !hostProfile.smoking || !hostProfile.personality ||
+            !hostProfile.cleanliness || !hostProfile.occupation || !hostProfile.hobbies ||
+            !hostProfile.houseRules) {
+          alert("Please fill in all required host profile fields");
+          setIsLoading(false);
+          return;
+        }
+        if (dailyPrice <= 0) {
+          alert("Please enter a valid price");
+          setIsLoading(false);
+          return;
+        }
       }
 
       if (isEditMode) {
@@ -362,7 +417,20 @@ const CreateListingPage = () => {
         listingForm.append("description", formDescription.description);
         listingForm.append("highlight", formDescription.highlight);
         listingForm.append("highlightDesc", formDescription.highlightDesc);
-        listingForm.append("price", formDescription.price);
+
+        // Add pricing based on type
+        if (requiresHostProfile) {
+          // Room/Shared Room: Use daily price (will be stored as main price)
+          listingForm.append("price", dailyPrice);
+          listingForm.append("monthlyPrice", monthlyPrice);
+          listingForm.append("pricingType", pricingType);
+          // Add host profile
+          listingForm.append("hostProfile", JSON.stringify(hostProfile));
+          console.log("📋 Sending host profile:", hostProfile);
+        } else {
+          // Entire Place: Use regular price
+          listingForm.append("price", formDescription.price);
+        }
 
         photos.forEach((photo) => {
           if (photo.file) {
@@ -770,24 +838,237 @@ const CreateListingPage = () => {
                       />
                     </div>
 
-                    <div className="full-width form-group price-group">
-                      <label>💰 Set your price per night</label>
-                      <div className="price-input-wrapper">
-                        <span className="currency">$</span>
-                        <input
-                          type="number"
-                          placeholder="100"
-                          name="price"
-                          value={formDescription.price}
-                          onChange={handleChangeDescription}
-                          required
-                          min="1"
-                        />
+                    {/* Pricing Section - Different for Room/Shared Room */}
+                    {requiresHostProfile ? (
+                      // Room/Shared Room: Dual pricing
+                      <div className="full-width form-group dual-pricing-group">
+                        <label>💰 Set your pricing</label>
+                        <p className="pricing-hint">Choose your preferred pricing method. The other will be calculated automatically.</p>
+
+                        <div className="pricing-tabs">
+                          <button
+                            type="button"
+                            className={`pricing-tab ${pricingType === "daily" ? "active" : ""}`}
+                            onClick={() => setPricingType("daily")}
+                          >
+                            📅 Daily Price
+                          </button>
+                          <button
+                            type="button"
+                            className={`pricing-tab ${pricingType === "monthly" ? "active" : ""}`}
+                            onClick={() => setPricingType("monthly")}
+                          >
+                            📆 Monthly Price
+                          </button>
+                        </div>
+
+                        <div className="dual-price-inputs">
+                          <div className="price-input-box">
+                            <label className={pricingType === "daily" ? "primary" : "secondary"}>
+                              💵 Daily Rate
+                            </label>
+                            <div className="price-input-wrapper">
+                              <span className="currency">$</span>
+                              <input
+                                type="number"
+                                placeholder="50"
+                                value={dailyPrice || ""}
+                                onChange={handleDailyPriceChange}
+                                required
+                                min="1"
+                                step="0.01"
+                              />
+                              <span className="per-unit">/night</span>
+                            </div>
+                            {pricingType === "daily" && (
+                              <p className="price-note">✨ Primary pricing</p>
+                            )}
+                          </div>
+
+                          <div className="price-arrow">⇄</div>
+
+                          <div className="price-input-box">
+                            <label className={pricingType === "monthly" ? "primary" : "secondary"}>
+                              💰 Monthly Rate
+                            </label>
+                            <div className="price-input-wrapper">
+                              <span className="currency">$</span>
+                              <input
+                                type="number"
+                                placeholder="1500"
+                                value={monthlyPrice || ""}
+                                onChange={handleMonthlyPriceChange}
+                                required
+                                min="1"
+                              />
+                              <span className="per-unit">/month</span>
+                            </div>
+                            {pricingType === "monthly" && (
+                              <p className="price-note">✨ Primary pricing</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="pricing-info">
+                          ℹ️ {pricingType === "daily"
+                            ? "Monthly price is automatically calculated (Daily × 30 days)"
+                            : "Daily price is automatically calculated (Monthly ÷ 30 days)"}
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      // Entire Place: Single pricing
+                      <div className="full-width form-group price-group">
+                        <label>💰 Set your price per night</label>
+                        <div className="price-input-wrapper">
+                          <span className="currency">$</span>
+                          <input
+                            type="number"
+                            placeholder="100"
+                            name="price"
+                            value={formDescription.price}
+                            onChange={handleChangeDescription}
+                            required
+                            min="1"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+
+              {/* Step 7: Host Profile (for Room/Shared Room only) */}
+              {requiresHostProfile && (
+                <div className="step-section host-profile-section">
+                  <div className="step-header">
+                    <div className="step-number">7</div>
+                    <div>
+                      <h2>👤 Tell guests about yourself</h2>
+                      <p className="step-subtitle">
+                        Help guests understand who they'll be living with
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="host-profile-grid">
+                    {/* Sleep Schedule */}
+                    <div className="form-group">
+                      <label>🌙 Sleep Schedule</label>
+                      <select
+                        name="sleepSchedule"
+                        value={hostProfile.sleepSchedule}
+                        onChange={handleHostProfileChange}
+                        required
+                      >
+                        <option value="">Select your schedule</option>
+                        <option value="early_bird">Early Bird (Sleep before 10 PM)</option>
+                        <option value="night_owl">Night Owl (Sleep after midnight)</option>
+                        <option value="flexible">Flexible</option>
+                      </select>
+                    </div>
+
+                    {/* Smoking */}
+                    <div className="form-group">
+                      <label>🚬 Smoking</label>
+                      <select
+                        name="smoking"
+                        value={hostProfile.smoking}
+                        onChange={handleHostProfileChange}
+                        required
+                      >
+                        <option value="">Select option</option>
+                        <option value="no">Non-smoker</option>
+                        <option value="outside_only">Smoke outside only</option>
+                        <option value="yes">Smoker</option>
+                      </select>
+                    </div>
+
+                    {/* Personality */}
+                    <div className="form-group">
+                      <label>😊 Personality</label>
+                      <select
+                        name="personality"
+                        value={hostProfile.personality}
+                        onChange={handleHostProfileChange}
+                        required
+                      >
+                        <option value="">Select personality</option>
+                        <option value="introvert">Introvert (Quiet, private)</option>
+                        <option value="extrovert">Extrovert (Social, outgoing)</option>
+                        <option value="ambivert">Ambivert (Balanced)</option>
+                      </select>
+                    </div>
+
+                    {/* Cleanliness */}
+                    <div className="form-group">
+                      <label>🧹 Cleanliness Level</label>
+                      <select
+                        name="cleanliness"
+                        value={hostProfile.cleanliness}
+                        onChange={handleHostProfileChange}
+                        required
+                      >
+                        <option value="">Select level</option>
+                        <option value="very_clean">Very Clean (Everything organized)</option>
+                        <option value="moderate">Moderate (Tidy but lived-in)</option>
+                        <option value="relaxed">Relaxed (Clean but casual)</option>
+                      </select>
+                    </div>
+
+                    {/* Occupation */}
+                    <div className="full-width form-group">
+                      <label>💼 Occupation</label>
+                      <input
+                        type="text"
+                        name="occupation"
+                        placeholder="e.g., Software Engineer, Student, Freelancer"
+                        value={hostProfile.occupation}
+                        onChange={handleHostProfileChange}
+                        required
+                      />
+                    </div>
+
+
+                    {/* Hobbies */}
+                    <div className="full-width form-group">
+                      <label>🎨 Hobbies & Interests</label>
+                      <textarea
+                        name="hobbies"
+                        placeholder="Tell us about your hobbies, interests, and what you like to do in your free time"
+                        value={hostProfile.hobbies}
+                        onChange={handleHostProfileChange}
+                        rows="3"
+                        required
+                      />
+                    </div>
+
+                    {/* House Rules */}
+                    <div className="full-width form-group">
+                      <label>📋 House Rules</label>
+                      <textarea
+                        name="houseRules"
+                        placeholder="e.g., No loud music after 10 PM, Clean up after yourself, etc."
+                        value={hostProfile.houseRules}
+                        onChange={handleHostProfileChange}
+                        rows="4"
+                        required
+                      />
+                    </div>
+
+                    {/* Additional Info */}
+                    <div className="full-width form-group">
+                      <label>💬 Additional Information (Optional)</label>
+                      <textarea
+                        name="additionalInfo"
+                        placeholder="Anything else guests should know about you or your home?"
+                        value={hostProfile.additionalInfo}
+                        onChange={handleHostProfileChange}
+                        rows="3"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Submit Section */}
               <div className={`submit-section ${isLoading ? "loading" : ""}`}>

@@ -1119,6 +1119,157 @@
           }
         }
       }
+
+      // Dual Pricing Section for Room/Shared Room
+      .dual-pricing-group {
+        .pricing-hint {
+          font-size: 14px;
+          color: $darkgrey;
+          margin: 8px 0 20px 0;
+          font-style: italic;
+        }
+
+        .pricing-tabs {
+          display: flex;
+          gap: 12px;
+          margin-bottom: 24px;
+
+          .pricing-tab {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: $blue;
+
+            &:hover {
+              border-color: $pinkred;
+              transform: translateY(-2px);
+            }
+
+            &.active {
+              background: linear-gradient(135deg, $pinkred 0%, #e91e63 100%);
+              border-color: $pinkred;
+              color: white;
+              box-shadow: 0 4px 12px rgba(248, 57, 90, 0.3);
+            }
+          }
+        }
+
+        .dual-price-inputs {
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          gap: 20px;
+          align-items: center;
+          margin-bottom: 16px;
+
+          @include sm {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+
+          .price-input-box {
+            label {
+              display: block;
+              font-size: 15px;
+              font-weight: 600;
+              margin-bottom: 10px;
+              transition: color 0.3s ease;
+
+              &.primary {
+                color: $pinkred;
+              }
+
+              &.secondary {
+                color: $grey;
+              }
+            }
+
+            .price-input-wrapper {
+              position: relative;
+              display: flex;
+              align-items: center;
+
+              .currency {
+                position: absolute;
+                left: 15px;
+                font-size: 1.2rem;
+                font-weight: bold;
+                color: $pinkred;
+                z-index: 1;
+              }
+
+              input {
+                flex: 1;
+                padding: 14px 15px 14px 45px;
+                padding-right: 70px;
+                border: 2px solid #e1e5e9;
+                border-radius: 10px;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+                box-sizing: border-box;
+
+                &:focus {
+                  border-color: $pinkred;
+                  box-shadow: 0 0 0 3px rgba(248, 57, 90, 0.1);
+                  outline: none;
+                }
+              }
+
+              .per-unit {
+                position: absolute;
+                right: 15px;
+                font-size: 13px;
+                color: $grey;
+                font-weight: 500;
+              }
+            }
+
+            .price-note {
+              margin: 8px 0 0 0;
+              font-size: 12px;
+              color: $pinkred;
+              font-weight: 600;
+            }
+          }
+
+          .price-arrow {
+            font-size: 28px;
+            color: $pinkred;
+            text-align: center;
+            animation: pulse 2s infinite;
+
+            @include sm {
+              display: none;
+            }
+
+            @keyframes pulse {
+              0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+              }
+              50% {
+                opacity: 0.7;
+                transform: scale(1.1);
+              }
+            }
+          }
+        }
+
+        .pricing-info {
+          background: linear-gradient(135deg, rgba(248, 57, 90, 0.1), rgba(233, 30, 99, 0.1));
+          padding: 12px 16px;
+          border-radius: 8px;
+          border-left: 4px solid $pinkred;
+          font-size: 13px;
+          color: $blue;
+          font-weight: 500;
+        }
+      }
     }
   }
 
@@ -1258,6 +1409,238 @@
         padding: 0 10px;
       }
       
+      &.loading {
+        color: $pinkred;
+        font-weight: 500;
+        animation: pulse 2s infinite;
+      }
+    }
+  }
+
+  // Section titles
+  .section-title {
+    font-size: 1.3rem;
+    color: #555;
+    margin-bottom: 20px;
+    font-weight: 400;
+  }
+
+  // Host Profile Section
+  .host-profile-section {
+    .step-header {
+      h2 {
+        margin-bottom: 12px;
+      }
+    }
+
+    .step-subtitle {
+      font-size: 15px;
+      color: $darkgrey;
+      margin-top: 0;
+      margin-bottom: 0;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .host-profile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+
+      @include sm {
+        grid-template-columns: 1fr;
+      }
+
+      .full-width {
+        grid-column: 1 / -1;
+      }
+
+      .form-group {
+        label {
+          display: block;
+          font-size: 15px;
+          font-weight: 600;
+          color: $blue;
+          margin-bottom: 10px;
+        }
+
+        select,
+        input[type="text"],
+        textarea {
+          width: 100%;
+          padding: 14px 18px;
+          border: 2px solid #e0e0e0;
+          border-radius: 12px;
+          font-size: 15px;
+          font-family: inherit;
+          transition: all 0.3s ease;
+          background: white;
+
+          &:focus {
+            outline: none;
+            border-color: $pinkred;
+            box-shadow: 0 0 0 3px rgba(248, 57, 90, 0.1);
+          }
+
+          &::placeholder {
+            color: $grey;
+          }
+        }
+
+        textarea {
+          resize: vertical;
+          min-height: 100px;
+          line-height: 1.6;
+        }
+
+        select {
+          cursor: pointer;
+          appearance: none;
+          background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F8395A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+          background-repeat: no-repeat;
+          background-position: right 14px center;
+          background-size: 20px;
+          padding-right: 45px;
+        }
+      }
+    }
+  }
+
+  .submit-section {
+    text-align: center;
+    padding: 40px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 20px;
+    margin-top: 50px;
+    position: relative;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    @include sm {
+      padding: 30px 20px;
+    }
+
+    @include sm {
+      padding: 25px 15px;
+      margin-top: 30px;
+    }
+
+    &.loading {
+      background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+      box-shadow: 0 0 30px rgba(248, 57, 90, 0.1);
+    }
+
+    .submit-button {
+      background: linear-gradient(135deg, $pinkred 0%, #E91E63 100%);
+      color: white;
+      border: none;
+      padding: 20px 40px;
+      border-radius: 30px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(248, 57, 90, 0.3);
+      transition: all 0.3s ease;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 400px;
+      position: relative;
+      overflow: hidden;
+
+      @include sm {
+        padding: 18px 30px;
+        font-size: 1.1rem;
+        max-width: 100%;
+        gap: 8px;
+      }
+
+      @include sm {
+        padding: 16px 20px;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+      }
+
+      &:hover:not(.loading) {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(248, 57, 90, 0.4);
+      }
+
+      &.loading {
+        cursor: not-allowed;
+        background: linear-gradient(135deg, #ccc 0%, #999 100%);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+          );
+          animation: shimmer 2s infinite;
+        }
+      }
+
+      &:disabled {
+        cursor: not-allowed;
+        opacity: 0.8;
+      }
+
+      .loading-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        flex-shrink: 0;
+
+        @include sm {
+          width: 18px;
+          height: 18px;
+        }
+
+        @include sm {
+          width: 16px;
+          height: 16px;
+          border-width: 1.5px;
+        }
+      }
+    }
+
+    .note {
+      margin: 20px 0 0 0;
+      font-size: 0.9rem;
+      color: #666;
+      transition: all 0.3s ease;
+      text-align: center;
+      max-width: 400px;
+      line-height: 1.4;
+
+      @include sm {
+        font-size: 0.85rem;
+        margin: 15px 0 0 0;
+      }
+
+      @include sm {
+        font-size: 0.8rem;
+        margin: 12px 0 0 0;
+        padding: 0 10px;
+      }
+
       &.loading {
         color: $pinkred;
         font-weight: 500;

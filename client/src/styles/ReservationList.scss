@@ -501,7 +501,51 @@
           }
         }
       }
+
+      // Guest Compatibility / Host Profile Summary
+      .guest-compatibility {
+        background: linear-gradient(135deg, #fff8e1 0%, #fff3e0 100%);
+        padding: 16px;
+        border-radius: 12px;
+        border: 2px solid #ffb74d;
+        margin-top: 16px;
+
+        h4 {
+          margin: 0 0 12px 0;
+          font-size: 15px;
+          font-weight: 700;
+          color: #e65100;
+        }
+
+        .host-profile-summary {
+          .profile-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+
+            .tag {
+              background: white;
+              padding: 6px 12px;
+              border-radius: 20px;
+              font-size: 13px;
+              font-weight: 600;
+              color: $blue;
+              border: 1px solid #e0e0e0;
+            }
+          }
+
+          .occupation {
+            margin: 0;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: $darkgrey;
+          }
+        }
+      }
     }
   }
 }
-

@@ -80,9 +80,26 @@ const ListingSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    monthlyPrice: {
+      type: Number,
+    },
+    pricingType: {
+      type: String,
+      enum: ["daily", "monthly"],
+    },
+    hostProfile: {
+      sleepSchedule: String,
+      smoking: String,
+      personality: String,
+      cleanliness: String,
+      occupation: String,
+      hobbies: String,
+      houseRules: String,
+      additionalInfo: String,
+    },
     isActive: {
       type: Boolean,
-      default: true, // true = visible, false = hidden
+      default: true,
     },
   },
   { timestamps: true }
