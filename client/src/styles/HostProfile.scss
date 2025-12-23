@@ -1,0 +1,327 @@
+@import "./variables.scss";
+@import "./breakpoints.scss";
+
+.host-profile {
+  min-height: 100vh;
+  background: #f8f9fa;
+
+  .error-message {
+    text-align: center;
+    padding: 100px 20px;
+
+    h2 {
+      color: $blue;
+      margin-bottom: 20px;
+    }
+
+    button {
+      @include buttonStyle;
+      padding: 12px 32px;
+    }
+  }
+
+  // Host Header
+  .host-header {
+    background: linear-gradient(135deg, $pinkred 0%, #e91e63 100%);
+    padding: 60px 100px;
+    color: white;
+
+    @include lg {
+      padding: 50px 50px;
+    }
+
+    @include sm {
+      padding: 40px 20px;
+    }
+
+    .host-header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 40px;
+      align-items: center;
+
+      @include sm {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .host-avatar {
+        flex-shrink: 0;
+
+        img {
+          width: 150px;
+          height: 150px;
+          border-radius: 50%;
+          border: 5px solid white;
+          object-fit: cover;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+          @include sm {
+            width: 120px;
+            height: 120px;
+          }
+        }
+      }
+
+      .host-info {
+        flex: 1;
+
+        h1 {
+          font-size: 36px;
+          font-weight: 700;
+          margin: 0 0 10px 0;
+
+          @include sm {
+            font-size: 28px;
+          }
+        }
+
+        .member-since {
+          font-size: 16px;
+          opacity: 0.9;
+          margin: 0 0 30px 0;
+        }
+
+        .host-stats {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 20px;
+
+          @include sm {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+          }
+
+          .stat-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+
+            .stat-icon {
+              font-size: 28px;
+            }
+
+            .stat-content {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+
+              .stat-value {
+                font-size: 24px;
+                font-weight: 700;
+                line-height: 1;
+              }
+
+              .stat-label {
+                font-size: 13px;
+                opacity: 0.9;
+                margin-top: 4px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Host Sections
+  .host-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 100px;
+
+    @include lg {
+      padding: 50px 50px;
+    }
+
+    @include sm {
+      padding: 40px 20px;
+    }
+
+    .section-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: $blue;
+      margin-bottom: 30px;
+
+      @include sm {
+        font-size: 22px;
+      }
+    }
+
+    .no-content {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      p {
+        font-size: 16px;
+        color: $darkgrey;
+      }
+    }
+
+    // Listings Grid
+    .listings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 30px;
+
+      @include sm {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .listing-wrapper {
+        position: relative;
+
+        .occupied-badge {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          background: rgba(255, 152, 0, 0.95);
+          color: white;
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 600;
+          z-index: 10;
+          backdrop-filter: blur(10px);
+        }
+      }
+    }
+
+    // Reviews Grid
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 24px;
+
+      @include sm {
+        grid-template-columns: 1fr;
+      }
+
+      .review-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .review-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 16px;
+
+          .reviewer-info {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+
+            .reviewer-avatar {
+              width: 48px;
+              height: 48px;
+              border-radius: 50%;
+              object-fit: cover;
+            }
+
+            h4 {
+              font-size: 16px;
+              font-weight: 600;
+              color: $blue;
+              margin: 0 0 4px 0;
+            }
+
+            .review-date {
+              font-size: 13px;
+              color: $grey;
+              margin: 0;
+            }
+          }
+
+          .review-rating {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+
+            .star {
+              font-size: 18px;
+              color: #ffc107;
+
+              &.empty {
+                color: #ddd;
+              }
+
+              &.half {
+                background: linear-gradient(90deg, #ffc107 50%, #ddd 50%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+              }
+            }
+
+            .rating-number {
+              font-size: 13px;
+              font-weight: 600;
+              color: $darkgrey;
+            }
+          }
+        }
+
+        .review-comment {
+          margin: 16px 0;
+          padding: 16px;
+          background: #f8f9fa;
+          border-left: 4px solid $pinkred;
+          border-radius: 8px;
+
+          p {
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.6;
+            color: $darkgrey;
+            font-style: italic;
+          }
+        }
+
+        .listing-rating {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          color: $grey;
+          margin-top: 12px;
+          padding-top: 12px;
+          border-top: 1px solid #e0e0e0;
+
+          .star {
+            font-size: 14px;
+            color: #ffc107;
+
+            &.empty {
+              color: #ddd;
+            }
+          }
+
+          span:last-child {
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
+}
+
