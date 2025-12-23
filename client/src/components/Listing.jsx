@@ -7,7 +7,7 @@ import Loader from "./Loader";
 import { useDispatch, useSelector } from "react-redux";
 import { HTTP_METHODS, CONFIG } from "../constants/api";
 import { setListings } from "../redux/state";
-const Listing = () => {
+const Listing = ({ selectedType }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -76,7 +76,12 @@ const Listing = () => {
               .filter((listing) => {
                 // Filter out user's own listings
                 const creatorId = listing.creator?._id || listing.creator?.id || listing.creator;
-                return currentUserId ? String(creatorId) !== String(currentUserId) : true;
+                const notOwnListing = currentUserId ? String(creatorId) !== String(currentUserId) : true;
+
+                // Filter by selected type
+                const matchesType = selectedType ? listing.type === selectedType : true;
+
+                return notOwnListing && matchesType;
               })
               .map(
               ({
