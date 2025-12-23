@@ -16,19 +16,19 @@ class ApiConfig {
   static const String search = '/search';
   static const String listingDetails = '/listing';
 
-  static const String bookings = '/bookings';
-  static const String trips = '/users/trips';
-  static const String reservations = '/users/reservations';
+  static const String bookings = '/booking';  // Backend uses /booking not /bookings
+  static const String trips = '/user';  // Used with /:userId/trips
+  static const String reservations = '/user';  // Used with /:userId/reservations
 
-  static const String wishlist = '/users/wishlist';
-  static const String addToWishlist = '/users/wishlist';
+  static const String wishlist = '/user';  // PATCH /user/:userId/:listingId (toggle wishlist)
+  static const String addToWishlist = '/user';  // Same endpoint
 
   static const String messages = '/messages';
   static const String conversations = '/messages/conversations';
   static const String unreadMessages = '/messages/unread';
 
   static const String notifications = '/notifications';
-  static const String markNotificationRead = '/notifications/mark-read';
+  static const String markNotificationRead = '/notifications';  // PATCH /notifications/:notificationId/read
 
   static const String hostProfile = '/host';
   static const String hostReviews = '/host-reviews/host';
@@ -36,10 +36,7 @@ class ApiConfig {
   static const String reviews = '/reviews';
   static const String listingReviews = '/reviews/listing';
 
-  static const String propertyManagement = '/property-management';
-
-  static const String user = '/users';
-  static const String updateProfile = '/users/profile';
+  static const String properties = '/properties';  // GET /properties/:userId/properties
 
   // WebSocket
   static const String socketUrl = 'http://localhost:3001';

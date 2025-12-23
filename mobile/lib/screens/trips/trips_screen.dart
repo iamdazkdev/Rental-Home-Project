@@ -43,23 +43,46 @@ class _TripsScreenState extends State<TripsScreen> with SingleTickerProviderStat
 
     final trips = await _bookingService.getUserTrips(user.id);
 
+    debugPrint('🎯 Loaded ${trips.length} trips');
+    for (var i = 0; i < trips.length; i++) {
+      final trip = trips[i];
+      debugPrint('  Trip $i: status=${trip.status}, start=${trip.startDate}, end=${trip.endDate}');
+    }
+
     setState(() {
       _trips = trips;
       _isLoading = false;
     });
+
+    debugPrint('📊 Filtered: ${_upcomingTrips.length} upcoming, ${_pastTrips.length} past');
   }
 
   List<Booking> get _upcomingTrips {
+    final now = DateTime.now();
     return _trips.where((trip) {
-      return trip.status == 'approved' &&
-             trip.endDate.isAfter(DateTime.now());
+      // Show pending, approved, and accepted bookings that haven't ended yet
+      final isActiveFutureBooking = (trip.status == 'pending' ||
+                                      trip.status == 'approved' ||
+                                      trip.status == 'accepted') &&
+                                     trip.endDate.isAfter(now);
+
+      debugPrint('  Upcoming check: ${trip.status}, ends ${trip.endDate}, now $now, include: $isActiveFutureBooking');
+      return isActiveFutureBooking;
     }).toList();
   }
 
   List<Booking> get _pastTrips {
+    final now = DateTime.now();
     return _trips.where((trip) {
-      return trip.isCompleted || trip.isCheckedOut ||
-             trip.endDate.isBefore(DateTime.now());
+      // Show completed, checked out, rejected, or past bookings
+      final isPastBooking = trip.status == 'completed' ||
+                           trip.status == 'checked_out' ||  // Backend uses checked_out with underscore
+                           trip.status == 'rejected' ||
+                           trip.endDate.isBefore(now) ||
+                           trip.endDate.isAtSameMomentAs(now);
+
+      debugPrint('  Past check: ${trip.status}, ends ${trip.endDate}, now $now, include: $isPastBooking');
+      return isPastBooking;
     }).toList();
   }
 

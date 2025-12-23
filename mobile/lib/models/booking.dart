@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class Booking {
   final String id;
   final String customerId;
@@ -57,17 +59,57 @@ class Booking {
   }
 
   bool get isPending => status == 'pending';
-  bool get isApproved => status == 'approved';
+  bool get isApproved => status == 'approved' || status == 'accepted';  // Handle both
   bool get isRejected => status == 'rejected';
   bool get isCancelled => status == 'cancelled';
   bool get isCompleted => status == 'completed';
-  bool get isCheckedOut => status == 'checkedOut';
+  bool get isCheckedOut => status == 'checkedOut' || status == 'checked_out';  // Handle both formats
 
   bool get canCheckout => isApproved && DateTime.now().isAfter(startDate);
   bool get canExtend => isApproved && !isCompleted && !isCheckedOut;
   bool get canReview => isCheckedOut && homeReview == null;
 
   factory Booking.fromJson(Map<String, dynamic> json) {
+    // Safe date parsing helper - handles ISO format and fallback for old JS format
+    DateTime? parseDate(dynamic value) {
+      if (value == null) return null;
+      try {
+        final dateStr = value.toString();
+
+        // Try ISO format first (2025-12-23T00:00:00.000Z)
+        try {
+          return DateTime.parse(dateStr);
+        } catch (_) {
+          // Fallback: handle old JS Date format (Tue Dec 23 2025)
+          // This is for old data in DB, new bookings use ISO format
+          final parts = dateStr.split(' ');
+          if (parts.length >= 4) {
+            final months = {
+              'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
+              'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
+              'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
+            };
+
+            final month = months[parts[1]];
+            final day = parts[2].padLeft(2, '0');
+            final year = parts[3];
+
+            if (month != null) {
+              return DateTime.parse('$year-$month-$day');
+            }
+          }
+          throw Exception('Unable to parse date: $dateStr');
+        }
+      } catch (e) {
+        debugPrint('⚠️ Error parsing date: $value - $e');
+        return null;
+      }
+    }
+
+    // Parse required dates with fallback to current time
+    final startDate = parseDate(json['startDate']) ?? DateTime.now();
+    final endDate = parseDate(json['endDate']) ?? DateTime.now().add(const Duration(days: 1));
+
     return Booking(
       id: json['_id'] ?? json['id'] ?? '',
       customerId: json['customerId'] is String
@@ -79,20 +121,14 @@ class Booking {
       listingId: json['listingId'] is String
           ? json['listingId']
           : json['listingId']?['_id'] ?? '',
-      startDate: DateTime.parse(json['startDate']),
-      endDate: DateTime.parse(json['endDate']),
+      startDate: startDate,
+      endDate: endDate,
       totalPrice: (json['totalPrice'] ?? 0).toDouble(),
       status: json['status'] ?? 'pending',
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'])
-          : null,
+      createdAt: parseDate(json['createdAt']),
+      updatedAt: parseDate(json['updatedAt']),
       extensionDays: json['extensionDays'],
-      newEndDate: json['newEndDate'] != null
-          ? DateTime.parse(json['newEndDate'])
-          : null,
+      newEndDate: parseDate(json['newEndDate']),
       extensionCost: json['extensionCost']?.toDouble(),
       extensionStatus: json['extensionStatus'],
       homeReview: json['homeReview'],

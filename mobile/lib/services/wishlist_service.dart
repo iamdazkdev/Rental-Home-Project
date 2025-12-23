@@ -18,13 +18,15 @@ class WishlistService {
         return {'success': false, 'message': 'Not authenticated'};
       }
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/${user.id}/$listingId/wishlist');
+      // PATCH /user/:userId/:listingId
+      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.wishlist}/${user.id}/$listingId');
       final response = await http.patch(
         uri,
         headers: ApiConfig.headers(token: token),
       );
 
-      debugPrint('🔍 Toggle wishlist response: ${response.statusCode}');
+      debugPrint('🔍 Toggle wishlist URL: $uri');
+      debugPrint('📥 Toggle wishlist response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -44,26 +46,40 @@ class WishlistService {
       debugPrint('❌ Error toggling wishlist: $e');
       return {
         'success': false,
-        'message': 'An error occurred: ${e.toString()}',
+        'message': 'An error occurred: $e',
       };
     }
   }
 
-  // Get wishlist
+  // Get wishlist - GET /user/:userId/trips returns bookings, need to check backend for wishlist endpoint
   Future<List<Listing>> getWishlist(String userId) async {
     try {
       final token = await _storageService.getToken();
-      final uri = Uri.parse('${ApiConfig.baseUrl}/${userId}/wishlist');
+      final user = await _storageService.getUser();
+
+      if (user == null) return [];
+
+      // Get user's wishlist IDs from their profile
+      // Backend doesn't have separate wishlist GET endpoint, wishlist is part of user object
+      // We'll need to get listings and filter by user's wishList array
+      final listingsUri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.listings}');
       final response = await http.get(
-        uri,
+        listingsUri,
         headers: ApiConfig.headers(token: token),
       );
 
-      debugPrint('🔍 Get wishlist response: ${response.statusCode}');
+      debugPrint('🔍 Get wishlist - fetching all listings');
+      debugPrint('📥 Response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((json) => Listing.fromJson(json)).toList();
+        // Filter listings that are in user's wishlist
+        final wishlistListings = data
+            .map((json) => Listing.fromJson(json))
+            .where((listing) => user.wishlist.contains(listing.id))
+            .toList();
+        debugPrint('✅ Found ${wishlistListings.length} wishlist items');
+        return wishlistListings;
       }
       return [];
     } catch (e) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../config/app_theme.dart';
+import '../wishlist/wishlist_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -64,6 +65,19 @@ class ProfileScreen extends StatelessWidget {
                     title: 'Wishlist',
                     subtitle: '${user.wishlist.length} saved',
                     onTap: () {},
+                  ),
+                  _MenuItem(
+                    icon: Icons.favorite_outline,
+                    title: 'Wishlist',
+                    subtitle: 'Your favorite places',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const WishlistScreen(),
+                        ),
+                      );
+                    },
                   ),
                   _MenuItem(
                     icon: Icons.history,

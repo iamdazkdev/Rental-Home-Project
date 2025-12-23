@@ -56,24 +56,54 @@ class ListingService {
   }
 
   // Search listings
-  Future<List<Listing>> searchListings(Map<String, dynamic> filters) async {
+  Future<List<Listing>> searchListings({
+    String? query,
+    String? category,
+    String? type,
+    double? minPrice,
+    double? maxPrice,
+    int? minGuests,
+    int? minBedrooms,
+    int? minBathrooms,
+    List<String>? amenities,
+  }) async {
     try {
-      final queryParams = filters.entries
-          .where((e) => e.value != null && e.value.toString().isNotEmpty)
+      // Build query parameters
+      final Map<String, dynamic> params = {};
+
+      if (query != null && query.isNotEmpty) params['query'] = query;
+      if (category != null && category != 'All') params['category'] = category;
+      if (type != null) params['type'] = type;
+      if (minPrice != null && minPrice > 0) params['minPrice'] = minPrice.toString();
+      if (maxPrice != null && maxPrice < 10000) params['maxPrice'] = maxPrice.toString();
+      if (minGuests != null && minGuests > 0) params['minGuests'] = minGuests.toString();
+      if (minBedrooms != null && minBedrooms > 0) params['minBedrooms'] = minBedrooms.toString();
+      if (minBathrooms != null && minBathrooms > 0) params['minBathrooms'] = minBathrooms.toString();
+      if (amenities != null && amenities.isNotEmpty) {
+        params['amenities'] = amenities.join(',');
+      }
+
+      final queryParams = params.entries
           .map((e) => '${e.key}=${Uri.encodeComponent(e.value.toString())}')
           .join('&');
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.search}?$queryParams');
+      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.search}${queryParams.isNotEmpty ? '?$queryParams' : ''}');
+
+      debugPrint('🔍 Search URL: $uri');
+
       final response = await http.get(uri, headers: ApiConfig.headers());
+
+      debugPrint('📥 Search response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> listings = data['listings'] ?? data;
+        debugPrint('✅ Found ${listings.length} results');
         return listings.map((json) => Listing.fromJson(json)).toList();
       }
       return [];
     } catch (e) {
-      debugPrint('Error searching listings: $e');
+      debugPrint('❌ Error searching listings: $e');
       return [];
     }
   }
@@ -226,12 +256,16 @@ class ListingService {
         return {'success': false, 'message': 'Not authenticated'};
       }
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.propertyManagement}/$listingId/visibility');
+      // PATCH /properties/:listingId/toggle-visibility
+      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.properties}/$listingId/toggle-visibility');
       final response = await http.patch(
         uri,
         headers: ApiConfig.headers(token: token),
         body: json.encode({'isHidden': isHidden}),
       );
+
+      debugPrint('🔍 Toggle visibility URL: $uri');
+      debugPrint('📥 Response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         return {

@@ -31,6 +31,9 @@ class AppConstants {
     'A Shared Room',
   ];
 
+  // Alias for propertyTypes (for consistency with web)
+  static const List<String> types = propertyTypes;
+
   // Amenities
   static const List<String> amenities = [
     'Wifi',
