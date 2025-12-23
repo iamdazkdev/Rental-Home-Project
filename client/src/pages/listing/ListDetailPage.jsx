@@ -45,8 +45,10 @@ const ListingDetails = () => {
   useEffect(() => {
     if (listingId) {
       setLoading(true);
-      getListingDetails().then(r => {
-        console.log(`Listing details loaded: ${r.toString()}`);
+      getListingDetails().then(() => {
+        console.log("Listing details loaded successfully");
+      }).catch((err) => {
+        console.error("Failed to load listing details:", err);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

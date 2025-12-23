@@ -67,21 +67,29 @@ const WishList = () => {
             <p>Your wish list is empty. Start adding your favorite listings!</p>
           </div>
         ) : (
-          wishListListings?.map((listing) => (
-            <ListingCard
-              key={listing._id}
-              listingId={listing._id}
-              creator={listing.creator}
-              listingPhotoPaths={listing.listingPhotoPaths}
-              city={listing.city}
-              province={listing.province}
-              country={listing.country}
-              category={listing.category}
-              type={listing.type}
-              price={listing.price}
-              booking={false}
-            />
-          ))
+          wishListListings?.map((listing) => {
+            // Validate listing has required data
+            if (!listing || !listing._id && !listing.id) {
+              console.warn("Invalid listing data:", listing);
+              return null;
+            }
+
+            return (
+              <ListingCard
+                key={listing._id || listing.id}
+                listingId={listing._id || listing.id}
+                creator={listing.creator || {}}
+                listingPhotoPaths={listing.listingPhotoPaths || []}
+                city={listing.city}
+                province={listing.province}
+                country={listing.country}
+                category={listing.category}
+                type={listing.type}
+                price={listing.price}
+                booking={false}
+              />
+            );
+          })
         )}
       </div>
       <Footer />

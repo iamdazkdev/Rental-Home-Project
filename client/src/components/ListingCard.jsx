@@ -54,18 +54,27 @@ const ListingCard = ({
   });
 
   const patchWishList = async () => {
-    if (!user?.id) {
+    if (!user?._id) {
       console.log("User not logged in");
       return;
     }
 
-    if (user.id === creator.id) {
+    // Safely get creator ID
+    const creatorId = creator?._id || creator?.id;
+    const userId = user._id || user.id;
+
+    if (!creatorId) {
+      console.log("Creator information not available");
+      return;
+    }
+
+    if (userId === creatorId) {
       console.log("Cannot add own listing to wishlist");
       return;
     }
 
     try {
-      const url = API_ENDPOINTS.USERS.PATCH_WIST_LIST(user.id, listingId);
+      const url = API_ENDPOINTS.USERS.PATCH_WIST_LIST(userId, listingId);
       const response = await fetch(url, {
         method: HTTP_METHODS.PATCH,
         headers: DEFAULT_HEADERS,
