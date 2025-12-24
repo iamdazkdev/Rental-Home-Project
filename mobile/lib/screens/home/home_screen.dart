@@ -18,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final ListingService _listingService = ListingService();
   String _selectedCategory = 'All';
+  String? _selectedType; // null means "All"
   List<Listing> _listings = [];
   bool _isLoading = true;
 
@@ -28,15 +29,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadListings() async {
-    debugPrint('🏠 HomeScreen: Loading listings for category: $_selectedCategory');
+    debugPrint('🏠 HomeScreen: Loading listings for category: $_selectedCategory, type: $_selectedType');
 
     setState(() {
       _isLoading = true;
     });
 
-    final listings = await _listingService.getListings(
+    // Get all listings first
+    List<Listing> listings = await _listingService.getListings(
       category: _selectedCategory == 'All' ? null : _selectedCategory,
     );
+
+    // Filter by type locally if selected
+    if (_selectedType != null) {
+      listings = listings.where((listing) => listing.type == _selectedType).toList();
+      debugPrint('🏠 HomeScreen: Filtered to ${listings.length} listings of type: $_selectedType');
+    }
 
     debugPrint('🏠 HomeScreen: Received ${listings.length} listings');
 
@@ -119,6 +127,77 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           ),
+          // Property Types Filter
+          Container(
+            height: 50,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              border: Border(
+                top: BorderSide(color: AppTheme.borderColor, width: 1),
+                bottom: BorderSide(color: AppTheme.borderColor, width: 1),
+              ),
+            ),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                // All Types
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: FilterChip(
+                    label: const Text('All Types'),
+                    selected: _selectedType == null,
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedType = null;
+                      });
+                      _loadListings();
+                    },
+                    backgroundColor: Colors.white,
+                    selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    checkmarkColor: AppTheme.primaryColor,
+                    labelStyle: TextStyle(
+                      color: _selectedType == null ? AppTheme.primaryColor : AppTheme.textSecondaryColor,
+                      fontWeight: _selectedType == null ? FontWeight.w600 : FontWeight.normal,
+                      fontSize: 13,
+                    ),
+                    side: BorderSide(
+                      color: _selectedType == null ? AppTheme.primaryColor : AppTheme.borderColor,
+                    ),
+                  ),
+                ),
+                // Property Types
+                ...AppConstants.types.map((type) {
+                  final isSelected = type == _selectedType;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      label: Text(type),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          _selectedType = selected ? type : null;
+                        });
+                        _loadListings();
+                      },
+                      backgroundColor: Colors.white,
+                      selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                      checkmarkColor: AppTheme.primaryColor,
+                      labelStyle: TextStyle(
+                        color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondaryColor,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        fontSize: 13,
+                      ),
+                      side: BorderSide(
+                        color: isSelected ? AppTheme.primaryColor : AppTheme.borderColor,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
           // Listings
           Expanded(
             child: _isLoading
@@ -138,6 +217,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               'No listings available',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
+                            if (_selectedType != null) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                'Try changing the property type filter',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppTheme.textSecondaryColor,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       )
