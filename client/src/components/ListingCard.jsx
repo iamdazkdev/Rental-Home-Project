@@ -2,12 +2,13 @@
 import "../styles/ListingCard.scss";
 import {CONFIG, DEFAULT_HEADERS} from "../constants";
 import { ArrowForwardIos, ArrowBackIosNew, Favorite } from "@mui/icons-material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 // import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
 import {API_ENDPOINTS, HTTP_METHODS} from "../constants/api";
 import {setWishList} from "../redux/state";
+
 const ListingCard = ({
   listingId,
   creator,
@@ -29,6 +30,8 @@ const ListingCard = ({
 }) => {
   /* SLIDER FOR IMAGES */
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [averageRating, setAverageRating] = useState(null);
+  const [reviewCount, setReviewCount] = useState(0);
 
   const goToPrevSlide = () => {
     setCurrentIndex(
@@ -40,6 +43,32 @@ const ListingCard = ({
   const goToNextSlide = () => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % listingPhotoPaths.length);
   };
+
+  // Fetch rating for listing
+  useEffect(() => {
+    const fetchRating = async () => {
+      if (!listingId) return;
+
+      try {
+        const response = await fetch(API_ENDPOINTS.REVIEWS.GET_LISTING(listingId), {
+          method: HTTP_METHODS.GET,
+          headers: DEFAULT_HEADERS,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.stats && data.stats.averageRating) {
+            setAverageRating(data.stats.averageRating);
+            setReviewCount(data.stats.totalReviews || 0);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching rating:", error);
+      }
+    };
+
+    fetchRating();
+  }, [listingId]);
 
   const navigate = useNavigate();
   const handleNavigateToDetails = () => {
@@ -157,10 +186,40 @@ const ListingCard = ({
         </div>
       </div>
 
+      {/* Host Info */}
+      {creator && !booking && (
+        <div className="host-info">
+          <img
+            src={
+              creator.profileImagePath?.startsWith("https://")
+                ? creator.profileImagePath
+                : creator.profileImagePath
+                ? `${CONFIG.API_BASE_URL}/${creator.profileImagePath.replace("public/", "")}`
+                : `https://ui-avatars.com/api/?name=${encodeURIComponent(creator.firstName || 'Host')}&background=FF385A&color=fff&size=40`
+            }
+            alt={`${creator.firstName} ${creator.lastName}`}
+            className="host-avatar"
+          />
+          <span className="host-name">
+            {creator.firstName} {creator.lastName}
+          </span>
+        </div>
+      )}
+
       <h3>
         {city}, {province}, {country}
       </h3>
       <p>{category}</p>
+
+      {/* Rating */}
+      {averageRating && !booking && (
+        <div className="listing-rating">
+          <span className="star">⭐</span>
+          <span className="rating-value">{averageRating.toFixed(1)}</span>
+          <span className="review-count">({reviewCount})</span>
+        </div>
+      )}
+
       {!booking ? (
         <>
           <p>{type}</p>

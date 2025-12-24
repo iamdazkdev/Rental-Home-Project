@@ -23,12 +23,56 @@ const MessagesPage = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [showConversationsList, setShowConversationsList] = useState(true);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const messageInputRef = useRef(null);
 
   // Get data from Contact Host button
   const contactData = location.state;
+
+  // Create placeholder avatar with initials
+  const createAvatarPlaceholder = (name) => {
+    const initial = name?.charAt(0)?.toUpperCase() || "U";
+    const canvas = document.createElement('canvas');
+    canvas.width = 100;
+    canvas.height = 100;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#FF385A';
+    ctx.fillRect(0, 0, 100, 100);
+
+    // Text
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 48px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(initial, 50, 50);
+
+    return canvas.toDataURL();
+  };
+
+  // Create placeholder for listing
+  const createListingPlaceholder = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 100;
+    canvas.height = 100;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#4A90E2';
+    ctx.fillRect(0, 0, 100, 100);
+
+    // House icon (simple)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 60px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🏠', 50, 50);
+
+    return canvas.toDataURL();
+  };
 
   // Scroll to bottom
   const scrollToBottom = () => {
@@ -76,6 +120,13 @@ const MessagesPage = () => {
       setSelectedConversation(tempConversation);
       setMessages([]);
 
+      // Hide conversations list on mobile for Contact Host flow, keep visible on desktop
+      if (window.innerWidth <= 720) {
+        setShowConversationsList(false);
+      } else {
+        setShowConversationsList(true); // Always show on desktop
+      }
+
       // Focus input after a short delay
       setTimeout(() => {
         messageInputRef.current?.focus();
@@ -88,15 +139,47 @@ const MessagesPage = () => {
 
   // Fetch messages when conversation selected
   useEffect(() => {
+    // Skip if coming from Contact Host (contactData exists)
+    if (contactData) return;
+
     if (conversationId) {
       fetchMessages(conversationId);
+      // Only hide list on mobile
+      if (window.innerWidth <= 720) {
+        setShowConversationsList(false);
+      } else {
+        setShowConversationsList(true); // Always show on desktop
+      }
     } else if (conversations.length > 0) {
-      // Select first conversation
+      // Auto-select first conversation when user opens Messages Page from Account section
+      // Only run once when conversations are first loaded
       const firstConv = conversations[0];
-      setSelectedConversation(firstConv);
-      fetchMessages(firstConv.conversationId);
+      if (!selectedConversation || selectedConversation.conversationId !== firstConv.conversationId) {
+        setSelectedConversation(firstConv);
+        fetchMessages(firstConv.conversationId);
+
+        // Always show conversations list
+        setShowConversationsList(true);
+      }
     }
-  }, [conversationId, conversations]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, conversations.length, contactData]);
+
+  // Handle window resize - always show conversations list on desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 720) {
+        setShowConversationsList(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Initial check
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Socket listeners
   useEffect(() => {
@@ -346,7 +429,7 @@ const MessagesPage = () => {
       <div className="messages-page">
         <div className="messages-container">
           {/* Conversations List */}
-          <div className="conversations-list">
+          <div className={`conversations-list ${showConversationsList ? 'mobile-show' : ''}`}>
             <div className="list-header">
               <h2>💬 Messages</h2>
               <span className="conv-count">{conversations.length}</span>
@@ -371,6 +454,10 @@ const MessagesPage = () => {
                       setSelectedConversation(conv);
                       fetchMessages(conv.conversationId);
                       navigate(`/messages/${conv.conversationId}`);
+                      // Only hide on mobile
+                      if (window.innerWidth <= 720) {
+                        setShowConversationsList(false);
+                      }
                     }}
                   >
                     <div className="conv-avatar-wrapper">
@@ -378,13 +465,18 @@ const MessagesPage = () => {
                         src={
                           conv.otherUser.profileImagePath?.startsWith("https://")
                             ? conv.otherUser.profileImagePath
-                            : `${CONFIG.API_BASE_URL}/${conv.otherUser.profileImagePath?.replace(
-                                "public/",
-                                ""
-                              )}`
+                            : conv.otherUser.profileImagePath
+                            ? `${CONFIG.API_BASE_URL}/${conv.otherUser.profileImagePath.replace("public/", "")}`
+                            : createAvatarPlaceholder(conv.otherUser.firstName)
                         }
                         alt={conv.otherUser.firstName}
                         className="conv-avatar"
+                        onError={(e) => {
+                          if (!e.target.dataset.fallback) {
+                            e.target.dataset.fallback = "true";
+                            e.target.src = createAvatarPlaceholder(conv.otherUser.firstName);
+                          }
+                        }}
                       />
                       {isUserOnline(conv.otherUser._id) && (
                         <div className="online-dot"></div>
@@ -421,25 +513,34 @@ const MessagesPage = () => {
           </div>
 
           {/* Messages Area */}
-          <div className="messages-area">
+          <div className={`messages-area ${!selectedConversation ? 'no-selection' : ''}`}>
             {selectedConversation ? (
               <>
                 {/* Chat Header */}
                 <div className="chat-header">
+                  <button
+                    className="back-to-list-btn"
+                    onClick={() => setShowConversationsList(true)}
+                  >
+                    ← Back
+                  </button>
                   <div className="chat-user-info">
                     <img
                       src={
-                        selectedConversation.otherUser.profileImagePath?.startsWith(
-                          "https://"
-                        )
+                        selectedConversation.otherUser.profileImagePath?.startsWith("https://")
                           ? selectedConversation.otherUser.profileImagePath
-                          : `${CONFIG.API_BASE_URL}/${selectedConversation.otherUser.profileImagePath?.replace(
-                              "public/",
-                              ""
-                            )}`
+                          : selectedConversation.otherUser.profileImagePath
+                          ? `${CONFIG.API_BASE_URL}/${selectedConversation.otherUser.profileImagePath.replace("public/", "")}`
+                          : createAvatarPlaceholder(selectedConversation.otherUser.firstName)
                       }
                       alt={selectedConversation.otherUser.firstName}
                       className="chat-avatar"
+                      onError={(e) => {
+                        if (!e.target.dataset.fallback) {
+                          e.target.dataset.fallback = "true";
+                          e.target.src = createAvatarPlaceholder(selectedConversation.otherUser.firstName);
+                        }
+                      }}
                     />
                     <div>
                       <h3>
@@ -458,17 +559,20 @@ const MessagesPage = () => {
                     <div className="chat-listing-info">
                       <img
                         src={
-                          selectedConversation.listing.listingPhotoPaths?.[0]?.startsWith(
-                            "https://"
-                          )
+                          selectedConversation.listing.listingPhotoPaths?.[0]?.startsWith("https://")
                             ? selectedConversation.listing.listingPhotoPaths[0]
-                            : `${CONFIG.API_BASE_URL}/${selectedConversation.listing.listingPhotoPaths?.[0]?.replace(
-                                "public/",
-                                ""
-                              )}`
+                            : selectedConversation.listing.listingPhotoPaths?.[0]
+                            ? `${CONFIG.API_BASE_URL}/${selectedConversation.listing.listingPhotoPaths[0].replace("public/", "")}`
+                            : createListingPlaceholder()
                         }
                         alt={selectedConversation.listing.title}
                         className="listing-thumb"
+                        onError={(e) => {
+                          if (!e.target.dataset.fallback) {
+                            e.target.dataset.fallback = "true";
+                            e.target.src = createListingPlaceholder();
+                          }
+                        }}
                       />
                       <span>{selectedConversation.listing.title}</span>
                     </div>

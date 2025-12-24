@@ -65,6 +65,28 @@
     }
   }
 
+  .host-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 6px 0;
+
+    .host-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid $pinkred;
+    }
+
+    .host-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+  }
+
   h3 {
     font-size: 18px;
   }
@@ -93,6 +115,29 @@
     .updated-badge {
       background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
       color: white;
+    }
+  }
+
+  .listing-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 6px 0;
+
+    .star {
+      font-size: 16px;
+    }
+
+    .rating-value {
+      font-weight: 700;
+      font-size: 15px;
+      color: #333;
+    }
+
+    .review-count {
+      font-size: 13px;
+      color: #666;
+      font-weight: 400;
     }
   }
 
