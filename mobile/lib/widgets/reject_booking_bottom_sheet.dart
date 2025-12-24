@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/booking_service.dart';
 
 class RejectBookingBottomSheet extends StatefulWidget {
   final Map<String, dynamic> booking;
@@ -35,7 +34,7 @@ class _RejectBookingBottomSheetState extends State<RejectBookingBottomSheet> {
     super.dispose();
   }
 
-  Future<void> _handleReject() async {
+  void _handleReject() {
     final reason = selectedReason == 'Other (please specify below)'
         ? _customReasonController.text.trim()
         : selectedReason;
@@ -50,48 +49,8 @@ class _RejectBookingBottomSheetState extends State<RejectBookingBottomSheet> {
       return;
     }
 
-    setState(() => _isSubmitting = true);
-
-    try {
-      final bookingService = BookingService();
-      final result = await bookingService.rejectBooking(
-        widget.booking['_id'],
-        reason: reason,
-      );
-
-      if (!mounted) return;
-
-      if (result['success'] == true) {
-        Navigator.of(context).pop(true); // Return success
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Booking rejected successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Failed to reject booking'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to reject booking: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
-    }
+    // Return the reason to parent screen for handling
+    Navigator.of(context).pop(reason);
   }
 
   @override
@@ -101,6 +60,7 @@ class _RejectBookingBottomSheetState extends State<RejectBookingBottomSheet> {
     final listing = booking['listingId'] as Map<String, dynamic>?;
 
     return Container(
+      height: MediaQuery.of(context).size.height * 0.9,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

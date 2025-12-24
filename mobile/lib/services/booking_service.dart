@@ -167,7 +167,8 @@ class BookingService {
   Future<List<Booking>> getHostReservations(String userId) async {
     try {
       final token = await _storageService.getToken();
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.reservations}/$userId/reservations');
+      // Correct endpoint: /booking/host/:hostId
+      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookings}/host/$userId');
       final response = await http.get(
         uri,
         headers: ApiConfig.headers(token: token),
@@ -294,8 +295,8 @@ class BookingService {
     }
   }
 
-  // Approve booking (host)
-  Future<Map<String, dynamic>> approveBooking(String bookingId) async {
+  // Accept booking (host)
+  Future<Map<String, dynamic>> acceptBooking(String bookingId) async {
     try {
       final token = await _storageService.getToken();
       if (token == null) {
@@ -305,31 +306,33 @@ class BookingService {
       // PATCH /booking/:bookingId/accept
       final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/accept');
 
-      debugPrint('🔍 Approve booking URL: $uri');
+      debugPrint('🔍 Accept booking URL: $uri');
 
       final response = await http.patch(
         uri,
         headers: ApiConfig.headers(token: token),
       );
 
-      debugPrint('📥 Approve response: ${response.statusCode}');
+      debugPrint('📥 Accept response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        debugPrint('✅ Booking approved');
+        final data = json.decode(response.body);
+        debugPrint('✅ Booking accepted');
         return {
           'success': true,
-          'message': 'Booking approved',
+          'message': data['message'] ?? 'Booking accepted',
+          'booking': data['booking'],
         };
       } else {
         final error = json.decode(response.body);
-        debugPrint('❌ Approve failed: ${error['message']}');
+        debugPrint('❌ Accept failed: ${error['message']}');
         return {
           'success': false,
-          'message': error['message'] ?? 'Failed to approve booking',
+          'message': error['message'] ?? 'Failed to accept booking',
         };
       }
     } catch (e) {
-      debugPrint('❌ Error approving booking: $e');
+      debugPrint('❌ Error accepting booking: $e');
       return {
         'success': false,
         'message': 'An error occurred: ${e.toString()}',
@@ -433,5 +436,6 @@ class BookingService {
       };
     }
   }
+
 }
 

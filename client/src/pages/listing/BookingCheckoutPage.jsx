@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Navbar from '../../components/Navbar';
 import Loader from '../../components/Loader';
+import BookingSuccessModal from '../../components/BookingSuccessModal';
 import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from '../../constants/api';
 import { validateBookingData, getPaymentGatewayLogo, formatUSD } from '../../utils/paymentUtils';
 import '../../styles/BookingCheckout.scss';
@@ -16,6 +17,7 @@ const BookingCheckoutPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [bookingData, setBookingData] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('vnpay_full'); // vnpay_full, vnpay_deposit, cash
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     // Get booking data from navigation state
@@ -74,8 +76,10 @@ const BookingCheckoutPage = () => {
         }
 
         console.log("✅ Cash booking created");
-        alert('Booking created successfully! Please pay in cash when you check in.');
-        navigate(`/${user?._id || user?.id}/trips`);
+
+        // Show success modal instead of alert
+        setSubmitting(false);
+        setShowSuccessModal(true);
         return;
       }
 
@@ -390,6 +394,15 @@ const BookingCheckoutPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Success Modal */}
+      <BookingSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        bookingData={bookingData}
+        paymentMethod={paymentMethod}
+        userId={user?._id || user?.id}
+      />
     </>
   );
 };

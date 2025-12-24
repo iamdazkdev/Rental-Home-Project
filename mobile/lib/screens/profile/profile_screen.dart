@@ -5,6 +5,7 @@ import '../../config/app_theme.dart';
 import '../wishlist/wishlist_screen.dart';
 import '../properties/my_properties_screen.dart';
 import '../bookings/booking_history_screen.dart';
+import '../host/booking_requests_screen.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -73,6 +74,19 @@ class ProfileScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const MyPropertiesScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _MenuItem(
+                    icon: Icons.event_note,
+                    title: 'Booking Requests',
+                    subtitle: 'Manage guest requests',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const BookingRequestsScreen(),
                         ),
                       );
                     },

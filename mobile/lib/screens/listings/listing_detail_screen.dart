@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart' as carousel;
 import '../../models/listing.dart';
 import '../../models/review.dart';
+import '../../models/conversation.dart';
 import '../../services/listing_service.dart';
 import '../../services/review_service.dart';
 import '../../providers/auth_provider.dart';
@@ -12,6 +13,7 @@ import '../../utils/price_formatter.dart';
 import '../../utils/amenity_icons.dart';
 import '../bookings/create_booking_screen.dart';
 import '../host/host_profile_screen.dart';
+import '../messages/messages_screen.dart';
 
 class ListingDetailScreen extends StatefulWidget {
   final String listingId;
@@ -318,7 +320,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         ],
       ),
 
-      // Book Now Button (only if not own listing)
+      // Action Buttons (only if not own listing)
       bottomNavigationBar: !isOwnListing
           ? Container(
               padding: const EdgeInsets.all(16),
@@ -332,16 +334,83 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   ),
                 ],
               ),
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CreateBookingScreen(listing: _listing!),
+              child: Row(
+                children: [
+                  // Contact Host Button
+                  Expanded(
+                    flex: 2,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        // Get host name from creator data
+                        final firstName = _listing!.creatorData?['firstName'] ?? '';
+                        final lastName = _listing!.creatorData?['lastName'] ?? '';
+
+                        // Sort user IDs to match backend conversation ID generation
+                        final userId = user!.id;
+                        final hostId = _listing!.creator;
+                        final sortedIds = [userId, hostId]..sort();
+
+                        // Generate conversation ID matching backend logic
+                        final conversationId = _listing!.id.isNotEmpty
+                            ? 'temp_${sortedIds[0]}_${sortedIds[1]}_${_listing!.id}'
+                            : 'temp_${sortedIds[0]}_${sortedIds[1]}';
+
+                        // Create temporary conversation for contact host
+                        final tempConversation = Conversation(
+                          conversationId: conversationId,
+                          otherUser: {
+                            '_id': _listing!.creator,
+                            'firstName': firstName,
+                            'lastName': lastName,
+                            'profileImagePath': _listing!.creatorData?['profileImagePath'],
+                          },
+                          listing: {
+                            '_id': _listing!.id,
+                            'title': _listing!.title,
+                            'listingPhotoPaths': _listing!.listingPhotoPaths,
+                          },
+                          lastMessage: 'Start a conversation...',
+                          lastMessageAt: DateTime.now(),
+                          unreadCount: 0,
+                        );
+
+                        // Navigate to chat screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatScreen(conversation: tempConversation),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.chat_bubble_outline),
+                      label: const Text('Contact Host'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(color: AppTheme.primaryColor),
+                        foregroundColor: AppTheme.primaryColor,
+                      ),
                     ),
-                  );
-                },
-                child: const Text('Book Now'),
+                  ),
+                  const SizedBox(width: 12),
+                  // Book Now Button
+                  Expanded(
+                    flex: 3,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CreateBookingScreen(listing: _listing!),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text('Book Now'),
+                    ),
+                  ),
+                ],
               ),
             )
           : null,

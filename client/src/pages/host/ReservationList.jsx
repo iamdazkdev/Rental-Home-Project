@@ -172,7 +172,7 @@ const ReservationList = () => {
     <>
       <Navbar />
       <div className="reservation-list">
-        <h1 className="title">Your Reservations</h1>
+        <h1 className="title">Booking Requests</h1>
 
         {/* Filter Tabs */}
         <div className="filter-tabs">

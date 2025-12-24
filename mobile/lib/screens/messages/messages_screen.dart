@@ -68,9 +68,20 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
     final contactData = widget.contactData!;
 
+    // Sort user IDs to match backend conversation ID generation
+    final userId = user.id;
+    final receiverId = contactData['receiverId'];
+    final listingId = contactData['listingId'];
+    final sortedIds = [userId, receiverId]..sort();
+
+    // Generate conversation ID matching backend logic
+    final conversationId = listingId != null
+        ? 'temp_${sortedIds[0]}_${sortedIds[1]}_$listingId'
+        : 'temp_${sortedIds[0]}_${sortedIds[1]}';
+
     // Create temporary conversation
     final tempConversation = Conversation(
-      conversationId: 'temp_${user.id}_${contactData['receiverId']}',
+      conversationId: conversationId,
       otherUser: {
         '_id': contactData['receiverId'],
         'firstName': contactData['receiverName']?.toString().split(' ').first ?? 'User',
@@ -288,6 +299,9 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isTyping = false;
   Timer? _typingTimer;
 
+  // Track the actual conversation ID (may differ from widget.conversation if temp)
+  String? _actualConversationId;
+
   @override
   void initState() {
     super.initState();
@@ -310,7 +324,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _setupSocketListeners() {
     _socketService.onMessageReceived = (message) {
-      if (mounted && message['conversationId'] == widget.conversation.conversationId) {
+      // Check against both actual conversation ID and widget conversation ID
+      final messageConvId = message['conversationId'];
+      final isForThisConversation = messageConvId == (_actualConversationId ?? widget.conversation.conversationId) ||
+                                     messageConvId == widget.conversation.conversationId;
+
+      if (mounted && isForThisConversation) {
         setState(() {
           _messages.add(Message.fromJson(message));
         });
@@ -319,7 +338,11 @@ class _ChatScreenState extends State<ChatScreen> {
     };
 
     _socketService.onTypingStatus = (conversationId, isTyping) {
-      if (mounted && conversationId == widget.conversation.conversationId) {
+      // Check against both actual conversation ID and widget conversation ID
+      final isForThisConversation = conversationId == (_actualConversationId ?? widget.conversation.conversationId) ||
+                                     conversationId == widget.conversation.conversationId;
+
+      if (mounted && isForThisConversation) {
         setState(() {
           _isTyping = isTyping;
         });
@@ -331,10 +354,81 @@ class _ChatScreenState extends State<ChatScreen> {
     final user = context.read<AuthProvider>().user;
     if (user == null) return;
 
+    String conversationIdToUse = widget.conversation.conversationId;
+
+    // If this is a temporary conversation (from Contact Host),
+    // try to find the real conversation if it already exists
+    if (widget.conversation.conversationId.startsWith('temp_')) {
+      debugPrint('🔍 Temporary conversation detected: ${widget.conversation.conversationId}');
+      debugPrint('   Looking for existing conversation...');
+
+      // Get all conversations for this user
+      final allConversations = await _messageService.getConversations(user.id);
+      debugPrint('📋 Total conversations: ${allConversations.length}');
+
+      // Try to find existing conversation with this host and listing
+      final receiverId = widget.conversation.otherUser['_id'];
+      final listingId = widget.conversation.listing?['_id'];
+
+      debugPrint('🔎 Search criteria:');
+      debugPrint('   receiverId: $receiverId');
+      debugPrint('   listingId: $listingId');
+
+      Conversation? foundConversation;
+
+      for (var conv in allConversations) {
+        final convReceiverId = conv.otherUser['_id'];
+        final convListingId = conv.listing?['_id'];
+
+        debugPrint('   Checking conversation: ${conv.conversationId}');
+        debugPrint('     - otherUser: $convReceiverId');
+        debugPrint('     - listing: $convListingId');
+
+        // Match by receiver
+        final matchesReceiver = convReceiverId == receiverId;
+
+        // Match by listing (if both have listing)
+        bool matchesListing = false;
+        if (listingId != null && convListingId != null) {
+          matchesListing = convListingId == listingId;
+        } else if (listingId == null && convListingId == null) {
+          // Both don't have listing - match by receiver only
+          matchesListing = true;
+        }
+
+        debugPrint('     → Matches receiver: $matchesReceiver, listing: $matchesListing');
+
+        if (matchesReceiver && matchesListing) {
+          foundConversation = conv;
+          debugPrint('✅ MATCH FOUND!');
+          break;
+        }
+      }
+
+      if (foundConversation != null && foundConversation.conversationId != widget.conversation.conversationId) {
+        debugPrint('✅ Using existing conversation: ${foundConversation.conversationId}');
+        conversationIdToUse = foundConversation.conversationId;
+
+        // Update socket to join the real conversation
+        _socketService.leaveConversation(widget.conversation.conversationId);
+        _socketService.joinConversation(conversationIdToUse);
+      } else {
+        debugPrint('📝 No existing conversation found, will create new one on first message');
+      }
+    }
+
+    // Save the actual conversation ID being used
+    _actualConversationId = conversationIdToUse;
+
+    debugPrint('💾 Using conversation ID: $conversationIdToUse');
+
+    // Load messages from the conversation (real or temp)
     final messages = await _messageService.getMessages(
-      widget.conversation.conversationId,
+      conversationIdToUse,
       user.id,
     );
+
+    debugPrint('📨 Loaded ${messages.length} messages');
 
     if (mounted) {
       setState(() {
@@ -342,8 +436,10 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       _scrollToBottom();
 
-      // Mark as read
-      _messageService.markAsRead(widget.conversation.conversationId, user.id);
+      // Mark as read (only if not temp conversation)
+      if (!conversationIdToUse.startsWith('temp_')) {
+        _messageService.markAsRead(conversationIdToUse, user.id);
+      }
     }
   }
 
@@ -369,8 +465,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final messageText = _messageController.text.trim();
     final receiverId = widget.conversation.otherUserId;
-    final conversationId = widget.conversation.conversationId;
+    // Use actual conversation ID if available, otherwise use widget conversation ID
+    final conversationId = _actualConversationId ?? widget.conversation.conversationId;
     final listingId = widget.conversation.listing?['_id'];
+
+    debugPrint('📤 Sending message:');
+    debugPrint('   Text: ${messageText.substring(0, messageText.length > 50 ? 50 : messageText.length)}...');
+    debugPrint('   ConversationId: $conversationId');
+    debugPrint('   To: $receiverId');
+    debugPrint('   ListingId: $listingId');
+    debugPrint('   Is temp conversation: ${conversationId.startsWith('temp_')}');
 
     _messageController.clear();
 
@@ -429,8 +533,11 @@ class _ChatScreenState extends State<ChatScreen> {
     final user = context.read<AuthProvider>().user;
     if (user == null) return;
 
+    // Use actual conversation ID if available
+    final conversationId = _actualConversationId ?? widget.conversation.conversationId;
+
     _socketService.emitTyping(
-      conversationId: widget.conversation.conversationId,
+      conversationId: conversationId,
       userId: user.id,
       isTyping: text.isNotEmpty,
     );
@@ -439,7 +546,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.isNotEmpty) {
       _typingTimer = Timer(const Duration(seconds: 2), () {
         _socketService.emitTyping(
-          conversationId: widget.conversation.conversationId,
+          conversationId: conversationId,
           userId: user.id,
           isTyping: false,
         );
@@ -452,7 +559,9 @@ class _ChatScreenState extends State<ChatScreen> {
     _messageController.dispose();
     _scrollController.dispose();
     _typingTimer?.cancel();
-    _socketService.leaveConversation(widget.conversation.conversationId);
+    // Leave the actual conversation being used
+    final conversationId = _actualConversationId ?? widget.conversation.conversationId;
+    _socketService.leaveConversation(conversationId);
     super.dispose();
   }
 

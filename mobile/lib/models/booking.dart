@@ -69,6 +69,57 @@ class Booking {
   bool get canExtend => isApproved && !isCompleted && !isCheckedOut;
   bool get canReview => isCheckedOut && homeReview == null;
 
+  // Guest info helpers
+  String? get guestName {
+    if (customer is Map) {
+      final firstName = customer['firstName'] ?? '';
+      final lastName = customer['lastName'] ?? '';
+      return '$firstName $lastName'.trim();
+    }
+    return null;
+  }
+
+  String? get guestEmail {
+    if (customer is Map) {
+      return customer['email'];
+    }
+    return null;
+  }
+
+  String? get guestProfileImage {
+    if (customer is Map) {
+      return customer['profileImagePath'];
+    }
+    return null;
+  }
+
+  // Listing info helpers
+  String? get listingTitle {
+    if (listing is Map) {
+      return listing['title'];
+    }
+    return null;
+  }
+
+  String? get listingImage {
+    if (listing is Map) {
+      final photos = listing['listingPhotoPaths'] as List?;
+      if (photos != null && photos.isNotEmpty) {
+        return photos.first.toString();
+      }
+    }
+    return null;
+  }
+
+  // Rejection reason (from extensions or booking)
+  String? get rejectionReason {
+    // Check for rejection reason in root
+    if (listing is Map && listing['rejectionReason'] != null) {
+      return listing['rejectionReason'];
+    }
+    return null;
+  }
+
   factory Booking.fromJson(Map<String, dynamic> json) {
     // Safe date parsing helper - handles ISO format and fallback for old JS format
     DateTime? parseDate(dynamic value) {

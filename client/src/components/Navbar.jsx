@@ -278,7 +278,7 @@ const Navbar = () => {
                     onClick={() => setDropdownMenu(false)}
                   >
                     <EventNote sx={{ fontSize: 20 }} />
-                    <span>Reservation List</span>
+                    <span>Booking Requests</span>
                   </Link>
                   <Link
                     to="/hosting-history"
@@ -290,15 +290,6 @@ const Navbar = () => {
                   </Link>
 
                   <div className="menu_divider"></div>
-
-                  {/* <Link
-                    to="/create-listing"
-                    className="menu_item"
-                    onClick={() => setDropdownMenu(false)}
-                  >
-                    <Home sx={{ fontSize: 20 }} />
-                    <span>Become A Host</span>
-                  </Link> */}
 
                   <div className="menu_divider"></div>
 

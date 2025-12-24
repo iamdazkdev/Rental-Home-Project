@@ -3,6 +3,7 @@ $blue: #24355A;
 $lightgrey: #F7F8F8;
 $grey: #bdb9b9;
 $darkgrey: #969393;
+$success: #4CAF50;
 
 
 @mixin shadow {
@@ -27,4 +28,5 @@ $darkgrey: #969393;
   lightgrey: $lightgrey;
   grey: $grey;
   darkgrey: $darkgrey;
+  success: $success;
 }
