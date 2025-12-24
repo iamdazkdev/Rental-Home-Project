@@ -228,33 +228,33 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
     );
   }
 
-  void _showPaymentPendingDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.schedule, color: AppTheme.warningColor, size: 28),
-            SizedBox(width: 12),
-            Text('Đang chờ thanh toán'),
-          ],
-        ),
-        content: const Text(
-          'Vui lòng hoàn tất thanh toán trên trang VNPay.\n\n'
-          'Bạn có thể kiểm tra trạng thái đặt phòng trong mục "My Trips".',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-            },
-            child: const Text('Đã hiểu'),
-          ),
-        ],
-      ),
-    );
-  }
+  // void _showPaymentPendingDialog() {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (context) => AlertDialog(
+  //       title: const Row(
+  //         children: [
+  //           Icon(Icons.schedule, color: AppTheme.warningColor, size: 28),
+  //           SizedBox(width: 12),
+  //           Text('Đang chờ thanh toán'),
+  //         ],
+  //       ),
+  //       content: const Text(
+  //         'Vui lòng hoàn tất thanh toán trên trang VNPay.\n\n'
+  //         'Bạn có thể kiểm tra trạng thái đặt phòng trong mục "My Trips".',
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () {
+  //             Navigator.of(context).pop(); // Close dialog
+  //           },
+  //           child: const Text('Đã hiểu'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void _showPaymentConfirmDialog(String bookingId) {
     showDialog(
@@ -586,14 +586,14 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
 
   Widget _buildPriceSummary(double paymentAmount) {
     return Card(
-      color: AppTheme.primaryColor.withOpacity(0.05),
+      color: AppTheme.primaryColor.withAlpha((255*0.05).round()),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

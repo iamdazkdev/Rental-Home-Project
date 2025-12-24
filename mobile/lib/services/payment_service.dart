@@ -10,7 +10,7 @@ class PaymentService {
   // Create VNPay payment URL
   Future<Map<String, dynamic>> createPaymentUrl({
     required Map<String, dynamic> bookingData,
-    required double amount, // USD amount directly
+    required double amount,
     String? ipAddr,
   }) async {
     try {
@@ -29,7 +29,7 @@ class PaymentService {
         },
         body: json.encode({
           'bookingData': bookingData,
-          'amount': amount, // Send USD amount directly
+          'amount': amount,
           'ipAddr': ipAddr ?? '127.0.0.1',
         }),
       );

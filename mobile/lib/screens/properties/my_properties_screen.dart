@@ -104,7 +104,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> with SingleTick
           _tabController.animateTo(1); // Index 1 = Active tab
           setState(() => _filterMode = 'active');
         }
-
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

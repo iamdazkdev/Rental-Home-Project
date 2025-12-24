@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../config/app_theme.dart';
-import '../../services/booking_service.dart';
 
 class PaymentResultScreen extends StatefulWidget {
-  final String status; // success, failed, error
+  final String status;
   final String? bookingId;
   final String? transactionNo;
   final String? message;
-  final String? paymentStatus; // paid, partially_paid
+  final String? paymentStatus;
 
   const PaymentResultScreen({
     super.key,

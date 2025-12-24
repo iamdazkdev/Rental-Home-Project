@@ -337,7 +337,7 @@ class _CancelBookingBottomSheetState extends State<CancelBookingBottomSheet> {
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
 
                   // Custom Reason Input
                   if (selectedReason == 'Other (please specify below)') ...[
