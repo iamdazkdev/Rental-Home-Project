@@ -464,6 +464,66 @@ router.patch("/:bookingId/extension/:extensionIndex/reject", async (req, res) =>
   }
 });
 
+// CANCEL BOOKING (Guest can cancel pending bookings)
+router.patch("/:bookingId/cancel", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { customerId } = req.body;
+
+    // Find booking
+    const booking = await Booking.findById(bookingId)
+      .populate("customerId", "firstName lastName")
+      .populate("hostId", "firstName lastName")
+      .populate("listingId", "title");
+
+    if (!booking) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        message: "Booking not found",
+      });
+    }
+
+    // Verify the user is the customer
+    if (booking.customerId._id.toString() !== customerId) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({
+        message: "You are not authorized to cancel this booking",
+      });
+    }
+
+    // Only allow cancellation of pending bookings
+    if (booking.status !== "pending") {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: `Cannot cancel booking with status: ${booking.status}. Only pending bookings can be cancelled.`,
+      });
+    }
+
+    // Update booking status to cancelled
+    booking.status = "cancelled";
+    await booking.save();
+
+    // Create notification for host
+    await createNotification(
+      booking.hostId._id,
+      "booking_cancelled",
+      booking._id,
+      `${booking.customerId.firstName} ${booking.customerId.lastName} has cancelled their booking request for "${booking.listingId.title}"`,
+      `/reservations`
+    );
+
+    console.log(`✅ Booking ${bookingId} cancelled by guest ${customerId}`);
+
+    res.status(HTTP_STATUS.OK).json({
+      message: "Booking cancelled successfully",
+      booking,
+    });
+  } catch (error) {
+    console.error("❌ Error cancelling booking:", error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Failed to cancel booking",
+      error: error.message,
+    });
+  }
+});
+
 // GET BOOKING BY ID
 router.get("/:bookingId", async (req, res) => {
   try {

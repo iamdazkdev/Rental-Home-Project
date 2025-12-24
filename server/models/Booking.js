@@ -76,6 +76,33 @@ const BookingSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
+    // Payment fields
+    paymentMethod: {
+      type: String,
+      enum: ["vnpay_full", "vnpay_deposit", "cash"],
+      default: "vnpay_full",
+    },
+    depositPercentage: {
+      type: Number,
+      default: 0,
+    },
+    depositAmount: {
+      type: Number,
+      default: 0,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["unpaid", "pending", "paid", "partially_paid", "failed", "refunded"],
+      default: "unpaid",
+    },
+    paymentIntentId: {
+      type: String,
+      default: null,
+    },
+    paidAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

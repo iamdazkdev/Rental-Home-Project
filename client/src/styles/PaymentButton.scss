@@ -1,0 +1,64 @@
+@import "./variables.scss";
+
+.payment-button-wrapper {
+  margin-top: 15px;
+
+  .payment-btn {
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, #00a8e8 0%, #0077b6 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0, 168, 232, 0.3);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 168, 232, 0.4);
+      background: linear-gradient(135deg, #0096d6 0%, #006ba6 100%);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+  }
+
+  .payment-error {
+    margin-top: 10px;
+    padding: 10px;
+    background: #ffebee;
+    color: #c62828;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+

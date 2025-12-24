@@ -11,7 +11,9 @@ const WishList = () => {
   const [loading, setLoading] = useState(true);
   const [wishListListings, setWishListListings] = useState([]);
   const user = useSelector((state) => state.user);
-  const wishList = user?.wishList || [];
+
+  // Wrap wishList in useMemo to prevent it from changing on every render
+  const wishList = useMemo(() => user?.wishList || [], [user?.wishList]);
 
   // Create a stable reference for wishlist IDs
   const wishListIds = useMemo(() => {
@@ -84,7 +86,7 @@ const WishList = () => {
         ) : (
           wishListListings?.map((listing) => {
             // Validate listing has required data
-            if (!listing || !listing._id && !listing.id) {
+            if (!listing || (!listing._id && !listing.id)) {
               console.warn("Invalid listing data:", listing);
               return null;
             }

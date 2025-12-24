@@ -27,6 +27,7 @@ const ListingCard = ({
   onCheckout,
   onReview,
   onExtend,
+  onCancel,
 }) => {
   /* SLIDER FOR IMAGES */
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -250,6 +251,17 @@ const ListingCard = ({
       {/* Action Buttons for Bookings */}
       {booking && (
         <div className="booking-actions">
+          {onCancel && (
+            <button
+              className="action-btn cancel-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCancel();
+              }}
+            >
+              🚫 Cancel Request
+            </button>
+          )}
           {onCheckout && (
             <button
               className="action-btn checkout-btn"

@@ -91,6 +91,7 @@ const MessagesPage = () => {
       console.warn("⚠️ User not logged in, skipping conversations fetch");
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   // Handle Contact Host - Create new conversation if needed
@@ -135,6 +136,7 @@ const MessagesPage = () => {
       // Clear location state
       navigate(location.pathname, { replace: true, state: null });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contactData, userId]);
 
   // Fetch messages when conversation selected
@@ -212,6 +214,7 @@ const MessagesPage = () => {
       socket.off("user_typing");
       socket.off("new_message_notification");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, selectedConversation]);
 
   const fetchConversations = async () => {

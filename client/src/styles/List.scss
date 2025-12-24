@@ -61,6 +61,15 @@
       &.status-rejected {
         background: rgba(244, 67, 54, 0.95);
       }
+
+      &.status-cancelled {
+        background: rgba(158, 158, 158, 0.95);
+      }
+
+      &.status-checked_out,
+      &.status-completed {
+        background: rgba(33, 150, 243, 0.95);
+      }
     }
   }
 }

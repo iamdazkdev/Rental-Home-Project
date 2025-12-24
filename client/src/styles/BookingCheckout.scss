@@ -1,0 +1,491 @@
+.booking-checkout-page {
+  min-height: 100vh;
+  background-color: #f7f7f7;
+  padding: 2rem 0;
+
+  .checkout-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1rem;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      text-align: center;
+      color: #333;
+    }
+
+    .checkout-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .listing-info-card,
+    .booking-details-card,
+    .guest-info-card,
+    .payment-method-card,
+    .payment-info-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #333;
+        border-bottom: 2px solid #FF385C;
+        padding-bottom: 0.5rem;
+      }
+    }
+
+    .listing-info-card {
+      .listing-image {
+        width: 100%;
+        height: 250px;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+
+      h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #222;
+      }
+
+      .location {
+        color: #666;
+        margin: 0.3rem 0;
+        font-size: 0.95rem;
+      }
+
+      .property-type {
+        color: #666;
+        margin: 0.3rem 0;
+        font-size: 0.95rem;
+      }
+    }
+
+    .booking-details-card {
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+
+        &.total {
+          margin-top: 0.5rem;
+          padding-top: 1rem;
+          border-top: 2px solid #eee;
+
+          .label {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #333;
+          }
+
+          .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #FF385C;
+          }
+        }
+
+        .label {
+          color: #666;
+          font-weight: 500;
+        }
+
+        .value {
+          color: #222;
+          font-weight: 600;
+        }
+      }
+
+      hr {
+        border: none;
+        border-top: 1px solid #eee;
+        margin: 0.5rem 0;
+      }
+
+      .currency-note {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: #f0f8ff;
+        border-radius: 4px;
+        text-align: center;
+
+        small {
+          color: #666;
+          font-size: 0.85rem;
+        }
+      }
+    }
+
+    .guest-info-card {
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+
+        .label {
+          color: #666;
+          font-weight: 500;
+        }
+
+        .value {
+          color: #222;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .payment-info-card {
+      .payment-method {
+        text-align: center;
+        padding: 1rem 0;
+
+        .vnpay-logo {
+          max-width: 150px;
+          height: auto;
+          margin-bottom: 1rem;
+        }
+
+        p {
+          margin: 0.5rem 0;
+          color: #666;
+
+          &.payment-desc {
+            font-size: 0.9rem;
+            color: #999;
+            margin-top: 1rem;
+          }
+        }
+
+        .deposit-notice {
+          background: #fff3cd;
+          border-left: 4px solid #ffc107;
+          padding: 1rem;
+          margin-top: 1rem;
+          border-radius: 4px;
+          text-align: left;
+
+          p {
+            margin: 0.5rem 0;
+            color: #856404;
+            font-size: 0.9rem;
+
+            strong {
+              color: #FF385C;
+              font-weight: 700;
+            }
+          }
+        }
+      }
+    }
+
+    .payment-method-card {
+      .payment-methods {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .payment-option {
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 1.25rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+
+        &:hover {
+          border-color: #FF385C;
+          box-shadow: 0 4px 12px rgba(255, 56, 92, 0.15);
+          transform: translateY(-2px);
+        }
+
+        &.active {
+          border-color: #FF385C;
+          background: linear-gradient(135deg, #fff5f7 0%, #ffffff 100%);
+          box-shadow: 0 4px 12px rgba(255, 56, 92, 0.2);
+
+          .radio-circle {
+            border-color: #FF385C;
+          }
+
+          .option-title h3 {
+            color: #FF385C;
+          }
+        }
+
+        .option-header {
+          display: flex;
+          align-items: flex-start;
+          gap: 1rem;
+          margin-bottom: 1rem;
+
+          .radio-circle {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            margin-top: 2px;
+
+            .radio-dot {
+              width: 12px;
+              height: 12px;
+              background: #FF385C;
+              border-radius: 50%;
+              animation: scaleIn 0.2s ease;
+            }
+          }
+
+          .option-title {
+            flex: 1;
+
+            h3 {
+              font-size: 1.1rem;
+              font-weight: 600;
+              margin: 0 0 0.25rem 0;
+              color: #333;
+              transition: color 0.3s ease;
+            }
+
+            .option-subtitle {
+              font-size: 0.9rem;
+              color: #666;
+              margin: 0;
+            }
+          }
+        }
+
+        .option-details {
+          padding-left: 2.5rem;
+
+          .amount-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+
+            .amount-label {
+              font-size: 0.9rem;
+              color: #666;
+            }
+
+            .amount-value {
+              font-size: 1.25rem;
+              font-weight: 700;
+              color: #FF385C;
+            }
+          }
+
+          .amount-breakdown {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+
+            .breakdown-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 0.5rem 0;
+              font-size: 0.9rem;
+
+              &:first-child {
+                padding-top: 0;
+              }
+
+              &:last-child {
+                padding-bottom: 0;
+              }
+
+              span {
+                color: #666;
+
+                &.highlight {
+                  font-weight: 700;
+                  color: #FF385C;
+                  font-size: 1rem;
+                }
+              }
+            }
+          }
+
+          .benefits {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+
+            .benefit-item {
+              font-size: 0.85rem;
+              color: #666;
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+
+              &::before {
+                content: '';
+                display: inline-block;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .cash-payment-info {
+      background: #e3f2fd;
+      border: 2px solid #2196f3;
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      gap: 1rem;
+
+      .info-icon {
+        font-size: 2rem;
+        min-width: 40px;
+      }
+
+      .info-content {
+        flex: 1;
+
+        h3 {
+          margin: 0 0 0.75rem 0;
+          color: #1976d2;
+          font-size: 1.1rem;
+        }
+
+        ul {
+          margin: 0;
+          padding-left: 1.25rem;
+
+          li {
+            margin-bottom: 0.5rem;
+            color: #1565c0;
+            font-size: 0.9rem;
+
+            strong {
+              color: #FF385C;
+              font-weight: 700;
+            }
+          }
+        }
+      }
+    }
+
+    .checkout-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+
+      .btn {
+        flex: 1;
+        padding: 1rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        &.btn-primary {
+          background-color: #FF385C;
+          color: white;
+
+          &:hover:not(:disabled) {
+            background-color: #E31C5F;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 56, 92, 0.3);
+          }
+        }
+
+        &.btn-secondary {
+          background-color: #f7f7f7;
+          color: #333;
+          border: 1px solid #ddd;
+
+          &:hover:not(:disabled) {
+            background-color: #eee;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .booking-checkout-page {
+    padding: 1rem 0;
+
+    .checkout-container {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .listing-info-card {
+        .listing-image {
+          height: 200px;
+        }
+      }
+
+      .payment-method-card {
+        .payment-option {
+          .option-header {
+            .option-title h3 {
+              font-size: 1rem;
+            }
+          }
+
+          .option-details {
+            padding-left: 0;
+            margin-top: 1rem;
+          }
+        }
+      }
+
+      .checkout-actions {
+        flex-direction: column;
+
+        .btn {
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  @keyframes scaleIn {
+    0% {
+      transform: scale(0);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+

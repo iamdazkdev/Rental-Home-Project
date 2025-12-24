@@ -7,6 +7,7 @@ import CreateListingPage from "./pages/host/CreateListing";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ListDetailPage from "./pages/listing/ListDetailPage";
+import BookingCheckoutPage from "./pages/listing/BookingCheckoutPage";
 import TripList from "./pages/listing/TripList";
 import WishList from "./pages/listing/WishList";
 import ReservationList from "./pages/host/ReservationList";
@@ -16,6 +17,7 @@ import PropertyManagement from "./pages/host/PropertyManagement";
 import HostProfile from "./pages/host/HostProfile";
 import SearchPage from "./pages/search/SearchPage";
 import MessagesPage from "./pages/messages/MessagesPage";
+import PaymentResultPage from "./pages/PaymentResultPage";
 import { SocketProvider } from "./context/SocketContext";
 
 function App() {
@@ -32,6 +34,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/listing/:listingId" element={<ListDetailPage />} />
+            <Route path="/booking/checkout" element={<BookingCheckoutPage />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/messages/:conversationId" element={<MessagesPage />} />
           <Route path="/:userId/trips" element={<TripList />} />
@@ -42,6 +45,7 @@ function App() {
           <Route path="/properties" element={<PropertyManagement />} />
           <Route path="/host/:hostId" element={<HostProfile />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/payment/result" element={<PaymentResultPage />} />
         </Routes>
         </SocketProvider>
       </BrowserRouter>

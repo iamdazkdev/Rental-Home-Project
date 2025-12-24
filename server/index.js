@@ -31,6 +31,7 @@ const hostProfileRoutes = require("./routes/hostProfile.js");
 const searchRoutes = require("./routes/search.js");
 const hostReviewsRoutes = require("./routes/hostReviews.js");
 const messageRoutes = require("./routes/messages.js");
+const paymentRoutes = require("./routes/payment.js");
 // Middleware
 const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE;
 app.use(cors());
@@ -60,6 +61,7 @@ app.use("/host", hostProfileRoutes);
 app.use("/search", searchRoutes);
 app.use("/host-reviews", hostReviewsRoutes);
 app.use("/messages", messageRoutes);
+app.use("/payment", paymentRoutes);
 
 // Make io available to routes
 app.set("io", io);

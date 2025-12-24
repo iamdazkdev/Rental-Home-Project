@@ -184,6 +184,16 @@
         }
       }
 
+      &.cancel-btn {
+        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        color: white;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+        }
+      }
+
       &.review-btn {
         background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
         color: white;

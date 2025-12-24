@@ -93,6 +93,15 @@ export const API_ENDPOINTS = {
     PROFILE_IMAGE: `${API_BASE_URL}/upload/profile`,
   },
 
+  // Payment endpoints (VNPay)
+  PAYMENT: {
+    CREATE_PAYMENT_URL: `${API_BASE_URL}/payment/create-payment-url`,
+    STATUS: (bookingId) => `${API_BASE_URL}/payment/status/${bookingId}`,
+    QUERY: `${API_BASE_URL}/payment/query-transaction`,
+    VNPAY_RETURN: `${API_BASE_URL}/payment/vnpay-return`,
+    VNPAY_IPN: `${API_BASE_URL}/payment/vnpay-ipn`,
+  },
+
   // Base URL for images
   API_BASE_URL: API_BASE_URL,
 };

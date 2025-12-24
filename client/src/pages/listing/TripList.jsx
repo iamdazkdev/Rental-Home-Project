@@ -9,11 +9,13 @@ import ListingCard from "../../components/ListingCard";
 import Footer from "../../components/Footer";
 import ExtendStayModal from "../../components/ExtendStayModal";
 import CheckoutModal from "../../components/CheckoutModal";
+import CancelBookingModal from "../../components/CancelBookingModal";
 
 const TripList = () => {
   const [loading, setLoading] = useState(true);
   const [extendModalOpen, setExtendModalOpen] = useState(false);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   // Get user from Redux
@@ -155,6 +157,44 @@ const TripList = () => {
     }
   };
 
+  const handleCancelBooking = (booking) => {
+    setSelectedBooking(booking);
+    setCancelModalOpen(true);
+  };
+
+  const handleCancelConfirm = async (cancellationReason) => {
+    if (!selectedBooking) return;
+
+    try {
+      console.log(`🔄 Cancelling booking ${selectedBooking._id}...`);
+      const url = API_ENDPOINTS.BOOKINGS.CANCEL(selectedBooking._id);
+      const response = await fetch(url, {
+        method: HTTP_METHODS.PATCH,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerId: userId,
+          cancellationReason: cancellationReason,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to cancel booking: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`✅ ${data.message}`);
+
+      // Refresh trips to show updated status
+      await getTripList();
+      // Success - modal will close automatically
+    } catch (error) {
+      console.error("❌ Error cancelling booking:", error);
+      alert(error.message || "Failed to cancel booking. Please try again.");
+      throw error; // Re-throw to let modal handle it
+    }
+  };
+
   const canCheckout = (booking) => {
     // User có thể checkout bất kỳ lúc nào sau khi booking được accept
     // Không cần chờ đến endDate
@@ -163,6 +203,11 @@ const TripList = () => {
 
   const canExtend = (booking) => {
     return booking.status === "accepted" && !booking.isCheckedOut;
+  };
+
+  const canCancel = (booking) => {
+    // Guest can only cancel pending bookings
+    return booking.status === "pending";
   };
 
   useEffect(() => {
@@ -199,6 +244,9 @@ const TripList = () => {
                   {trip.status === "pending" && "⏳ Pending"}
                   {trip.status === "accepted" && "✓ Accepted"}
                   {trip.status === "rejected" && "✗ Rejected"}
+                  {trip.status === "cancelled" && "🚫 Cancelled"}
+                  {trip.status === "checked_out" && "✅ Checked Out"}
+                  {trip.status === "completed" && "✅ Completed"}
                 </div>
               )}
               <ListingCard
@@ -216,6 +264,7 @@ const TripList = () => {
                 isExtended={!!trip.finalEndDate}
                 onCheckout={canCheckout(trip) ? () => handleCheckout(trip) : null}
                 onExtend={canExtend(trip) ? () => handleExtensionRequest(trip) : null}
+                onCancel={canCancel(trip) ? () => handleCancelBooking(trip) : null}
               />
             </div>
           ))
@@ -234,6 +283,13 @@ const TripList = () => {
           booking={selectedBooking}
           onClose={() => setCheckoutModalOpen(false)}
           onConfirm={handleCheckoutConfirm}
+        />
+      )}
+      {cancelModalOpen && (
+        <CancelBookingModal
+          booking={selectedBooking}
+          onClose={() => setCancelModalOpen(false)}
+          onConfirm={handleCancelConfirm}
         />
       )}
     </>

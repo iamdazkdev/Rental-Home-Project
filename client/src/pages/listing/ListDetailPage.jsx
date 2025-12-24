@@ -130,44 +130,38 @@ const ListingDetails = () => {
       return;
     }
 
-    try {
-      setSubmitting(true);
-
-      const bookingForm = {
-        customerId,
-        listingId,
-        hostId: listing.creator._id || listing.creator.id,
-        startDate: dateRange[0].startDate.toDateString(),
-        endDate: dateRange[0].endDate.toDateString(),
-        totalPrice: listing.price * dayCount,
-      };
-
-      console.log("📤 Submitting booking:", bookingForm);
-
-      const url = API_ENDPOINTS.BOOKINGS.CREATE;
-      const response = await fetch(url, {
-        method: HTTP_METHODS.POST,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bookingForm),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("✅ Booking successful:", data);
-        navigate(`/${customerId}/trips`);
-      } else {
-        const errorData = await response.json();
-        console.error("❌ Booking failed:", errorData);
-        // Only show error, no success alert
-        alert(errorData.message || "Failed to create booking");
-        setSubmitting(false);
-      }
-    } catch (err) {
-      console.error("❌ Error submitting booking:", err);
-      setSubmitting(false);
+    // Validate dates
+    if (dayCount < 1) {
+      alert("Please select valid dates (at least 1 night)");
+      return;
     }
+
+    // Prepare booking data
+    const bookingData = {
+      customerId,
+      listingId,
+      hostId: listing.creator._id || listing.creator.id,
+      startDate: dateRange[0].startDate.toDateString(),
+      endDate: dateRange[0].endDate.toDateString(),
+      totalPrice: listing.price * dayCount,
+      dayCount,
+      listing: {
+        title: listing.title,
+        city: listing.city,
+        province: listing.province,
+        country: listing.country,
+        type: listing.type,
+        price: listing.price,
+        listingPhotoPaths: listing.listingPhotoPaths,
+      }
+    };
+
+    console.log("🛒 Navigating to checkout with booking data:", bookingData);
+
+    // Navigate to checkout page
+    navigate('/booking/checkout', {
+      state: { bookingData }
+    });
   };
 
   if (loading) return <Loader />;
