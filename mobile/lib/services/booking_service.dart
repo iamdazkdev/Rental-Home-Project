@@ -10,15 +10,20 @@ class BookingService {
 
   // Create booking
   Future<Map<String, dynamic>> createBooking({
+    required String customerId,
+    required String hostId,
     required String listingId,
     required DateTime startDate,
     required DateTime endDate,
+    required double totalPrice,
+    String? paymentMethod,
+    int? depositPercentage,
+    double? depositAmount,
   }) async {
     try {
       final token = await _storageService.getToken();
-      final user = await _storageService.getUser();
 
-      if (token == null || user == null) {
+      if (token == null) {
         return {'success': false, 'message': 'Not authenticated'};
       }
 
@@ -26,30 +31,7 @@ class BookingService {
 
       debugPrint('🔍 Create booking URL: $uri');
       debugPrint('📦 Booking data: listingId=$listingId, start=$startDate, end=$endDate');
-
-      // Get listing to calculate price and get hostId
-      final listingUri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.listings}/$listingId');
-      final listingResponse = await http.get(listingUri, headers: ApiConfig.headers());
-
-      if (listingResponse.statusCode != 200) {
-        return {'success': false, 'message': 'Could not fetch listing details'};
-      }
-
-      final listingData = json.decode(listingResponse.body);
-      final price = (listingData['price'] ?? 0).toDouble();
-      final hostId = listingData['creator'] is String
-          ? listingData['creator']
-          : listingData['creator']?['_id'] ?? '';
-
-      if (hostId.isEmpty) {
-        return {'success': false, 'message': 'Invalid listing data'};
-      }
-
-      // Calculate total price
-      final nights = endDate.difference(startDate).inDays;
-      final totalPrice = price * nights;
-
-      debugPrint('📊 Price: $price x $nights nights = $totalPrice');
+      debugPrint('💳 Payment method: $paymentMethod');
 
       // Format dates to match web format: "Wed Dec 24 2025"
       // This matches JavaScript's Date.toDateString()
@@ -69,18 +51,33 @@ class BookingService {
 
       debugPrint('📅 Start: $startDateStr');
       debugPrint('📅 End: $endDateStr');
+      debugPrint('💰 Total price: $totalPrice');
+
+      // Build request body
+      final Map<String, dynamic> bookingData = {
+        'customerId': customerId,
+        'hostId': hostId,
+        'listingId': listingId,
+        'startDate': startDateStr,
+        'endDate': endDateStr,
+        'totalPrice': totalPrice,
+      };
+
+      // Add payment fields if provided
+      if (paymentMethod != null) {
+        bookingData['paymentMethod'] = paymentMethod;
+      }
+      if (depositPercentage != null) {
+        bookingData['depositPercentage'] = depositPercentage;
+      }
+      if (depositAmount != null) {
+        bookingData['depositAmount'] = depositAmount;
+      }
 
       final response = await http.post(
         uri,
         headers: ApiConfig.headers(token: token),
-        body: json.encode({
-          'customerId': user.id,
-          'hostId': hostId,
-          'listingId': listingId,
-          'startDate': startDateStr,
-          'endDate': endDateStr,
-          'totalPrice': totalPrice,
-        }),
+        body: json.encode(bookingData),
       );
 
       debugPrint('📥 Create booking response: ${response.statusCode}');

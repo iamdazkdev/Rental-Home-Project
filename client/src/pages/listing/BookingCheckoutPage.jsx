@@ -87,11 +87,7 @@ const BookingCheckoutPage = () => {
         depositAmount: paymentMethod === 'vnpay_deposit' ? paymentAmountUSD : 0,
       };
 
-      // Convert USD to VND for VNPay (rate: 1 USD = 24,000 VND)
-      const exchangeRate = 24000;
-      const paymentAmountVND = Math.round(paymentAmountUSD * exchangeRate);
-
-      console.log(`💳 Payment amount: $${paymentAmountUSD} USD = ${paymentAmountVND.toLocaleString()} VND`);
+      console.log(`💳 Payment amount: $${paymentAmountUSD} USD`);
 
       // Create booking and payment URL
       const paymentResponse = await fetch(API_ENDPOINTS.PAYMENT.CREATE_PAYMENT_URL, {
@@ -101,7 +97,7 @@ const BookingCheckoutPage = () => {
         },
         body: JSON.stringify({
           bookingData: bookingPayload,
-          amount: paymentAmountVND,
+          amount: paymentAmountUSD, // Send USD amount directly
           ipAddr: await getClientIP(),
         }),
       });

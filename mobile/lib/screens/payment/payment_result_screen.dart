@@ -1,348 +1,326 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-import 'dart:async';
+import '../../config/app_theme.dart';
+import '../../services/booking_service.dart';
 
 class PaymentResultScreen extends StatefulWidget {
-  final String status; // 'success' or 'failure'
-  final String? transactionId;
-  final String? amount;
+  final String status; // success, failed, error
   final String? bookingId;
+  final String? transactionNo;
   final String? message;
+  final String? paymentStatus; // paid, partially_paid
 
   const PaymentResultScreen({
     super.key,
     required this.status,
-    this.transactionId,
-    this.amount,
     this.bookingId,
+    this.transactionNo,
     this.message,
+    this.paymentStatus,
   });
 
   @override
   State<PaymentResultScreen> createState() => _PaymentResultScreenState();
 }
 
-class _PaymentResultScreenState extends State<PaymentResultScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
+class _PaymentResultScreenState extends State<PaymentResultScreen> {
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
+    if (widget.status == 'success' && widget.bookingId != null) {
+      _fetchBookingDetails();
+    } else {
+      setState(() => _isLoading = false);
+    }
+  }
 
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
-
-    _controller.forward();
-
-    // Auto redirect after 5 seconds for success
-    if (widget.status == 'success') {
-      Timer(const Duration(seconds: 5), () {
-        if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            '/trips',
-            (route) => false,
-          );
-        }
-      });
+  Future<void> _fetchBookingDetails() async {
+    try {
+      // For demo: Just mark as loaded without fetching
+      // In production, you would fetch booking details here
+      await Future.delayed(const Duration(milliseconds: 500));
+      setState(() => _isLoading = false);
+    } catch (e) {
+      debugPrint('Error fetching booking details: $e');
+      setState(() => _isLoading = false);
     }
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final isSuccess = widget.status == 'success';
-    final theme = Theme.of(context);
+    if (_isLoading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: AppTheme.primaryColor,
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isSuccess
-                ? [
-                    const Color(0xFF4CAF50).withOpacity(0.1),
-                    Colors.white,
-                  ]
-                : [
-                    const Color(0xFFFF385A).withOpacity(0.1),
-                    Colors.white,
-                  ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Close button
-              Align(
-                alignment: Alignment.topRight,
-                child: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
-                    '/main',
-                    (route) => false,
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildResultIcon(),
+                      const SizedBox(height: 32),
+                      _buildResultTitle(),
+                      const SizedBox(height: 16),
+                      _buildResultMessage(),
+                      if (widget.status == 'success') ...[
+                        const SizedBox(height: 32),
+                        _buildBookingInfo(),
+                      ],
+                    ],
                   ),
                 ),
               ),
-
-              const SizedBox(height: 20),
-
-              Expanded(
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Animation or Icon
-                          _buildStatusIcon(isSuccess),
-
-                          const SizedBox(height: 32),
-
-                          // Title
-                          Text(
-                            isSuccess ? '🎉 Payment Successful!' : '❌ Payment Failed',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: isSuccess
-                                  ? const Color(0xFF4CAF50)
-                                  : const Color(0xFFFF385A),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Message
-                          Text(
-                            widget.message ??
-                                (isSuccess
-                                    ? 'Your booking has been confirmed!'
-                                    : 'Your payment could not be processed.'),
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: Colors.grey[700],
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-
-                          const SizedBox(height: 32),
-
-                          // Details Card
-                          if (widget.transactionId != null ||
-                              widget.amount != null ||
-                              widget.bookingId != null)
-                            _buildDetailsCard(theme, isSuccess),
-
-                          const SizedBox(height: 40),
-
-                          // Action Buttons
-                          _buildActionButtons(context, isSuccess),
-
-                          if (isSuccess) ...[
-                            const SizedBox(height: 16),
-                            Text(
-                              'Redirecting to your trips in 5 seconds...',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+            _buildActionButtons(),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildStatusIcon(bool isSuccess) {
+  Widget _buildResultIcon() {
+    Color iconColor;
+    IconData iconData;
+    Color backgroundColor;
+
+    switch (widget.status) {
+      case 'success':
+        iconColor = AppTheme.successColor;
+        iconData = Icons.check_circle;
+        backgroundColor = AppTheme.successColor.withValues(alpha: 0.1);
+        break;
+      case 'failed':
+        iconColor = AppTheme.errorColor;
+        iconData = Icons.cancel;
+        backgroundColor = AppTheme.errorColor.withValues(alpha: 0.1);
+        break;
+      default:
+        iconColor = AppTheme.warningColor;
+        iconData = Icons.error;
+        backgroundColor = AppTheme.warningColor.withValues(alpha: 0.1);
+    }
+
     return Container(
-      width: 150,
-      height: 150,
+      width: 120,
+      height: 120,
       decoration: BoxDecoration(
+        color: backgroundColor,
         shape: BoxShape.circle,
-        color: isSuccess
-            ? const Color(0xFF4CAF50).withOpacity(0.1)
-            : const Color(0xFFFF385A).withOpacity(0.1),
       ),
-      child: Center(
-        child: Icon(
-          isSuccess ? Icons.check_circle : Icons.cancel,
-          size: 100,
-          color: isSuccess
-              ? const Color(0xFF4CAF50)
-              : const Color(0xFFFF385A),
-        ),
+      child: Icon(
+        iconData,
+        size: 64,
+        color: iconColor,
       ),
     );
   }
 
-  Widget _buildDetailsCard(ThemeData theme, bool isSuccess) {
+  Widget _buildResultTitle() {
+    String title;
+    switch (widget.status) {
+      case 'success':
+        title = 'Thanh toán thành công!';
+        break;
+      case 'failed':
+        title = 'Thanh toán thất bại';
+        break;
+      default:
+        title = 'Có lỗi xảy ra';
+    }
+
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  Widget _buildResultMessage() {
+    String message;
+
+    if (widget.status == 'success') {
+      if (widget.paymentStatus == 'partially_paid') {
+        message = 'Bạn đã thanh toán cọc thành công!\n'
+            'Vui lòng thanh toán số tiền còn lại khi check-in.';
+      } else {
+        message = 'Đặt phòng của bạn đã được xác nhận\n'
+            'và thanh toán thành công.';
+      }
+    } else {
+      message = widget.message ?? 'Vui lòng thử lại sau.';
+    }
+
+    return Text(
+      message,
+      style: TextStyle(
+        fontSize: 16,
+        color: Colors.grey[700],
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  Widget _buildBookingInfo() {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppTheme.backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Payment Details',
-            style: theme.textTheme.titleMedium?.copyWith(
+          const Text(
+            'Thông tin đặt phòng',
+            style: TextStyle(
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 16),
-          if (widget.amount != null)
-            _buildDetailRow('Amount', widget.amount!),
-          if (widget.transactionId != null)
-            _buildDetailRow('Transaction ID', widget.transactionId!),
-          if (widget.bookingId != null)
-            _buildDetailRow('Booking ID', widget.bookingId!),
-          _buildDetailRow(
-            'Status',
-            isSuccess ? 'Completed' : 'Failed',
-            valueColor: isSuccess
-                ? const Color(0xFF4CAF50)
-                : const Color(0xFFFF385A),
-          ),
+
+          if (widget.bookingId != null) ...[
+            _buildInfoRow(
+              'Mã đặt phòng',
+              widget.bookingId!.substring(0, 8).toUpperCase(),
+            ),
+            const SizedBox(height: 12),
+          ],
+
+          if (widget.transactionNo != null) ...[
+            _buildInfoRow(
+              'Mã giao dịch',
+              widget.transactionNo!,
+            ),
+            const SizedBox(height: 12),
+          ],
+
+          if (widget.paymentStatus == 'partially_paid') ...[
+            const Divider(height: 24),
+            Row(
+              children: [
+                Icon(Icons.info_outline, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Bạn đã thanh toán 50% tiền cọc. Phần còn lại sẽ được thanh toán khi check-in.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-                color: valueColor ?? Colors.black87,
-              ),
-              textAlign: TextAlign.right,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context, bool isSuccess) {
-    return Column(
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Primary Button
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: () {
-              if (isSuccess) {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/trips',
-                  (route) => false,
-                );
-              } else {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/main',
-                  (route) => false,
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  isSuccess ? const Color(0xFF4CAF50) : const Color(0xFFFF385A),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 0,
-            ),
-            child: Text(
-              isSuccess ? 'View My Trips' : 'Back to Home',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[700],
           ),
         ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
 
-        if (!isSuccess) ...[
-          const SizedBox(height: 12),
-          // Secondary Button for failure
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: OutlinedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFFF385A),
-                side: const BorderSide(color: Color(0xFFFF385A)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'Try Again',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+  Widget _buildActionButtons() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
           ),
         ],
-      ],
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.status == 'success') ...[
+              ElevatedButton(
+                onPressed: () {
+                  // Navigate to trips screen
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  // TODO: Navigate to trips tab
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                child: const Text('Xem đặt phòng của tôi'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                child: const Text('Về trang chủ'),
+              ),
+            ] else ...[
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                child: const Text('Thử lại'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                child: const Text('Về trang chủ'),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

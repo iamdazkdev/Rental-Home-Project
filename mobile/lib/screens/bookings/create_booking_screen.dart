@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import '../../models/listing.dart';
-import '../../services/booking_service.dart';
 import '../../config/app_theme.dart';
 import '../../utils/date_formatter.dart';
 import '../../utils/price_formatter.dart';
+import '../checkout/booking_checkout_screen.dart';
 
 class CreateBookingScreen extends StatefulWidget {
   final Listing listing;
@@ -19,11 +19,8 @@ class CreateBookingScreen extends StatefulWidget {
 }
 
 class _CreateBookingScreenState extends State<CreateBookingScreen> {
-  final BookingService _bookingService = BookingService();
-
   DateTime? _startDate;
   DateTime? _endDate;
-  bool _isLoading = false;
 
   int get _numberOfNights {
     if (_startDate == null || _endDate == null) return 0;
@@ -73,7 +70,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
     );
   }
 
-  Future<void> _createBooking() async {
+  void _proceedToCheckout() {
     if (_startDate == null || _endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select check-in and check-out dates')),
@@ -81,46 +78,19 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
-
-    try {
-      final result = await _bookingService.createBooking(
-        listingId: widget.listing.id,
-        startDate: _startDate!,
-        endDate: _endDate!,
-      );
-
-      if (!mounted) return;
-
-      if (result['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Booking request sent successfully!'),
-            backgroundColor: AppTheme.successColor,
-          ),
-        );
-        Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Booking failed'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: AppTheme.errorColor,
+    // Navigate to checkout screen with booking data
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BookingCheckoutScreen(
+          listing: widget.listing,
+          startDate: _startDate!,
+          endDate: _endDate!,
+          dayCount: _numberOfNights,
+          totalPrice: _totalPrice,
         ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+      ),
+    );
   }
 
   @override
@@ -279,23 +249,14 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
               const SizedBox(height: 24),
             ],
 
-            // Book Button
+            // Proceed to Checkout Button
             ElevatedButton(
-              onPressed: _isLoading ? null : _createBooking,
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text(
-                      _numberOfNights > 0
-                          ? 'Request to Book'
-                          : 'Select Dates',
-                    ),
+              onPressed: _numberOfNights > 0 ? _proceedToCheckout : null,
+              child: Text(
+                _numberOfNights > 0
+                    ? 'Proceed to Checkout'
+                    : 'Select Dates',
+              ),
             ),
 
             const SizedBox(height: 16),
@@ -308,7 +269,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                "You won't be charged yet. The host will review your request and you'll receive a notification when they respond.",
+                "Next, you'll choose your payment method and complete the booking.",
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),

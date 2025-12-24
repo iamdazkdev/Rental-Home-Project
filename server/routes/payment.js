@@ -104,6 +104,7 @@ router.post("/create-payment-url", async (req, res) => {
 /**
  * VNPAY RETURN URL
  * Handle redirect from VNPay after payment
+ * NOTE: For demo purposes, always treats as successful
  */
 router.get("/vnpay-return", async (req, res) => {
   try {
@@ -111,61 +112,52 @@ router.get("/vnpay-return", async (req, res) => {
 
     console.log("📥 VNPay return params received:", vnp_Params);
 
-    // Verify signature
-    const verifyResult = vnpayService.verifyReturnUrl(vnp_Params);
+    // For demo: Always treat as successful, regardless of actual VNPay response
+    console.log("🎭 DEMO MODE: Treating payment as successful");
 
-    if (!verifyResult.isValid) {
-      console.error("❌ Invalid signature from VNPay");
-      return res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=error&message=Invalid signature`);
-    }
+    // Extract booking ID from params
+    const bookingId = vnp_Params.vnp_TxnRef || vnp_Params.orderId;
 
-    // Check response code
-    const isSuccess = vnpayService.isSuccessful(verifyResult.rspCode);
-    const bookingId = verifyResult.orderId;
-
-    if (isSuccess) {
-      // Get booking to check payment method
-      const booking = await Booking.findById(bookingId);
-
-      if (!booking) {
-        console.error(`❌ Booking ${bookingId} not found after payment`);
-        return res.redirect(
-          `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=error&message=Booking not found`
-        );
-      }
-
-      // Determine payment status based on payment method
-      let paymentStatus = "paid";
-      if (booking.paymentMethod === "vnpay_deposit") {
-        paymentStatus = "partially_paid"; // Deposit paid, remaining to be paid on check-in
-      }
-
-      // Update booking status to confirmed and paid
-      await Booking.findByIdAndUpdate(bookingId, {
-        paymentStatus: paymentStatus,
-        status: 'accepted', // Auto-accept since paid
-        paymentIntentId: verifyResult.transactionNo,
-        paidAt: new Date(),
-      });
-
-      console.log(`✅ Booking ${bookingId} confirmed with payment status: ${paymentStatus}`);
-
-      // Redirect to success page
+    if (!bookingId) {
+      console.error("❌ No booking ID in VNPay return params");
       return res.redirect(
-        `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=success&bookingId=${bookingId}&transactionNo=${verifyResult.transactionNo}&paymentStatus=${paymentStatus}`
-      );
-    } else {
-      console.log(`❌ Payment failed for booking ${bookingId}: ${verifyResult.message}`);
-
-      // Payment failed or cancelled - Delete the booking
-      await Booking.findByIdAndDelete(bookingId);
-      console.log(`🗑️ Booking ${bookingId} deleted due to payment failure/cancellation`);
-
-      // Redirect to failure page
-      return res.redirect(
-        `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=failed&message=${encodeURIComponent(verifyResult.message)}`
+        `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=error&message=Missing booking ID`
       );
     }
+
+    // Get booking
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      console.error(`❌ Booking ${bookingId} not found after payment`);
+      return res.redirect(
+        `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=error&message=Booking not found`
+      );
+    }
+
+    // Determine payment status based on payment method
+    let paymentStatus = "paid";
+    if (booking.paymentMethod === "vnpay_deposit") {
+      paymentStatus = "partially_paid"; // Deposit paid, remaining to be paid on check-in
+    }
+
+    // For demo: Always update booking as successful
+    const transactionNo = vnp_Params.vnp_TransactionNo || `DEMO_${Date.now()}`;
+
+    await Booking.findByIdAndUpdate(bookingId, {
+      paymentStatus: paymentStatus,
+      status: 'accepted', // Auto-accept since paid (demo)
+      paymentIntentId: transactionNo,
+      paidAt: new Date(),
+    });
+
+    console.log(`✅ [DEMO] Booking ${bookingId} confirmed with payment status: ${paymentStatus}`);
+
+    // Redirect to success page
+    return res.redirect(
+      `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=success&bookingId=${bookingId}&transactionNo=${transactionNo}&paymentStatus=${paymentStatus}`
+    );
+
   } catch (error) {
     console.error("❌ Error handling VNPay return:", error);
     return res.redirect(
