@@ -102,6 +102,61 @@ const upload = multer({
   },
 });
 
+// Create Cloudinary storage for user profile images
+const userProfileStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "rental-home-users", // Separate folder for user profiles
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    transformation: [
+      { width: 500, height: 500, crop: "fill", gravity: "face", quality: "auto:good" }, // Square profile pic
+    ],
+    public_id: (req, file) => {
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(2, 15);
+      return `profile_${timestamp}_${random}`;
+    },
+  },
+});
+
+// Create multer upload middleware for user profiles
+const uploadUserProfile = multer({
+  storage: userProfileStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit for profile pics
+    files: 1, // Only 1 file
+  },
+  fileFilter: (req, file, cb) => {
+    console.log("📁 Profile image upload attempt:", {
+      fieldname: file.fieldname,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+    });
+
+    const acceptedMimeTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "application/octet-stream",
+    ];
+
+    const hasImageExtension = /\.(jpg|jpeg|png|webp)$/i.test(file.originalname);
+    const isValidImage =
+      file.mimetype.startsWith("image/") ||
+      acceptedMimeTypes.includes(file.mimetype) ||
+      hasImageExtension;
+
+    if (isValidImage) {
+      console.log("✅ Profile image accepted");
+      cb(null, true);
+    } else {
+      console.log("❌ Profile image rejected");
+      cb(new Error(`Only image files are allowed!`), false);
+    }
+  },
+});
+
 // Helper function to delete images from Cloudinary
 const deleteCloudinaryImage = async (publicId) => {
   try {
@@ -140,6 +195,7 @@ const getOptimizedImageUrl = (publicId, transformation = {}) => {
 module.exports = {
   cloudinary,
   upload,
+  uploadUserProfile,
   deleteCloudinaryImage,
   extractPublicId,
   getOptimizedImageUrl,

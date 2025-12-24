@@ -4,6 +4,65 @@ const Booking = require("../models/Booking");
 const User = require("../models/User");
 const Listing = require("../models/Listing");
 const { HTTP_STATUS } = require("../constants");
+const { uploadUserProfile } = require("../services/cloudinaryService");
+
+// UPDATE USER PROFILE
+router.patch("/:userId/profile", uploadUserProfile.single("profileImage"), async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { firstName, lastName, email } = req.body;
+
+    console.log(`📝 Updating profile for user: ${userId}`);
+
+    // Validate userId
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: "Invalid user ID format"
+      });
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        message: "User not found"
+      });
+    }
+
+    // Update fields
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (email) user.email = email;
+
+    // Update profile image if provided
+    if (req.file) {
+      console.log(`📷 New profile image uploaded`);
+      user.profileImagePath = req.file.path; // Cloudinary URL
+    }
+
+    await user.save();
+
+    console.log(`✅ Profile updated successfully for user: ${userId}`);
+
+    res.status(HTTP_STATUS.OK).json({
+      message: "Profile updated successfully",
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        profileImagePath: user.profileImagePath,
+      }
+    });
+  } catch (err) {
+    console.log("❌ ERROR: Failed to update profile", err);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Failed to update profile",
+      error: err.message
+    });
+  }
+});
 
 // GET TRIP LIST
 router.get("/:userId/trips", async (req, res) => {

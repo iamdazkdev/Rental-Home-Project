@@ -15,6 +15,7 @@ import UserBookingHistory from "./pages/user/UserBookingHistory";
 import HostBookingHistory from "./pages/host/HostBookingHistory";
 import PropertyManagement from "./pages/host/PropertyManagement";
 import HostProfile from "./pages/host/HostProfile";
+import EditProfilePage from "./pages/profile/EditProfilePage";
 import SearchPage from "./pages/search/SearchPage";
 import MessagesPage from "./pages/messages/MessagesPage";
 import PaymentResultPage from "./pages/PaymentResultPage";
@@ -44,6 +45,7 @@ function App() {
           <Route path="/hosting-history" element={<HostBookingHistory />} />
           <Route path="/properties" element={<PropertyManagement />} />
           <Route path="/host/:hostId" element={<HostProfile />} />
+          <Route path="/profile/edit" element={<EditProfilePage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/payment/result" element={<PaymentResultPage />} />
         </Routes>

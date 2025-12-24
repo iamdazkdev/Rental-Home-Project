@@ -13,6 +13,7 @@ import {
   PersonAdd,
   History,
   Assessment,
+  Settings,
 } from "@mui/icons-material";
 import variables from "../styles/variables.scss";
 import { CONFIG } from "../constants/api";
@@ -260,6 +261,14 @@ const Navbar = () => {
                   >
                     <FavoriteBorder sx={{ fontSize: 20 }} />
                     <span>Wish List</span>
+                  </Link>
+                  <Link
+                    to="/profile/edit"
+                    className="menu_item"
+                    onClick={() => setDropdownMenu(false)}
+                  >
+                    <Settings sx={{ fontSize: 20 }} />
+                    <span>Edit Profile</span>
                   </Link>
 
                   <div className="menu_divider"></div>
