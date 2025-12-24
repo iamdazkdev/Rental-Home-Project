@@ -14,15 +14,42 @@ class MyPropertiesScreen extends StatefulWidget {
   State<MyPropertiesScreen> createState() => _MyPropertiesScreenState();
 }
 
-class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
+class _MyPropertiesScreenState extends State<MyPropertiesScreen> with SingleTickerProviderStateMixin {
   final ListingService _listingService = ListingService();
+  late TabController _tabController;
+
   List<Listing> _properties = [];
   bool _isLoading = true;
+  String _filterMode = 'all'; // 'all', 'active', 'inactive'
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() {
+          switch (_tabController.index) {
+            case 0:
+              _filterMode = 'all';
+              break;
+            case 1:
+              _filterMode = 'active';
+              break;
+            case 2:
+              _filterMode = 'inactive';
+              break;
+          }
+        });
+      }
+    });
     _loadProperties();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadProperties() async {
@@ -39,21 +66,56 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
     });
   }
 
+  List<Listing> get _filteredProperties {
+    switch (_filterMode) {
+      case 'active':
+        return _properties.where((p) => !p.isHidden).toList();
+      case 'inactive':
+        return _properties.where((p) => p.isHidden).toList();
+      default:
+        return _properties;
+    }
+  }
+
+  int get _totalProperties => _properties.length;
+  int get _activeProperties => _properties.where((p) => !p.isHidden).length;
+  int get _inactiveProperties => _properties.where((p) => p.isHidden).length;
+
   Future<void> _toggleVisibility(Listing listing) async {
+    final willBeHidden = !listing.isHidden;
+
     final result = await _listingService.toggleListingVisibility(
       listing.id,
-      !listing.isHidden, // Toggle the current state
+      willBeHidden,
     );
 
     if (mounted) {
       if (result['success']) {
+        // Refresh properties first
+        await _loadProperties();
+
+        // Auto-switch to appropriate tab to show the updated property
+        if (willBeHidden) {
+          // Property was hidden, switch to "Inactive" tab
+          _tabController.animateTo(2); // Index 2 = Inactive tab
+          setState(() => _filterMode = 'inactive');
+        } else {
+          // Property was shown, switch to "Active" tab
+          _tabController.animateTo(1); // Index 1 = Active tab
+          setState(() => _filterMode = 'active');
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message'] ?? 'Visibility updated'),
+            content: Text(
+              willBeHidden
+                ? 'Property hidden successfully. Showing in "Inactive" tab.'
+                : 'Property is now visible. Showing in "Active" tab.',
+            ),
             backgroundColor: AppTheme.successColor,
+            duration: const Duration(seconds: 3),
           ),
         );
-        _loadProperties();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -128,67 +190,221 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
             },
           ),
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: [
+            Tab(text: 'All ($_totalProperties)'),
+            Tab(text: 'Active ($_activeProperties)'),
+            Tab(text: 'Inactive ($_inactiveProperties)'),
+          ],
+        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _properties.isEmpty
-              ? _buildEmptyState()
-              : RefreshIndicator(
-                  onRefresh: _loadProperties,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _properties.length,
-                    itemBuilder: (context, index) {
-                      return _PropertyCard(
-                        listing: _properties[index],
-                        onToggleVisibility: () => _toggleVisibility(_properties[index]),
-                        onDelete: () => _deleteProperty(_properties[index]),
-                        onEdit: () {
-                          // TODO: Navigate to edit screen
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Edit feature coming soon')),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
+      body: Column(
+        children: [
+          // Statistics Cards
+          if (_properties.isNotEmpty) _buildStatisticsCards(),
+
+          // Content
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredProperties.isEmpty
+                    ? _buildEmptyState()
+                    : RefreshIndicator(
+                        onRefresh: _loadProperties,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _filteredProperties.length,
+                          itemBuilder: (context, index) {
+                            return _PropertyCard(
+                              listing: _filteredProperties[index],
+                              onToggleVisibility: () => _toggleVisibility(_filteredProperties[index]),
+                              onDelete: () => _deleteProperty(_filteredProperties[index]),
+                              onEdit: () => _editProperty(_filteredProperties[index]),
+                            );
+                          },
+                        ),
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatisticsCards() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.grey[50],
+      child: Row(
+        children: [
+          Expanded(
+            child: _StatCard(
+              icon: Icons.home_work,
+              label: 'Total',
+              value: _totalProperties.toString(),
+              color: AppTheme.primaryColor,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _StatCard(
+              icon: Icons.visibility,
+              label: 'Active',
+              value: _activeProperties.toString(),
+              color: AppTheme.successColor,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _StatCard(
+              icon: Icons.visibility_off,
+              label: 'Hidden',
+              value: _inactiveProperties.toString(),
+              color: AppTheme.warningColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildEmptyState() {
+    String title;
+    String subtitle;
+    IconData icon;
+
+    switch (_filterMode) {
+      case 'active':
+        title = 'No Active Properties';
+        subtitle = 'You have no visible properties at the moment';
+        icon = Icons.visibility;
+        break;
+      case 'inactive':
+        title = 'No Hidden Properties';
+        subtitle = 'All your properties are currently visible';
+        icon = Icons.visibility_off;
+        break;
+      default:
+        title = 'No Properties Yet';
+        subtitle = 'Create your first listing to get started';
+        icon = Icons.home_work_outlined;
+    }
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.home_work_outlined,
+            icon,
             size: 80,
             color: Colors.grey.shade400,
           ),
           const SizedBox(height: 16),
           Text(
-            'No Properties Yet',
+            title,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Create your first listing to get started',
-            style: TextStyle(color: Colors.grey),
+          Text(
+            subtitle,
+            style: const TextStyle(color: Colors.grey),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
-              // TODO: Navigate to CreateListingScreen when implemented
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Create listing feature coming soon!'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('Create Listing'),
+          if (_filterMode == 'all') ...[
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () {
+                // TODO: Navigate to CreateListingScreen when implemented
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Create listing feature coming soon!'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Create Listing'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _editProperty(Listing listing) {
+    // TODO: Navigate to edit screen with listing data
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Property'),
+        content: const Text(
+          'Edit listing feature is coming soon!\n\n'
+          'You will be able to:\n'
+          '• Update property details\n'
+          '• Change photos\n'
+          '• Modify pricing\n'
+          '• Update amenities',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Statistics Card Widget
+class _StatCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  const _StatCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
           ),
         ],
       ),

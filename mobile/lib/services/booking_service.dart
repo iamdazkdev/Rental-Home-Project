@@ -341,7 +341,7 @@ class BookingService {
   }
 
   // Reject booking (host)
-  Future<Map<String, dynamic>> rejectBooking(String bookingId) async {
+  Future<Map<String, dynamic>> rejectBooking(String bookingId, {String? reason}) async {
     try {
       final token = await _storageService.getToken();
       if (token == null) {
@@ -352,10 +352,14 @@ class BookingService {
       final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/reject');
 
       debugPrint('🔍 Reject booking URL: $uri');
+      debugPrint('📦 Rejection reason: $reason');
 
       final response = await http.patch(
         uri,
         headers: ApiConfig.headers(token: token),
+        body: json.encode({
+          if (reason != null) 'reason': reason,
+        }),
       );
 
       debugPrint('📥 Reject response: ${response.statusCode}');
@@ -376,6 +380,56 @@ class BookingService {
       }
     } catch (e) {
       debugPrint('❌ Error rejecting booking: $e');
+      return {
+        'success': false,
+        'message': 'An error occurred: ${e.toString()}',
+      };
+    }
+  }
+
+  // Cancel booking (guest)
+  Future<Map<String, dynamic>> cancelBooking(String bookingId, {String? cancellationReason}) async {
+    try {
+      final token = await _storageService.getToken();
+      final user = await _storageService.getUser();
+
+      if (token == null || user == null) {
+        return {'success': false, 'message': 'Not authenticated'};
+      }
+
+      // PATCH /booking/:bookingId/cancel
+      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/cancel');
+
+      debugPrint('🔍 Cancel booking URL: $uri');
+      debugPrint('📦 Cancellation reason: $cancellationReason');
+
+      final response = await http.patch(
+        uri,
+        headers: ApiConfig.headers(token: token),
+        body: json.encode({
+          'customerId': user.id,
+          if (cancellationReason != null) 'cancellationReason': cancellationReason,
+        }),
+      );
+
+      debugPrint('📥 Cancel response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        debugPrint('✅ Booking cancelled');
+        return {
+          'success': true,
+          'message': 'Booking cancelled successfully',
+        };
+      } else {
+        final error = json.decode(response.body);
+        debugPrint('❌ Cancel failed: ${error['message']}');
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to cancel booking',
+        };
+      }
+    } catch (e) {
+      debugPrint('❌ Error cancelling booking: $e');
       return {
         'success': false,
         'message': 'An error occurred: ${e.toString()}',

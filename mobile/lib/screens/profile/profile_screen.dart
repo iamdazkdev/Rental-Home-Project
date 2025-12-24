@@ -22,7 +22,6 @@ class ProfileScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
-              // Navigate to settings
             },
           ),
         ],
@@ -34,15 +33,23 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 children: [
                   // Profile Image
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    backgroundImage: user.profileImage != null
-                        ? NetworkImage(user.profileImage!)
-                        : null,
-                    child: user.profileImage == null
-                        ? const Icon(Icons.person, size: 60, color: AppTheme.primaryColor)
-                        : null,
+                  GestureDetector(
+                    onTap: (){Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditProfileScreen(),
+                      ),
+                    );},
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      backgroundImage: user.profileImage != null
+                          ? NetworkImage(user.profileImage!)
+                          : null,
+                      child: user.profileImage == null
+                          ? const Icon(Icons.person, size: 60, color: AppTheme.primaryColor)
+                          : null,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   // Name

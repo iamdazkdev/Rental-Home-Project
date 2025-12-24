@@ -8,6 +8,7 @@ import '../../services/booking_service.dart';
 import '../../utils/date_formatter.dart';
 import '../../utils/price_formatter.dart';
 import '../checkout/checkout_screen.dart';
+import '../../widgets/cancel_booking_bottom_sheet.dart';
 
 class TripsScreen extends StatefulWidget {
   const TripsScreen({super.key});
@@ -165,13 +166,13 @@ class _BookingCard extends StatelessWidget {
       case 'pending':
         return AppTheme.warningColor;
       case 'approved':
-      case 'accepted':  // Backend uses 'accepted'
+      case 'accepted':
         return AppTheme.successColor;
       case 'rejected':
         return AppTheme.errorColor;
       case 'completed':
       case 'checkedOut':
-      case 'checked_out':  // Backend uses 'checked_out'
+      case 'checked_out':
         return Colors.grey;
       default:
         return Colors.grey;
@@ -183,14 +184,14 @@ class _BookingCard extends StatelessWidget {
       case 'pending':
         return 'Pending Approval';
       case 'approved':
-      case 'accepted':  // Backend uses 'accepted'
+      case 'accepted':
         return 'Approved';
       case 'rejected':
         return 'Rejected';
       case 'completed':
         return 'Completed';
       case 'checkedOut':
-      case 'checked_out':  // Backend uses 'checked_out'
+      case 'checked_out':
         return 'Checked Out';
       default:
         return booking.status;
@@ -324,7 +325,23 @@ class _BookingCard extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    // Only show buttons for accepted/approved bookings
+    // Show Cancel button for pending bookings
+    if (booking.status == 'pending') {
+      return SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: () => _showCancelBookingSheet(context),
+          icon: const Icon(Icons.cancel_outlined, size: 18),
+          label: const Text('Cancel Request'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppTheme.errorColor,
+            side: BorderSide(color: AppTheme.errorColor),
+          ),
+        ),
+      );
+    }
+
+    // Show Checkout/Extend buttons for accepted/approved bookings
     if (!booking.isApproved) {
       return const SizedBox.shrink();
     }
@@ -365,6 +382,32 @@ class _BookingCard extends StatelessWidget {
           ),
       ],
     );
+  }
+
+  void _showCancelBookingSheet(BuildContext context) async {
+    // Convert Booking model to Map for the bottom sheet
+    final bookingMap = {
+      '_id': booking.id,
+      'startDate': DateFormatter.formatDate(booking.startDate),
+      'endDate': DateFormatter.formatDate(booking.endDate),
+      'totalPrice': booking.totalPrice,
+      'listingId': booking.listing,
+    };
+
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.9,
+        child: CancelBookingBottomSheet(booking: bookingMap),
+      ),
+    );
+
+    // Refresh trips if cancellation was successful
+    if (result == true) {
+      onRefresh();
+    }
   }
 
   void _showCheckoutDialog(BuildContext context) {

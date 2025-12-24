@@ -135,6 +135,12 @@ class Listing {
       creatorData = null;
     }
 
+    // Backend uses isActive (true = visible, false = hidden)
+    // Mobile uses isHidden (true = hidden, false = visible)
+    // So we need to invert: isHidden = !isActive
+    bool isActive = json['isActive'] ?? true;
+    bool isHidden = !isActive;
+
     return Listing(
       id: json['_id'] ?? json['id'] ?? '',
       creator: creatorId,
@@ -163,7 +169,7 @@ class Listing {
       price: (json['price'] ?? 0).toDouble(),
       priceType: json['priceType'],
       isAvailable: json['isAvailable'] ?? true,
-      isHidden: json['isHidden'] ?? false,
+      isHidden: isHidden, // Use the inverted isActive value
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : null,

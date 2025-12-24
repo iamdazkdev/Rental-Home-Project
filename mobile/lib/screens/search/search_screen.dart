@@ -362,179 +362,287 @@ class _FilterSheetState extends State<_FilterSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.9,
-      minChildSize: 0.5,
-      maxChildSize: 0.9,
-      expand: false,
-      builder: (context, scrollController) {
-        return Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: AppTheme.borderColor),
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) {
+          return Column(
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      widget.onClear();
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Clear all'),
-                  ),
-                  Text(
-                    'Filters',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      widget.onApply({
-                        'category': _category,
-                        'type': _type,
-                        'minPrice': _priceRange.start,
-                        'maxPrice': _priceRange.end,
-                        'minGuests': _guests,
-                        'minBedrooms': _bedrooms,
-                        'minBathrooms': _bathrooms,
-                        'amenities': _amenities,
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Apply'),
-                  ),
-                ],
-              ),
-            ),
 
-            // Content
-            Expanded(
-              child: ListView(
-                controller: scrollController,
+              // Header
+              Container(
                 padding: const EdgeInsets.all(16),
-                children: [
-                  // Price Range
-                  Text(
-                    'Price Range',
-                    style: Theme.of(context).textTheme.titleMedium,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(color: Colors.grey[200]!),
                   ),
-                  const SizedBox(height: 8),
-                  RangeSlider(
-                    values: _priceRange,
-                    min: 0,
-                    max: 10000,
-                    divisions: 100,
-                    labels: RangeLabels(
-                      '\$${_priceRange.start.round()}',
-                      '\$${_priceRange.end.round()}',
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        widget.onClear();
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Clear all',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
-                    onChanged: (values) {
-                      setState(() => _priceRange = values);
-                    },
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Text(
+                      'Filters',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        widget.onApply({
+                          'category': _category,
+                          'type': _type,
+                          'minPrice': _priceRange.start,
+                          'maxPrice': _priceRange.end,
+                          'minGuests': _guests,
+                          'minBedrooms': _bedrooms,
+                          'minBathrooms': _bathrooms,
+                          'amenities': _amenities,
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        'Apply',
+                        style: TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Content
+              Expanded(
+                child: Container(
+                  color: Colors.grey[50],
+                  child: ListView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(16),
                     children: [
-                      Text('\$${_priceRange.start.round()}'),
-                      Text('\$${_priceRange.end.round()}'),
+                      // Price Range
+                      _buildSectionTitle('Price Range'),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Column(
+                          children: [
+                            RangeSlider(
+                              values: _priceRange,
+                              min: 0,
+                              max: 10000,
+                              divisions: 100,
+                              activeColor: AppTheme.primaryColor,
+                              labels: RangeLabels(
+                                '\$${_priceRange.start.round()}',
+                                '\$${_priceRange.end.round()}',
+                              ),
+                              onChanged: (values) {
+                                setState(() => _priceRange = values);
+                              },
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '\$${_priceRange.start.round()}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                                Text(
+                                  '\$${_priceRange.end.round()}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Category
+                      _buildSectionTitle('Category'),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: AppConstants.categories.where((cat) => cat != 'All').map((category) {
+                          final isSelected = _category == category;
+                          return ChoiceChip(
+                            label: Text(category),
+                            selected: isSelected,
+                            selectedColor: AppTheme.primaryColor,
+                            backgroundColor: Colors.white,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black87,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            ),
+                            side: BorderSide(
+                              color: isSelected ? AppTheme.primaryColor : Colors.grey[300]!,
+                            ),
+                            onSelected: (selected) {
+                              setState(() {
+                                _category = selected ? category : null;
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Type
+                      _buildSectionTitle('Property Type'),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: AppConstants.types.map((type) {
+                          final isSelected = _type == type;
+                          return ChoiceChip(
+                            label: Text(type),
+                            selected: isSelected,
+                            selectedColor: AppTheme.primaryColor,
+                            backgroundColor: Colors.white,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black87,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            ),
+                            side: BorderSide(
+                              color: isSelected ? AppTheme.primaryColor : Colors.grey[300]!,
+                            ),
+                            onSelected: (selected) {
+                              setState(() {
+                                _type = selected ? type : null;
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Counters
+                      _buildSectionTitle('Guests & Rooms'),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildCounter('Guests', _guests, (val) => setState(() => _guests = val)),
+                            Divider(height: 32, color: Colors.grey[200]),
+                            _buildCounter('Bedrooms', _bedrooms, (val) => setState(() => _bedrooms = val)),
+                            Divider(height: 32, color: Colors.grey[200]),
+                            _buildCounter('Bathrooms', _bathrooms, (val) => setState(() => _bathrooms = val)),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Amenities
+                      _buildSectionTitle('Amenities'),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: AppConstants.amenities.take(15).map((amenity) {
+                          final isSelected = _amenities.contains(amenity);
+                          return FilterChip(
+                            label: Text(amenity),
+                            selected: isSelected,
+                            selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                            backgroundColor: Colors.white,
+                            checkmarkColor: AppTheme.primaryColor,
+                            labelStyle: TextStyle(
+                              color: isSelected ? AppTheme.primaryColor : Colors.black87,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            ),
+                            side: BorderSide(
+                              color: isSelected ? AppTheme.primaryColor : Colors.grey[300]!,
+                            ),
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _amenities.add(amenity);
+                                } else {
+                                  _amenities.remove(amenity);
+                                }
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+
+                      const SizedBox(height: 80), // Extra space for bottom
                     ],
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // Category
-                  Text(
-                    'Category',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: AppConstants.categories.map((category) {
-                      return ChoiceChip(
-                        label: Text(category),
-                        selected: _category == category,
-                        onSelected: (selected) {
-                          setState(() {
-                            _category = selected ? category : null;
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Type
-                  Text(
-                    'Type',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: AppConstants.types.map((type) {
-                      return ChoiceChip(
-                        label: Text(type),
-                        selected: _type == type,
-                        onSelected: (selected) {
-                          setState(() {
-                            _type = selected ? type : null;
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Counters
-                  _buildCounter('Guests', _guests, (val) => setState(() => _guests = val)),
-                  const SizedBox(height: 16),
-                  _buildCounter('Bedrooms', _bedrooms, (val) => setState(() => _bedrooms = val)),
-                  const SizedBox(height: 16),
-                  _buildCounter('Bathrooms', _bathrooms, (val) => setState(() => _bathrooms = val)),
-
-                  const SizedBox(height: 24),
-
-                  // Amenities
-                  Text(
-                    'Amenities',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: AppConstants.amenities.take(15).map((amenity) {
-                      return FilterChip(
-                        label: Text(amenity),
-                        selected: _amenities.contains(amenity),
-                        onSelected: (selected) {
-                          setState(() {
-                            if (selected) {
-                              _amenities.add(amenity);
-                            } else {
-                              _amenities.remove(amenity);
-                            }
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+      ),
     );
   }
 
@@ -542,24 +650,64 @@ class _FilterSheetState extends State<_FilterSheet> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
+        ),
         Row(
           children: [
-            IconButton(
-              onPressed: value > 0 ? () => onChanged(value - 1) : null,
-              icon: const Icon(Icons.remove_circle_outline),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: IconButton(
+                onPressed: value > 0 ? () => onChanged(value - 1) : null,
+                icon: Icon(
+                  Icons.remove,
+                  color: value > 0 ? AppTheme.primaryColor : Colors.grey[400],
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 40,
+                  minHeight: 40,
+                ),
+                padding: EdgeInsets.zero,
+              ),
             ),
-            SizedBox(
-              width: 40,
+            Container(
+              width: 60,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 value.toString(),
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryColor,
+                ),
               ),
             ),
-            IconButton(
-              onPressed: () => onChanged(value + 1),
-              icon: const Icon(Icons.add_circle_outline),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: IconButton(
+                onPressed: () => onChanged(value + 1),
+                icon: Icon(
+                  Icons.add,
+                  color: AppTheme.primaryColor,
+                ),
+                constraints: const BoxConstraints(
+                  minWidth: 40,
+                  minHeight: 40,
+                ),
+                padding: EdgeInsets.zero,
+              ),
             ),
           ],
         ),

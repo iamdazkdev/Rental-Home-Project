@@ -249,7 +249,7 @@ class ListingService {
   }
 
   // Toggle listing visibility
-  Future<Map<String, dynamic>> toggleListingVisibility(String listingId, bool isHidden) async {
+  Future<Map<String, dynamic>> toggleListingVisibility(String listingId, bool willBeHidden) async {
     try {
       final token = await _storageService.getToken();
       if (token == null) {
@@ -257,20 +257,22 @@ class ListingService {
       }
 
       // PATCH /properties/:listingId/toggle-visibility
+      // Backend toggles isActive automatically (no body needed)
       final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.properties}/$listingId/toggle-visibility');
       final response = await http.patch(
         uri,
         headers: ApiConfig.headers(token: token),
-        body: json.encode({'isHidden': isHidden}),
       );
 
       debugPrint('🔍 Toggle visibility URL: $uri');
       debugPrint('📥 Response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        debugPrint('✅ Visibility toggled: ${data['message']}');
         return {
           'success': true,
-          'message': isHidden ? 'Listing hidden' : 'Listing visible',
+          'message': data['message'] ?? (willBeHidden ? 'Listing hidden' : 'Listing visible'),
         };
       } else {
         final error = json.decode(response.body);
@@ -280,6 +282,7 @@ class ListingService {
         };
       }
     } catch (e) {
+      debugPrint('❌ Error toggling visibility: $e');
       return {
         'success': false,
         'message': 'An error occurred: ${e.toString()}',
@@ -290,7 +293,8 @@ class ListingService {
   // Get user's properties
   Future<List<Listing>> getUserProperties(String userId) async {
     try {
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.properties}/$userId/properties');
+      // Include hidden properties by adding query parameter
+      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.properties}/$userId/properties?includeHidden=true');
       final token = await _storageService.getToken();
 
       debugPrint('🔍 Fetching user properties: $uri');
@@ -305,6 +309,12 @@ class ListingService {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         debugPrint('✅ Found ${data.length} properties');
+
+        // Debug log to check isHidden status
+        for (var item in data) {
+          debugPrint('  Property: ${item['title']}, isHidden: ${item['isHidden']}, isActive: ${item['isActive']}');
+        }
+
         return data.map((json) => Listing.fromJson(json)).toList();
       }
 
