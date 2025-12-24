@@ -4,12 +4,15 @@ import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Loader from "../../components/Loader";
+import RejectBookingModal from "../../components/RejectBookingModal";
 import "../../styles/ReservationList.scss";
 
 const ReservationList = () => {
   const [loading, setLoading] = useState(true);
   const [reservations, setReservations] = useState([]);
   const [filter, setFilter] = useState("all"); // all, pending, accepted, rejected
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const user = useSelector((state) => state.user);
   const userId = user?._id || user?.id;
 
@@ -56,16 +59,21 @@ const ReservationList = () => {
     }
   };
 
-  const handleReject = async (bookingId) => {
-    const reason = prompt("Please provide a reason for rejection (optional):");
+  const handleReject = (booking) => {
+    setSelectedBooking(booking);
+    setRejectModalOpen(true);
+  };
+
+  const handleRejectConfirm = async (rejectionReason) => {
+    if (!selectedBooking) return;
 
     try {
-      console.log(`🔄 Rejecting booking ${bookingId}...`);
-      const url = `${API_ENDPOINTS.BOOKINGS.REJECT}/${bookingId}/reject`;
+      console.log(`🔄 Rejecting booking ${selectedBooking._id}...`);
+      const url = `${API_ENDPOINTS.BOOKINGS.REJECT}/${selectedBooking._id}/reject`;
       const response = await fetch(url, {
         method: HTTP_METHODS.PATCH,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: reason || "No reason provided" }),
+        body: JSON.stringify({ reason: rejectionReason }),
       });
 
       if (!response.ok) {
@@ -79,6 +87,8 @@ const ReservationList = () => {
       await getReservations();
     } catch (error) {
       console.error("❌ Error rejecting booking:", error);
+      alert(error.message || "Failed to reject booking. Please try again.");
+      throw error;
     }
   };
 
@@ -313,7 +323,7 @@ const ReservationList = () => {
                       </button>
                       <button
                         className="btn-reject"
-                        onClick={() => handleReject(reservation._id)}
+                        onClick={() => handleReject(reservation)}
                       >
                         ✗ Reject
                       </button>
@@ -411,6 +421,13 @@ const ReservationList = () => {
         )}
       </div>
       <Footer />
+      {rejectModalOpen && (
+        <RejectBookingModal
+          booking={selectedBooking}
+          onClose={() => setRejectModalOpen(false)}
+          onConfirm={handleRejectConfirm}
+        />
+      )}
     </>
   );
 };
