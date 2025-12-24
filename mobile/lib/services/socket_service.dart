@@ -93,8 +93,10 @@ class SocketService {
     required String conversationId,
     required String senderId,
     required String receiverId,
-    required String message,
+    required String messageText,
     String? listingId,
+    Map<String, dynamic>? senderInfo,
+    Map<String, dynamic>? receiverInfo,
   }) {
     if (_socket == null || !_socket!.connected) {
       debugPrint('❌ Socket not connected');
@@ -102,14 +104,34 @@ class SocketService {
     }
 
     debugPrint('📤 Sending message via socket');
+    debugPrint('   From: $senderId → To: $receiverId');
+    debugPrint('   Message: $messageText');
 
-    _socket!.emit('send_message', {
+    // Create message object with populated sender/receiver info
+    // This matches the format that web client sends (from API response)
+    final messageObject = {
       'conversationId': conversationId,
+      'senderId': senderInfo ?? {
+        '_id': senderId,
+      },
+      'receiverId': receiverInfo ?? {
+        '_id': receiverId,
+      },
+      'message': messageText,
+      'messageType': 'text',
+      'createdAt': DateTime.now().toIso8601String(),
+      'isRead': false,
+      if (listingId != null) 'listingId': listingId,
+    };
+
+    // Send in format backend expects: { senderId, receiverId, message: {...} }
+    _socket!.emit('send_message', {
       'senderId': senderId,
       'receiverId': receiverId,
-      'message': message,
-      if (listingId != null) 'listingId': listingId,
+      'message': messageObject,
     });
+
+    debugPrint('✅ Message emitted via socket');
   }
 
   void emitTyping({

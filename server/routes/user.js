@@ -31,10 +31,25 @@ router.get("/:userId/trips", async (req, res) => {
   }
 });
 
-// ADD LISTING TO WISHLIST
-router.patch("/:userId/:listingId", async (req, res) => {
+// ADD/REMOVE LISTING TO/FROM WISHLIST
+router.patch("/:userId/wishlist/:listingId", async (req, res) => {
   try {
     const { userId, listingId } = req.params;
+
+    // Validate ObjectId format before querying
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      console.log(`❌ Invalid userId format: ${userId}`);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: "Invalid user ID format"
+      });
+    }
+    if (!mongoose.Types.ObjectId.isValid(listingId)) {
+      console.log(`❌ Invalid listingId format: ${listingId}`);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: "Invalid listing ID format"
+      });
+    }
 
     // Run both queries in parallel and use .exec() to get proper promises
     const [user, listing] = await Promise.all([

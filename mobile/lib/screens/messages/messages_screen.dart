@@ -379,8 +379,20 @@ class _ChatScreenState extends State<ChatScreen> {
       conversationId: conversationId,
       senderId: user.id,
       receiverId: receiverId,
-      message: messageText,
+      messageText: messageText,
       listingId: listingId,
+      senderInfo: {
+        '_id': user.id,
+        'firstName': user.firstName,
+        'lastName': user.lastName,
+        'profileImagePath': user.profileImagePath,
+      },
+      receiverInfo: {
+        '_id': widget.conversation.otherUser['_id'],
+        'firstName': widget.conversation.otherUser['firstName'] ?? '',
+        'lastName': widget.conversation.otherUser['lastName'] ?? '',
+        'profileImagePath': widget.conversation.otherUser['profileImagePath'],
+      },
     );
 
     // Add optimistic message
