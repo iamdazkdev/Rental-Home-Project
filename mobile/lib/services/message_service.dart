@@ -77,9 +77,10 @@ class MessageService {
         return {'success': false, 'message': 'Not authenticated'};
       }
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.messages}/send');
+      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.messages}/messages');
 
       debugPrint('📤 Sending message via HTTP');
+      debugPrint('📡 URL: $uri');
 
       final response = await http.post(
         uri,

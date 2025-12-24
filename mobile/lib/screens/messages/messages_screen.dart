@@ -27,16 +27,9 @@ class MessagesScreen extends StatefulWidget {
 class _MessagesScreenState extends State<MessagesScreen> {
   final MessageService _messageService = MessageService();
   final SocketService _socketService = SocketService();
-  final TextEditingController _messageController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
 
   List<Conversation> _conversations = [];
-  Conversation? _selectedConversation;
-  List<Message> _messages = [];
   bool _isLoading = true;
-  bool _isSending = false;
-  bool _isTyping = false;
-  Timer? _typingTimer;
 
   @override
   void initState() {
@@ -50,7 +43,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
     // Connect socket
     await _socketService.connect(user.id);
-    _setupSocketListeners();
+
+    // Setup listener for new messages
+    _socketService.onNewMessageNotification = (data) {
+      if (mounted) {
+        _loadConversations();
+      }
+    };
 
     // Load conversations
     await _loadConversations();
@@ -59,34 +58,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
     if (widget.contactData != null) {
       _handleContactData();
     }
-  }
-
-  void _setupSocketListeners() {
-    _socketService.onMessageReceived = (message) {
-      if (mounted) {
-        if (message['conversationId'] == _selectedConversation?.conversationId) {
-          setState(() {
-            _messages.add(Message.fromJson(message));
-          });
-          _scrollToBottom();
-        }
-        _loadConversations();
-      }
-    };
-
-    _socketService.onTypingStatus = (conversationId, isTyping) {
-      if (mounted && conversationId == _selectedConversation?.conversationId) {
-        setState(() {
-          _isTyping = isTyping;
-        });
-      }
-    };
-
-    _socketService.onNewMessageNotification = (data) {
-      if (mounted) {
-        _loadConversations();
-      }
-    };
   }
 
   void _handleContactData() {
@@ -116,9 +87,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
       unreadCount: 0,
     );
 
-    setState(() {
-      _selectedConversation = tempConversation;
-      _messages = [];
+    // Navigate to chat screen immediately
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(conversation: tempConversation),
+        ),
+      );
     });
   }
 
@@ -133,34 +109,232 @@ class _MessagesScreenState extends State<MessagesScreen> {
         _conversations = conversations;
         _isLoading = false;
       });
-
-      // Auto-select conversation
-      if (_selectedConversation == null && conversations.isNotEmpty) {
-        _selectConversation(conversations.first);
-      } else if (widget.conversationId != null) {
-        final conv = conversations.firstWhere(
-          (c) => c.conversationId == widget.conversationId,
-          orElse: () => conversations.isNotEmpty ? conversations.first : _selectedConversation!,
-        );
-        _selectConversation(conv);
-      }
     }
   }
 
-  void _selectConversation(Conversation conversation) {
-    setState(() {
-      _selectedConversation = conversation;
-    });
-
-    _loadMessages(conversation.conversationId);
-    _socketService.joinConversation(conversation.conversationId);
+  @override
+  void dispose() {
+    super.dispose();
   }
 
-  Future<void> _loadMessages(String conversationId) async {
+  @override
+  Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().user;
+
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: Text('Please login to view messages')),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Messages'),
+      ),
+      body: _buildConversationList(),
+    );
+  }
+
+  Widget _buildConversationList() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_conversations.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.chat_bubble_outline, size: 80, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'No conversations yet',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Start chatting with hosts',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: _conversations.length,
+      itemBuilder: (context, index) {
+        final conversation = _conversations[index];
+
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: CircleAvatar(
+            radius: 28,
+            backgroundImage: conversation.otherUserImage != null
+                ? CachedNetworkImageProvider(conversation.otherUserImage!)
+                : null,
+            backgroundColor: AppTheme.primaryColor,
+            child: conversation.otherUserImage == null
+                ? Text(
+                    conversation.otherUserName[0].toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
+          ),
+          title: Text(
+            conversation.otherUserName,
+            style: TextStyle(
+              fontWeight: conversation.unreadCount > 0 ? FontWeight.bold : FontWeight.w600,
+              fontSize: 16,
+            ),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              conversation.lastMessage,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: conversation.unreadCount > 0 ? FontWeight.w500 : FontWeight.normal,
+                color: conversation.unreadCount > 0 ? Colors.black87 : Colors.grey,
+              ),
+            ),
+          ),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (conversation.lastMessageAt != null)
+                Text(
+                  DateFormatter.getRelativeTime(conversation.lastMessageAt!),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: conversation.unreadCount > 0
+                        ? AppTheme.primaryColor
+                        : Colors.grey,
+                    fontWeight: conversation.unreadCount > 0
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                  ),
+                ),
+              if (conversation.unreadCount > 0) ...[
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  constraints: const BoxConstraints(minWidth: 20),
+                  child: Text(
+                    conversation.unreadCount.toString(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          onTap: () {
+            // Navigate to chat screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatScreen(
+                  conversation: conversation,
+                ),
+              ),
+            ).then((_) {
+              // Reload conversations when coming back
+              _loadConversations();
+            });
+          },
+        );
+      },
+    );
+  }
+}
+
+// ==================== CHAT SCREEN ====================
+
+class ChatScreen extends StatefulWidget {
+  final Conversation conversation;
+
+  const ChatScreen({
+    super.key,
+    required this.conversation,
+  });
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final MessageService _messageService = MessageService();
+  final SocketService _socketService = SocketService();
+  final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  List<Message> _messages = [];
+  bool _isSending = false;
+  bool _isTyping = false;
+  Timer? _typingTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
     final user = context.read<AuthProvider>().user;
     if (user == null) return;
 
-    final messages = await _messageService.getMessages(conversationId, user.id);
+    // Setup socket listeners
+    _setupSocketListeners();
+
+    // Join conversation
+    _socketService.joinConversation(widget.conversation.conversationId);
+
+    // Load messages
+    await _loadMessages();
+  }
+
+  void _setupSocketListeners() {
+    _socketService.onMessageReceived = (message) {
+      if (mounted && message['conversationId'] == widget.conversation.conversationId) {
+        setState(() {
+          _messages.add(Message.fromJson(message));
+        });
+        _scrollToBottom();
+      }
+    };
+
+    _socketService.onTypingStatus = (conversationId, isTyping) {
+      if (mounted && conversationId == widget.conversation.conversationId) {
+        setState(() {
+          _isTyping = isTyping;
+        });
+      }
+    };
+  }
+
+  Future<void> _loadMessages() async {
+    final user = context.read<AuthProvider>().user;
+    if (user == null) return;
+
+    final messages = await _messageService.getMessages(
+      widget.conversation.conversationId,
+      user.id,
+    );
 
     if (mounted) {
       setState(() {
@@ -169,7 +343,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       _scrollToBottom();
 
       // Mark as read
-      _messageService.markAsRead(conversationId, user.id);
+      _messageService.markAsRead(widget.conversation.conversationId, user.id);
     }
   }
 
@@ -186,9 +360,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Future<void> _sendMessage() async {
-    if (_messageController.text.trim().isEmpty || _selectedConversation == null) {
-      return;
-    }
+    if (_messageController.text.trim().isEmpty) return;
 
     final user = context.read<AuthProvider>().user;
     if (user == null) return;
@@ -196,9 +368,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
     setState(() => _isSending = true);
 
     final messageText = _messageController.text.trim();
-    final receiverId = _selectedConversation!.otherUserId;
-    final conversationId = _selectedConversation!.conversationId;
-    final listingId = _selectedConversation!.listing?['_id'];
+    final receiverId = widget.conversation.otherUserId;
+    final conversationId = widget.conversation.conversationId;
+    final listingId = widget.conversation.listing?['_id'];
 
     _messageController.clear();
 
@@ -229,38 +401,33 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
     _scrollToBottom();
 
-    // Fallback: send via HTTP if socket fails
+    // HTTP fallback
     Future.delayed(const Duration(seconds: 1), () async {
-      final result = await _messageService.sendMessage(
+      await _messageService.sendMessage(
         conversationId: conversationId,
         senderId: user.id,
         receiverId: receiverId,
         message: messageText,
         listingId: listingId,
       );
-
-      if (result['success']) {
-        _loadConversations();
-      }
     });
   }
 
   void _handleTyping(String text) {
     final user = context.read<AuthProvider>().user;
-    if (user == null || _selectedConversation == null) return;
+    if (user == null) return;
 
     _socketService.emitTyping(
-      conversationId: _selectedConversation!.conversationId,
+      conversationId: widget.conversation.conversationId,
       userId: user.id,
       isTyping: text.isNotEmpty,
     );
 
-    // Reset typing after 2 seconds
     _typingTimer?.cancel();
     if (text.isNotEmpty) {
       _typingTimer = Timer(const Duration(seconds: 2), () {
         _socketService.emitTyping(
-          conversationId: _selectedConversation!.conversationId,
+          conversationId: widget.conversation.conversationId,
           userId: user.id,
           isTyping: false,
         );
@@ -273,282 +440,155 @@ class _MessagesScreenState extends State<MessagesScreen> {
     _messageController.dispose();
     _scrollController.dispose();
     _typingTimer?.cancel();
-    if (_selectedConversation != null) {
-      _socketService.leaveConversation(_selectedConversation!.conversationId);
-    }
+    _socketService.leaveConversation(widget.conversation.conversationId);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().user;
-
-    if (user == null) {
-      return const Scaffold(
-        body: Center(child: Text('Please login to view messages')),
-      );
-    }
+    if (user == null) return const Scaffold();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Messages'),
-      ),
-      body: Row(
-        children: [
-          // Conversation List
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.35,
-            child: _buildConversationList(),
-          ),
-
-          // Vertical Divider
-          const VerticalDivider(width: 1),
-
-          // Chat View
-          Expanded(
-            child: _selectedConversation == null
-                ? _buildEmptyState()
-                : _buildChatView(user.id),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildConversationList() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_conversations.isEmpty) {
-      return const Center(
-        child: Text(
-          'No conversations yet',
-          style: TextStyle(color: Colors.grey),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      itemCount: _conversations.length,
-      itemBuilder: (context, index) {
-        final conversation = _conversations[index];
-        final isSelected = conversation.conversationId == _selectedConversation?.conversationId;
-
-        return Container(
-          color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.1) : null,
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundImage: conversation.otherUserImage != null
-                  ? CachedNetworkImageProvider(conversation.otherUserImage!)
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundImage: widget.conversation.otherUserImage != null
+                  ? CachedNetworkImageProvider(widget.conversation.otherUserImage!)
                   : null,
               backgroundColor: AppTheme.primaryColor,
-              child: conversation.otherUserImage == null
+              child: widget.conversation.otherUserImage == null
                   ? Text(
-                      conversation.otherUserName[0].toUpperCase(),
-                      style: const TextStyle(color: Colors.white),
+                      widget.conversation.otherUserName[0].toUpperCase(),
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
                     )
                   : null,
             ),
-            title: Text(
-              conversation.otherUserName,
-              style: TextStyle(
-                fontWeight: conversation.unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-            subtitle: Text(
-              conversation.lastMessage,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontWeight: conversation.unreadCount > 0 ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                if (conversation.lastMessageAt != null)
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    DateFormatter.getRelativeTime(conversation.lastMessageAt!),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    widget.conversation.otherUserName,
+                    style: const TextStyle(fontSize: 16),
                   ),
-                if (conversation.unreadCount > 0) ...[
-                  const SizedBox(height: 4),
+                  if (_isTyping)
+                    const Text(
+                      'typing...',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.primaryColor,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          // Messages List
+          Expanded(
+            child: _messages.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.chat_bubble_outline, size: 80, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          'No messages yet. Say hi! 👋',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final message = _messages[index];
+                      final isMine = message.isSentByMe(user.id);
+                      final showAvatar = index == 0 ||
+                          _messages[index - 1].senderId != message.senderId;
+
+                      return _MessageBubble(
+                        message: message,
+                        isMine: isMine,
+                        showAvatar: showAvatar,
+                        avatarUrl: isMine ? null : widget.conversation.otherUserImage,
+                      );
+                    },
+                  ),
+          ),
+
+          // Message Input
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, -2),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      decoration: InputDecoration(
+                        hintText: 'Type a message...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: AppTheme.backgroundColor,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _sendMessage(),
+                      onChanged: _handleTyping,
+                      maxLines: null,
+                      textCapitalization: TextCapitalization.sentences,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.all(6),
                     decoration: const BoxDecoration(
                       color: AppTheme.primaryColor,
                       shape: BoxShape.circle,
                     ),
-                    child: Text(
-                      conversation.unreadCount.toString(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: IconButton(
+                      icon: const Icon(Icons.send, color: Colors.white, size: 22),
+                      onPressed: _isSending ? null : _sendMessage,
                     ),
                   ),
                 ],
-              ],
+              ),
             ),
-            onTap: () => _selectConversation(conversation),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.chat_bubble_outline, size: 80, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Select a conversation',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
           ),
         ],
       ),
     );
   }
-
-  Widget _buildChatView(String userId) {
-    return Column(
-      children: [
-        // Chat Header
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppTheme.backgroundColor,
-            border: Border(
-              bottom: BorderSide(color: AppTheme.borderColor),
-            ),
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundImage: _selectedConversation!.otherUserImage != null
-                    ? CachedNetworkImageProvider(_selectedConversation!.otherUserImage!)
-                    : null,
-                backgroundColor: AppTheme.primaryColor,
-                child: _selectedConversation!.otherUserImage == null
-                    ? Text(
-                        _selectedConversation!.otherUserName[0].toUpperCase(),
-                        style: const TextStyle(color: Colors.white),
-                      )
-                    : null,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _selectedConversation!.otherUserName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    if (_isTyping)
-                      const Text(
-                        'typing...',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.primaryColor,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Messages List
-        Expanded(
-          child: _messages.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No messages yet. Say hi! 👋',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                )
-              : ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _messages.length,
-                  itemBuilder: (context, index) {
-                    final message = _messages[index];
-                    final isMine = message.isSentByMe(userId);
-                    final showAvatar = index == 0 ||
-                        _messages[index - 1].senderId != message.senderId;
-
-                    return _MessageBubble(
-                      message: message,
-                      isMine: isMine,
-                      showAvatar: showAvatar,
-                      avatarUrl: isMine ? null : _selectedConversation!.otherUserImage,
-                    );
-                  },
-                ),
-        ),
-
-        // Message Input
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border(
-              top: BorderSide(color: AppTheme.borderColor),
-            ),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _messageController,
-                  decoration: InputDecoration(
-                    hintText: 'Type a message...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: AppTheme.backgroundColor,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                  textInputAction: TextInputAction.send,
-                  onSubmitted: (_) => _sendMessage(),
-                  onChanged: _handleTyping,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                decoration: const BoxDecoration(
-                  color: AppTheme.primaryColor,
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.send, color: Colors.white),
-                  onPressed: _isSending ? null : _sendMessage,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 }
+
+// ==================== MESSAGE BUBBLE ====================
 
 class _MessageBubble extends StatelessWidget {
   final Message message;
