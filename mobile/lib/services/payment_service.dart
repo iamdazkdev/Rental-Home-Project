@@ -7,7 +7,6 @@ import 'storage_service.dart';
 class PaymentService {
   final StorageService _storageService = StorageService();
 
-  // Create VNPay payment URL
   Future<Map<String, dynamic>> createPaymentUrl({
     required Map<String, dynamic> bookingData,
     required double amount,
@@ -62,8 +61,6 @@ class PaymentService {
       };
     }
   }
-
-  // Get client IP address (for VNPay)
   Future<String> getClientIP() async {
     try {
       final response = await http.get(
@@ -80,8 +77,6 @@ class PaymentService {
     return '127.0.0.1';
   }
 
-
-  // Calculate deposit amount (50%)
   double calculateDepositAmount(double totalAmount) {
     return totalAmount * 0.5;
   }

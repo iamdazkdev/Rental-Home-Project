@@ -20,8 +20,6 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkAuth() async {
     final authProvider = context.read<AuthProvider>();
     await authProvider.init();
-
-    // Wait for 2 seconds for splash effect
     await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;

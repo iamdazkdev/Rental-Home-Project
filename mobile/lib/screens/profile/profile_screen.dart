@@ -103,19 +103,6 @@ class ProfileScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  _MenuItem(
-                    icon: Icons.person_outline,
-                    title: 'Edit Profile',
-                    subtitle: 'Update your information',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EditProfileScreen(),
-                        ),
-                      );
-                    },
-                  ),
                   const SizedBox(height: 16),
                   // Logout Button
                   OutlinedButton.icon(

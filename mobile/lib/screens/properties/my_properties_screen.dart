@@ -91,17 +91,12 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> with SingleTick
 
     if (mounted) {
       if (result['success']) {
-        // Refresh properties first
         await _loadProperties();
-
-        // Auto-switch to appropriate tab to show the updated property
         if (willBeHidden) {
-          // Property was hidden, switch to "Inactive" tab
-          _tabController.animateTo(2); // Index 2 = Inactive tab
+          _tabController.animateTo(2);
           setState(() => _filterMode = 'inactive');
         } else {
-          // Property was shown, switch to "Active" tab
-          _tabController.animateTo(1); // Index 1 = Active tab
+          _tabController.animateTo(1);
           setState(() => _filterMode = 'active');
         }
         if (!mounted) return;
