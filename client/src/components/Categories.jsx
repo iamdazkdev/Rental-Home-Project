@@ -1,6 +1,6 @@
 import { categories } from "../data";
 import "../styles/Categories.scss";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom"; // Disabled - category pages not ready yet
 
 const Categories = ({ onCategorySelect }) => {
   return (
@@ -14,7 +14,8 @@ const Categories = ({ onCategorySelect }) => {
 
       <div className="categories_list">
         {categories?.slice(1, 7).map((category, index) => (
-          <Link to={`/properties/category/${category.label}`} key={index}>
+          // Disabled link - category pages not ready yet
+          <div key={index} className="category-wrapper">
             <div className="category">
               <img src={category.img} alt={category.label} />
               <div className="overlay"></div>
@@ -23,7 +24,7 @@ const Categories = ({ onCategorySelect }) => {
                 <p>{category.label}</p>
               </div>
             </div>
-          </Link>
+          </div>
         ))}
       </div>
     </div>
