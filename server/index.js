@@ -42,7 +42,7 @@ app.use(express.static("public"));
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "OK",
-    message: "Dream Nest Server is running",
+    message: "Rento Server is running",
     timestamp: new Date().toISOString(),
   });
 });

@@ -1,7 +1,17 @@
 {
-  "short_name": "Dream Nest",
-  "name": "Dream Nest - Rental Home Platform",
+  "short_name": "Rento",
+  "name": "Rento - Your Home Rental Platform",
   "icons": [
+    {
+      "src": "assets/logo/rento_logo.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "assets/logo/rento_logo.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",

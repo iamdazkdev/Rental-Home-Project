@@ -122,7 +122,7 @@ const LoginPage = () => {
       <div className="login_content">
         <div className="login_header">
           <h1>Welcome Back</h1>
-          <p>Sign in to your Dream Nest account</p>
+          <p>Sign in to your Rento account</p>
         </div>
 
         {/* Error Message */}

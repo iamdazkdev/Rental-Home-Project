@@ -45,7 +45,7 @@ const getPasswordResetTemplate = (resetLink, firstName = "User") => {
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Reset Your Password - Dream Nest</title>
+        <title>Reset Your Password - Rento</title>
         <style>
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -127,14 +127,14 @@ const getPasswordResetTemplate = (resetLink, firstName = "User") => {
     <body>
         <div class="container">
             <div class="header">
-                <h1>🏠 Dream Nest</h1>
+                <h1>🏠 Rento</h1>
                 <p>Your trusted rental home platform</p>
             </div>
             
             <div class="content">
                 <h2>Hi ${firstName},</h2>
                 
-                <p>We received a request to reset your password for your Dream Nest account. If you made this request, click the button below to reset your password:</p>
+                <p>We received a request to reset your password for your Rento account. If you made this request, click the button below to reset your password:</p>
                 
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="${resetLink}" class="reset-button">Reset My Password</a>
@@ -154,12 +154,12 @@ const getPasswordResetTemplate = (resetLink, firstName = "User") => {
                 
                 <p>If you're having trouble with the button above, you can also reset your password by visiting our website and using the "Forgot Password" feature.</p>
                 
-                <p>Best regards,<br>The Dream Nest Team</p>
+                <p>Best regards,<br>The Rento Team</p>
             </div>
             
             <div class="footer">
-                <p>This email was sent by Dream Nest. If you have any questions, please contact us at <a href="mailto:support@dreamnest.com">support@dreamnest.com</a></p>
-                <p>&copy; 2025 Dream Nest. All rights reserved.</p>
+                <p>This email was sent by Rento. If you have any questions, please contact us at <a href="mailto:support@rento.com">support@rento.com</a></p>
+                <p>&copy; 2025 Rento. All rights reserved.</p>
             </div>
         </div>
     </body>
@@ -174,20 +174,20 @@ const sendPasswordResetEmail = async (email, resetLink, firstName) => {
 
     const mailOptions = {
       from: {
-        name: "Dream Nest",
+        name: "Rento",
         address:
           process.env.EMAIL_FROM ||
           process.env.EMAIL_USER ||
-          "noreply@dreamnest.com",
+          "noreply@rento.com",
       },
       to: email,
-      subject: "🔒 Reset Your Dream Nest Password",
+      subject: "🔒 Reset Your Rento Password",
       html: getPasswordResetTemplate(resetLink, firstName),
       // Text fallback for clients that don't support HTML
       text: `
         Hi ${firstName},
 
-        We received a request to reset your password for your Dream Nest account.
+        We received a request to reset your password for your Rento account.
         
         Click this link to reset your password: ${resetLink}
         

@@ -97,8 +97,8 @@ const Navbar = () => {
     <div className="navbar">
       <div className="navbar_left">
         <Link to="/" className="navbar_logo">
-          <img src="/assets/logo.png" alt="Dream Nest Logo" className="logo" />
-          <span className="brand_name">Dream Nest</span>
+          <img src="/assets/logo/rento_logo.jpeg" alt="Rento Logo" className="logo" />
+          <span className="brand_name">Rento</span>
         </Link>
       </div>
 

@@ -1,8 +1,8 @@
-# 🏠 Dream Nest - Rental Home Project
+# 🏠 Rento - Rental Home Platform
 
-A modern, full-stack rental home platform built with React.js and Node.js. Dream Nest allows users to discover, list, and manage rental properties with a beautiful, responsive interface.
+A modern, full-stack rental home platform built with React.js, Node.js, and Flutter. Rento allows users to discover, list, and manage rental properties with a beautiful, responsive interface across web and mobile.
 
-![Dream Nest](https://img.shields.io/badge/Dream%20Nest-Rental%20Platform-blue?style=for-the-badge)
+![Rento](https://img.shields.io/badge/Rento-Rental%20Platform-blue?style=for-the-badge)
 ![Version](https://img.shields.io/badge/version-1.0.0-success?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-ISC-green?style=for-the-badge)
 
@@ -333,5 +333,5 @@ This project is licensed under the ISC License - see the [LICENSE](LICENSE) file
 
 <div align="center">
   <p>Made with ❤️ by iamdazkdev</p>
-  <p>Dream Nest - Find Your Perfect Home</p>
+  <p>Rento - Find Your Perfect Home</p>
 </div>

@@ -1,6 +1,6 @@
-# 🏠 Dream Nest - Client Application
+# 🏠 Rento - Client Application
 
-> Modern React frontend for the Dream Nest rental home platform with beautiful glass morphism UI and comprehensive authentication system.
+> Modern React frontend for the Rento rental home platform with beautiful glass morphism UI and comprehensive authentication system.
 
 ## ✨ Features
 
@@ -255,4 +255,4 @@ npm run build
 
 ---
 
-**Built with ❤️ by iamdazkdev** | Dream Nest © 2025
+**Built with ❤️ by iamdazkdev** | Rento © 2025

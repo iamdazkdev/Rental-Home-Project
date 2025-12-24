@@ -119,7 +119,7 @@ const RegisterPage = () => {
       <div className="register_content">
         <div className="register_header">
           <h1>Create Account</h1>
-          <p>Join Dream Nest and find your perfect home</p>
+          <p>Join Rento and find your perfect home</p>
         </div>
 
         {/* Error Message */}
