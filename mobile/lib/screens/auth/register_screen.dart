@@ -47,6 +47,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Validate profile image is required
+    if (_profileImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a profile image'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+      return;
+    }
+
     final authProvider = context.read<AuthProvider>();
 
     final success = await authProvider.register(
@@ -60,7 +71,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.of(context).pushReplacementNamed('/home');
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Registration successful! Please login.'),
+          backgroundColor: AppTheme.successColor,
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+      // Navigate to login screen after successful registration
+      await Future.delayed(const Duration(seconds: 1));
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -96,35 +120,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
-                // Profile Image
+                // Profile Image (Required)
                 Center(
-                  child: GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(50),
-                        border: Border.all(
-                          color: AppTheme.primaryColor,
-                          width: 2,
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(50),
+                            border: Border.all(
+                              color: AppTheme.primaryColor,
+                              width: 2,
+                            ),
+                          ),
+                          child: _profileImage != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(50),
+                                  child: Image.file(
+                                    _profileImage!,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.add_a_photo,
+                                  size: 40,
+                                  color: AppTheme.primaryColor,
+                                ),
                         ),
                       ),
-                      child: _profileImage != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(50),
-                              child: Image.file(
-                                _profileImage!,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : const Icon(
-                              Icons.add_a_photo,
-                              size: 40,
-                              color: AppTheme.primaryColor,
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Profile Photo',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(width: 4),
+                          const Text(
+                            '*',
+                            style: TextStyle(
+                              color: AppTheme.errorColor,
+                              fontWeight: FontWeight.bold,
                             ),
-                    ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        _profileImage != null ? 'Photo selected' : 'Tap to add photo',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: _profileImage != null
+                                ? AppTheme.successColor
+                                : Colors.grey,
+                            ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -194,13 +248,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         });
                       },
                     ),
+                    helperText: '8+ chars, uppercase, lowercase, number',
+                    helperMaxLines: 2,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your password';
                     }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                    if (value.length < 8) {
+                      return 'Password must be at least 8 characters';
+                    }
+                    // Check for uppercase letter
+                    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                      return 'Password must contain at least one uppercase letter';
+                    }
+                    // Check for lowercase letter
+                    if (!RegExp(r'[a-z]').hasMatch(value)) {
+                      return 'Password must contain at least one lowercase letter';
+                    }
+                    // Check for number
+                    if (!RegExp(r'[0-9]').hasMatch(value)) {
+                      return 'Password must contain at least one number';
                     }
                     return null;
                   },

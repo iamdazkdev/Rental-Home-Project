@@ -65,10 +65,49 @@ const fileFilter = (req, file, cb) => {
 const upload = cloudinaryUpload;
 
 /* REGISTER USER */
-router.post("/register", upload.single("profileImage"), async (req, res) => {
+router.post("/register", (req, res, next) => {
+  // Custom error handler for multer
+  upload.single("profileImage")(req, res, (err) => {
+    if (err) {
+      console.error("❌ Multer upload error:", err.message);
+
+      // Handle specific multer errors
+      if (err.message.includes("Only image files are allowed")) {
+        return res.status(400).json({
+          message: "Invalid file type. Please upload an image file (JPEG, PNG, WebP, etc.)",
+          error: err.message,
+        });
+      }
+
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(400).json({
+          message: "File size too large. Maximum size is 10MB.",
+        });
+      }
+
+      return res.status(400).json({
+        message: "File upload error",
+        error: err.message,
+      });
+    }
+
+    // Continue to registration handler
+    next();
+  });
+}, async (req, res) => {
   try {
     const { firstName, lastName, email, password, confirmPassword } = req.body;
     const profileImage = req.file;
+
+    console.log("📝 Registration attempt:", {
+      email,
+      hasImage: !!profileImage,
+      imageInfo: profileImage ? {
+        originalname: profileImage.originalname,
+        mimetype: profileImage.mimetype,
+        size: profileImage.size,
+      } : null,
+    });
 
     console.log(
       "Profile image upload result:",

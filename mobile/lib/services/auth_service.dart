@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/user.dart';
@@ -23,7 +24,9 @@ class AuthService {
       request.fields['lastName'] = lastName;
       request.fields['email'] = email;
       request.fields['password'] = password;
+      request.fields['confirmPassword'] = password; // Backend requires this
 
+      // Profile image is required by backend
       if (profileImage != null) {
         request.files.add(await http.MultipartFile.fromPath(
           'profileImage',
@@ -31,26 +34,25 @@ class AuthService {
         ));
       }
 
+      debugPrint('📤 Registering user: $email');
+      debugPrint('📸 Profile image: ${profileImage != null ? "Yes" : "No"}');
+
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
+
+      debugPrint('📥 Register response: ${response.statusCode}');
+      debugPrint('📦 Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
 
-        // Save token and user
-        if (data['token'] != null) {
-          await _storageService.saveToken(data['token']);
-        }
-        if (data['user'] != null) {
-          final user = User.fromJson(data['user']);
-          await _storageService.saveUser(user);
-        }
-
+        // Backend doesn't return token on register, only user info
+        // User needs to login after registration
         return {
           'success': true,
           'message': data['message'] ?? 'Registration successful',
           'user': data['user'],
-          'token': data['token'],
+          'needsLogin': true, // Flag to indicate user should login
         };
       } else {
         final error = json.decode(response.body);
@@ -60,6 +62,7 @@ class AuthService {
         };
       }
     } catch (e) {
+      debugPrint('❌ Registration error: $e');
       return {
         'success': false,
         'message': 'An error occurred: ${e.toString()}',

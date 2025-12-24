@@ -33,11 +33,71 @@ const upload = multer({
     files: 10, // Max 10 files per upload
   },
   fileFilter: (req, file, cb) => {
-    // Check file type
-    if (file.mimetype.startsWith("image/")) {
+    // Log detailed file info for debugging
+    console.log("📁 File upload attempt:", {
+      fieldname: file.fieldname,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      encoding: file.encoding,
+      size: file.size || 'unknown',
+    });
+
+    // For debugging - log all headers
+    console.log("📋 Request headers:", {
+      contentType: req.get('content-type'),
+      contentLength: req.get('content-length'),
+    });
+
+    // Accepted image mimetypes (comprehensive list)
+    const acceptedMimeTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/heic",
+      "image/heif",
+      "image/bmp",
+      "image/tiff",
+      "image/svg+xml",
+      "application/octet-stream", // Mobile apps often send this
+      "binary/octet-stream",      // Alternative format
+    ];
+
+    // Very permissive check - accept if:
+    // 1. Mimetype starts with 'image/'
+    // 2. Mimetype is in accepted list
+    // 3. Has image file extension
+    const hasImageExtension = /\.(jpg|jpeg|png|gif|webp|heic|heif|bmp|tiff)$/i.test(file.originalname);
+
+    const isValidImage =
+      file.mimetype.startsWith("image/") ||
+      acceptedMimeTypes.includes(file.mimetype) ||
+      hasImageExtension;
+
+    if (isValidImage) {
+      console.log("✅ File accepted:", {
+        filename: file.originalname,
+        mimetype: file.mimetype,
+        reason: file.mimetype.startsWith("image/")
+          ? "valid image mimetype"
+          : hasImageExtension
+          ? "valid file extension"
+          : "in accepted list"
+      });
       cb(null, true);
     } else {
-      cb(new Error("Only image files are allowed!"), false);
+      console.log("❌ File rejected:", {
+        filename: file.originalname,
+        mimetype: file.mimetype,
+        extension: file.originalname.split('.').pop(),
+      });
+      cb(
+        new Error(
+          `Only image files are allowed! Received: ${file.mimetype} for file: ${file.originalname}`
+        ),
+        false
+      );
     }
   },
 });

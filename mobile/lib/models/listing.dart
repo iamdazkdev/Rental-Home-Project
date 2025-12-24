@@ -19,13 +19,12 @@ class Listing {
   final String highlight;
   final String highlightDesc;
   final double price;
-  final String? priceType; // 'daily' or 'monthly'
+  final String? priceType;
   final bool isAvailable;
   final bool isHidden;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  // Populated creator data (if available)
   final Map<String, dynamic>? creatorData;
 
   Listing({
