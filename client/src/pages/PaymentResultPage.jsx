@@ -107,18 +107,18 @@ const PaymentResultPage = () => {
             <div className="icon-wrapper">
               <div className="success-icon">✓</div>
             </div>
-            <h1>Thanh toán thành công!</h1>
+            <h1>Payment Successful!</h1>
             <p className="message">
               {paymentStatus === 'partially_paid'
-                ? 'Bạn đã thanh toán cọc thành công! Vui lòng thanh toán số tiền còn lại khi check-in.'
-                : 'Đặt phòng của bạn đã được xác nhận và thanh toán thành công.'}
+                ? 'You have successfully paid the deposit! Please pay the remaining amount upon check-in.'
+                : 'Your booking has been confirmed and payment completed successfully.'}
             </p>
 
             {bookingDetails && (
               <div className="booking-summary">
-                <h3>Chi tiết đặt phòng</h3>
+                <h3>Booking Details</h3>
                 <div className="detail-item">
-                  <span className="label">Tên căn hộ:</span>
+                  <span className="label">Property Name:</span>
                   <span className="value">{bookingDetails.listing?.title || 'N/A'}</span>
                 </div>
                 <div className="detail-item">
@@ -132,17 +132,17 @@ const PaymentResultPage = () => {
                 {bookingDetails.paymentMethod === 'vnpay_deposit' && (
                   <>
                     <div className="detail-item">
-                      <span className="label">Đã thanh toán (Cọc {bookingDetails.depositPercentage}%):</span>
+                      <span className="label">Paid (Deposit {bookingDetails.depositPercentage}%):</span>
                       <span className="value paid">{formatVND(bookingDetails.depositAmount)}</span>
                     </div>
                     <div className="detail-item">
-                      <span className="label">Còn lại (thanh toán khi check-in):</span>
+                      <span className="label">Remaining (Pay at check-in):</span>
                       <span className="value pending">{formatVND(bookingDetails.totalPrice - bookingDetails.depositAmount)}</span>
                     </div>
                   </>
                 )}
                 <div className="detail-item total">
-                  <span className="label">Tổng tiền:</span>
+                  <span className="label">Total Amount:</span>
                   <span className="value">{formatVND(bookingDetails.totalPrice)}</span>
                 </div>
               </div>
@@ -150,18 +150,18 @@ const PaymentResultPage = () => {
 
             <div className="details">
               <div className="detail-item">
-                <span className="label">Mã đặt phòng:</span>
+                <span className="label">Booking ID:</span>
                 <span className="value">{bookingId}</span>
               </div>
               {transactionNo && (
                 <div className="detail-item">
-                  <span className="label">Mã giao dịch VNPay:</span>
+                  <span className="label">VNPay Transaction ID:</span>
                   <span className="value">{transactionNo}</span>
                 </div>
               )}
               {bookingDetails?.paidAt && (
                 <div className="detail-item">
-                  <span className="label">Thời gian thanh toán:</span>
+                  <span className="label">Payment Time:</span>
                   <span className="value">{formatDateTime(bookingDetails.paidAt)}</span>
                 </div>
               )}
@@ -169,10 +169,10 @@ const PaymentResultPage = () => {
 
             <div className="actions">
               <button className="btn btn-primary" onClick={handleNavigateToTrips}>
-                Xem chuyến đi của tôi
+                View My Trips
               </button>
               <button className="btn btn-secondary" onClick={handleNavigateToHome}>
-                Về trang chủ
+                Go to Home
               </button>
             </div>
           </div>
@@ -181,25 +181,25 @@ const PaymentResultPage = () => {
             <div className="icon-wrapper">
               <div className="failed-icon">✕</div>
             </div>
-            <h1>Thanh toán thất bại</h1>
+            <h1>Payment Failed</h1>
             <p className="message">
-              {message || 'Giao dịch của bạn không thành công. Vui lòng thử lại.'}
+              {message || 'Your transaction was unsuccessful. Please try again.'}
             </p>
             <div className="payment-tips">
-              <h4>Một số lý do có thể gây ra lỗi:</h4>
+              <h4>Common reasons for payment failure:</h4>
               <ul>
-                <li>Số dư tài khoản không đủ</li>
-                <li>Thẻ/Tài khoản chưa đăng ký Internet Banking</li>
-                <li>Nhập sai mã OTP</li>
-                <li>Hủy giao dịch</li>
+                <li>Insufficient account balance</li>
+                <li>Card/Account not registered for Internet Banking</li>
+                <li>Incorrect OTP code</li>
+                <li>Transaction cancelled</li>
               </ul>
             </div>
             <div className="actions">
               <button className="btn btn-primary" onClick={() => navigate(-1)}>
-                Thử lại
+                Try Again
               </button>
               <button className="btn btn-secondary" onClick={handleNavigateToHome}>
-                Về trang chủ
+                Go to Home
               </button>
             </div>
           </div>
@@ -208,13 +208,13 @@ const PaymentResultPage = () => {
             <div className="icon-wrapper">
               <div className="error-icon">⚠</div>
             </div>
-            <h1>Có lỗi xảy ra</h1>
+            <h1>An Error Occurred</h1>
             <p className="message">
-              {message || 'Đã có lỗi xảy ra trong quá trình xử lý. Vui lòng liên hệ hỗ trợ.'}
+              {message || 'An error occurred during processing. Please contact support.'}
             </p>
             <div className="actions">
               <button className="btn btn-primary" onClick={handleNavigateToHome}>
-                Về trang chủ
+                Go to Home
               </button>
             </div>
           </div>

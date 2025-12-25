@@ -228,11 +228,11 @@ const BookingCheckoutPage = () => {
               {paymentMethod === 'vnpay_deposit' && (
                 <div className="payment-breakdown">
                   <div className="detail-row deposit">
-                    <span className="label">Cọc 50%:</span>
+                    <span className="label">Deposit 50%:</span>
                     <span className="value">{formatVND(totalPrice * 0.5)} VND</span>
                   </div>
                   <div className="detail-row remaining">
-                    <span className="label">Còn lại (thanh toán khi check-in):</span>
+                    <span className="label">Remaining (Pay at check-in):</span>
                     <span className="value">{formatVND(totalPrice * 0.5)} VND</span>
                   </div>
                 </div>
@@ -254,7 +254,7 @@ const BookingCheckoutPage = () => {
 
             {/* Payment Method Selection */}
             <div className="payment-method-card">
-              <h2>Chọn phương thức thanh toán</h2>
+              <h2>Select Payment Method</h2>
 
               <div className="payment-methods">
                 {/* VNPay Full Payment */}
@@ -267,18 +267,18 @@ const BookingCheckoutPage = () => {
                       {paymentMethod === 'vnpay_full' && <div className="radio-dot" />}
                     </div>
                     <div className="option-title">
-                      <h3>💳 Thanh toán toàn bộ qua VNPay</h3>
-                      <p className="option-subtitle">Thanh toán ngay 100% giá trị booking</p>
+                      <h3>💳 Pay Full Amount via VNPay</h3>
+                      <p className="option-subtitle">Pay 100% of booking value now</p>
                     </div>
                   </div>
                   <div className="option-details">
                     <div className="amount-display">
-                      <span className="amount-label">Số tiền thanh toán:</span>
-                      <span className="amount-value">${totalPrice?.toFixed(2)}</span>
+                      <span className="amount-label">Payment Amount:</span>
+                      <span className="amount-value">{formatVND(totalPrice)} VND</span>
                     </div>
                     <div className="benefits">
-                      <span className="benefit-item">✓ Xác nhận booking ngay lập tức</span>
-                      <span className="benefit-item">✓ Thanh toán an toàn qua VNPay</span>
+                      <span className="benefit-item">✓ Instant booking confirmation</span>
+                      <span className="benefit-item">✓ Secure payment via VNPay</span>
                     </div>
                   </div>
                 </div>
@@ -293,24 +293,24 @@ const BookingCheckoutPage = () => {
                       {paymentMethod === 'vnpay_deposit' && <div className="radio-dot" />}
                     </div>
                     <div className="option-title">
-                      <h3>🏦 Cọc trước 50% qua VNPay</h3>
-                      <p className="option-subtitle">Thanh toán 50% ngay, 50% còn lại khi check-in</p>
+                      <h3>🏦 Pay 50% Deposit via VNPay</h3>
+                      <p className="option-subtitle">Pay 50% now, 50% remaining at check-in</p>
                     </div>
                   </div>
                   <div className="option-details">
                     <div className="amount-breakdown">
                       <div className="breakdown-row">
-                        <span>Cọc trước (50%):</span>
-                        <span className="highlight">${(totalPrice * 0.5)?.toFixed(2)}</span>
+                        <span>Deposit (50%):</span>
+                        <span className="highlight">{formatVND(totalPrice * 0.5)} VND</span>
                       </div>
                       <div className="breakdown-row">
-                        <span>Thanh toán khi nhận phòng:</span>
-                        <span>${(totalPrice * 0.5)?.toFixed(2)}</span>
+                        <span>Pay at check-in:</span>
+                        <span>{formatVND(totalPrice * 0.5)} VND</span>
                       </div>
                     </div>
                     <div className="benefits">
-                      <span className="benefit-item">✓ Linh hoạt hơn về tài chính</span>
-                      <span className="benefit-item">✓ Đảm bảo booking của bạn</span>
+                      <span className="benefit-item">✓ More flexible financially</span>
+                      <span className="benefit-item">✓ Secure your booking</span>
                     </div>
                   </div>
                 </div>
@@ -325,18 +325,18 @@ const BookingCheckoutPage = () => {
                       {paymentMethod === 'cash' && <div className="radio-dot" />}
                     </div>
                     <div className="option-title">
-                      <h3>💵 Thanh toán tiền mặt khi nhận phòng</h3>
-                      <p className="option-subtitle">Thanh toán toàn bộ bằng tiền mặt khi check-in</p>
+                      <h3>💵 Cash Payment at Check-in</h3>
+                      <p className="option-subtitle">Pay full amount in cash when checking in</p>
                     </div>
                   </div>
                   <div className="option-details">
                     <div className="amount-display">
-                      <span className="amount-label">Thanh toán khi nhận phòng:</span>
-                      <span className="amount-value">${totalPrice?.toFixed(2)}</span>
+                      <span className="amount-label">Pay at check-in:</span>
+                      <span className="amount-value">{formatVND(totalPrice)} VND</span>
                     </div>
                     <div className="benefits">
-                      <span className="benefit-item">✓ Không cần thanh toán online</span>
-                      <span className="benefit-item">⚠️ Vui lòng mang đủ tiền mặt khi check-in</span>
+                      <span className="benefit-item">✓ No online payment required</span>
+                      <span className="benefit-item">⚠️ Please bring sufficient cash at check-in</span>
                     </div>
                   </div>
                 </div>
@@ -346,7 +346,7 @@ const BookingCheckoutPage = () => {
             {/* Payment Info - Only show for VNPay methods */}
             {(paymentMethod === 'vnpay_full' || paymentMethod === 'vnpay_deposit') && (
               <div className="payment-info-card">
-                <h2>Thông tin thanh toán</h2>
+                <h2>Payment Information</h2>
                 <div className="payment-method">
                   <img
                     src={getPaymentGatewayLogo('vnpay')}
@@ -359,8 +359,8 @@ const BookingCheckoutPage = () => {
                   </p>
                   {paymentMethod === 'vnpay_deposit' && (
                     <div className="deposit-notice">
-                      <p>💡 Bạn sẽ thanh toán <strong>${(totalPrice * 0.5)?.toFixed(2)}</strong> (50% tổng giá trị)</p>
-                      <p>Số tiền còn lại sẽ được thanh toán khi check-in</p>
+                      <p>💡 You will pay <strong>{formatVND(totalPrice * 0.5)} VND</strong> (50% of total value)</p>
+                      <p>The remaining amount will be paid at check-in</p>
                     </div>
                   )}
                 </div>
@@ -372,11 +372,11 @@ const BookingCheckoutPage = () => {
               <div className="cash-payment-info">
                 <div className="info-icon">ℹ️</div>
                 <div className="info-content">
-                  <h3>Lưu ý thanh toán tiền mặt</h3>
+                  <h3>Cash Payment Notice</h3>
                   <ul>
-                    <li>Vui lòng mang đủ <strong>${totalPrice?.toFixed(2)}</strong> tiền mặt khi check-in</li>
-                    <li>Host sẽ xác nhận booking sau khi bạn hoàn tất đặt phòng</li>
-                    <li>Nếu hủy phòng, vui lòng thông báo trước ít nhất 24 giờ</li>
+                    <li>Please bring sufficient cash (<strong>{formatVND(totalPrice)} VND</strong>) at check-in</li>
+                    <li>Host will confirm booking after you complete the reservation</li>
+                    <li>If you need to cancel, please notify at least 24 hours in advance</li>
                   </ul>
                 </div>
               </div>
