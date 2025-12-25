@@ -264,10 +264,20 @@ const ListingDetails = () => {
         <hr />
 
         {/* Host Profile Section for Room/Shared Room */}
-        {listing.hostProfile && (listing.type === "Room(s)" || listing.type === "A Shared Room") && (
+        {(listing.type === "Room(s)" || listing.type === "A Shared Room") && (
           <>
             <h3>👤 About Your Host</h3>
             <div className="host-profile-info">
+              {/* Host Bio - from User model */}
+              {listing.creator?.hostBio && (
+                <div className="profile-section host-bio-section">
+                  <h4>✍️ About Me</h4>
+                  <p className="host-bio">{listing.creator.hostBio}</p>
+                </div>
+              )}
+
+              {/* Host Profile Details - from Listing model */}
+              {listing.hostProfile && (
               <div className="profile-grid">
                 <div className="profile-item">
                   <span className="profile-label">🌙 Sleep Schedule</span>
@@ -310,22 +320,23 @@ const ListingDetails = () => {
                   <span className="profile-value">{listing.hostProfile.occupation}</span>
                 </div>
               </div>
+              )}
 
-              {listing.hostProfile.hobbies && (
+              {listing.hostProfile?.hobbies && (
                 <div className="profile-section">
                   <h4>🎨 Hobbies & Interests</h4>
                   <p>{listing.hostProfile.hobbies}</p>
                 </div>
               )}
 
-              {listing.hostProfile.houseRules && (
+              {listing.hostProfile?.houseRules && (
                 <div className="profile-section">
                   <h4>📋 House Rules</h4>
                   <p>{listing.hostProfile.houseRules}</p>
                 </div>
               )}
 
-              {listing.hostProfile.additionalInfo && (
+              {listing.hostProfile?.additionalInfo && (
                 <div className="profile-section">
                   <h4>💬 Additional Information</h4>
                   <p>{listing.hostProfile.additionalInfo}</p>

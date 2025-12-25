@@ -259,6 +259,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   _buildHostSection(),
                   const SizedBox(height: 24),
 
+                  // Host Bio and Profile (for Room/Shared Room only)
+                  if (_listing!.type == 'Room(s)' || _listing!.type == 'A Shared Room') ...[
+                    _buildHostBioAndProfile(),
+                    const SizedBox(height: 24),
+                  ],
+
                   // Listing Rating
                   if (_listingReviews.isNotEmpty) ...[
                     _buildRatingSection(),
@@ -498,6 +504,247 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildHostBioAndProfile() {
+    final creatorData = _listing!.creatorData;
+    final hostProfile = _listing!.hostProfile;
+    final hostBio = creatorData?['hostBio'] as String?;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.backgroundColor,
+            Colors.white,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor, width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.person_outline, color: AppTheme.primaryColor),
+              const SizedBox(width: 8),
+              Text(
+                'About Your Host',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryColor,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Host Bio Section
+          if (hostBio != null && hostBio.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryColor.withValues(alpha: 0.1),
+                    Colors.white,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.primaryColor, width: 2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.edit_note, color: AppTheme.primaryColor, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'About Me',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primaryColor,
+                            ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    hostBio,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          height: 1.6,
+                          color: AppTheme.textPrimaryColor,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Host Profile Details
+          if (hostProfile != null) ...[
+            // Profile Grid
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              childAspectRatio: 2.5,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              children: [
+                _buildProfileItem(
+                  '🌙',
+                  'Sleep Schedule',
+                  _formatSleepSchedule(hostProfile['sleepSchedule']),
+                ),
+                _buildProfileItem(
+                  '🚬',
+                  'Smoking',
+                  _formatSmoking(hostProfile['smoking']),
+                ),
+                _buildProfileItem(
+                  '😊',
+                  'Personality',
+                  _formatPersonality(hostProfile['personality']),
+                ),
+                _buildProfileItem(
+                  '🧹',
+                  'Cleanliness',
+                  _formatCleanliness(hostProfile['cleanliness']),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Occupation
+            if (hostProfile['occupation'] != null && (hostProfile['occupation'] as String).isNotEmpty)
+              _buildProfileSection('💼 Occupation', hostProfile['occupation']),
+
+            // Hobbies
+            if (hostProfile['hobbies'] != null && (hostProfile['hobbies'] as String).isNotEmpty)
+              _buildProfileSection('🎨 Hobbies & Interests', hostProfile['hobbies']),
+
+            // House Rules
+            if (hostProfile['houseRules'] != null && (hostProfile['houseRules'] as String).isNotEmpty)
+              _buildProfileSection('📋 House Rules', hostProfile['houseRules']),
+
+            // Additional Info
+            if (hostProfile['additionalInfo'] != null && (hostProfile['additionalInfo'] as String).isNotEmpty)
+              _buildProfileSection('💬 Additional Information', hostProfile['additionalInfo']),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileItem(String emoji, String label, String value) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 16)),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTheme.textSecondaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTheme.textPrimaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileSection(String title, String content) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: AppTheme.primaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            content,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.textSecondaryColor,
+                  height: 1.5,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatSleepSchedule(dynamic value) {
+    if (value == 'early_bird') return 'Early Bird';
+    if (value == 'night_owl') return 'Night Owl';
+    if (value == 'flexible') return 'Flexible';
+    return value?.toString() ?? 'N/A';
+  }
+
+  String _formatSmoking(dynamic value) {
+    if (value == 'no') return 'Non-smoker';
+    if (value == 'outside_only') return 'Outside only';
+    if (value == 'yes') return 'Smoker';
+    return value?.toString() ?? 'N/A';
+  }
+
+  String _formatPersonality(dynamic value) {
+    if (value == 'introvert') return 'Introvert';
+    if (value == 'extrovert') return 'Extrovert';
+    if (value == 'ambivert') return 'Ambivert';
+    return value?.toString() ?? 'N/A';
+  }
+
+  String _formatCleanliness(dynamic value) {
+    if (value == 'very_clean') return 'Very Clean';
+    if (value == 'moderate') return 'Moderate';
+    if (value == 'relaxed') return 'Relaxed';
+    return value?.toString() ?? 'N/A';
   }
 
   Widget _buildRatingSection() {

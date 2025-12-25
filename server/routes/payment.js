@@ -281,7 +281,12 @@ router.get("/status/:bookingId", async (req, res) => {
       paymentStatus: booking.paymentStatus || "unpaid",
       paymentIntentId: booking.paymentIntentId,
       paidAt: booking.paidAt,
-      totalPrice: booking.finalTotalPrice,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      totalPrice: booking.finalTotalPrice || booking.totalPrice,
+      depositAmount: booking.depositAmount || 0,
+      depositPercentage: booking.depositPercentage || 0,
+      paymentMethod: booking.paymentMethod || "unknown",
       listing: booking.listingId,
       customer: booking.customerId,
     });

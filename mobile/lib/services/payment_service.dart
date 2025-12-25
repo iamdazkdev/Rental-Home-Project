@@ -18,7 +18,7 @@ class PaymentService {
       final uri = Uri.parse('${ApiConfig.baseUrl}/payment/create-payment-url');
 
       debugPrint('💳 Creating VNPay payment URL...');
-      debugPrint('Amount: \$${amount.toStringAsFixed(2)} USD');
+      debugPrint('Amount: ${amount.toStringAsFixed(0)} VND (no conversion)');
 
       final response = await http.post(
         uri,
@@ -28,7 +28,7 @@ class PaymentService {
         },
         body: json.encode({
           'bookingData': bookingData,
-          'amount': amount,
+          'amount': amount, // Send VND amount directly (no conversion)
           'ipAddr': ipAddr ?? '127.0.0.1',
         }),
       );

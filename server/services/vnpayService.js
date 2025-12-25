@@ -65,8 +65,14 @@ class VNPayService {
     const createDate = moment().format('YYYYMMDDHHmmss');
     const expireDate = moment().add(15, 'minutes').format('YYYYMMDDHHmmss');
 
-    // VNPay requires amount in VND (smallest unit - already in VND, no need to multiply by 100)
-    const vnp_Amount = Math.round(amount);
+    // VNPay requires amount in smallest unit (xu - 1/100 VND)
+    // So we need to multiply VND amount by 100
+    // Example: 300 VND → 30000 (VNPay unit)
+    const vnp_Amount = Math.round(amount * 100);
+
+    console.log(`💰 VNPay Amount Conversion:`);
+    console.log(`   Input: ${amount} VND`);
+    console.log(`   VNPay: ${vnp_Amount} (${amount} * 100)`);
 
     // Build VNPay params
     let vnp_Params = {

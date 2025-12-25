@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Listing {
   final String id;
   final String creator;
@@ -26,6 +28,7 @@ class Listing {
   final DateTime? updatedAt;
 
   final Map<String, dynamic>? creatorData;
+  final Map<String, dynamic>? hostProfile;
 
   Listing({
     required this.id,
@@ -52,6 +55,7 @@ class Listing {
     this.isAvailable = true,
     this.isHidden = false,
     this.creatorData,
+    this.hostProfile,
     this.createdAt,
     this.updatedAt,
   });
@@ -140,10 +144,27 @@ class Listing {
     bool isActive = json['isActive'] ?? true;
     bool isHidden = !isActive;
 
+    // Parse hostProfile
+    Map<String, dynamic>? hostProfile;
+    if (json['hostProfile'] != null) {
+      if (json['hostProfile'] is String) {
+        // If it's a JSON string, decode it
+        try {
+          final decoded = jsonDecode(json['hostProfile']);
+          hostProfile = Map<String, dynamic>.from(decoded);
+        } catch (e) {
+          hostProfile = null;
+        }
+      } else if (json['hostProfile'] is Map) {
+        hostProfile = Map<String, dynamic>.from(json['hostProfile']);
+      }
+    }
+
     return Listing(
       id: json['_id'] ?? json['id'] ?? '',
       creator: creatorId,
       creatorData: creatorData,
+      hostProfile: hostProfile,
       category: json['category'] ?? '',
       type: json['type'] ?? '',
       streetAddress: json['streetAddress'] ?? '',

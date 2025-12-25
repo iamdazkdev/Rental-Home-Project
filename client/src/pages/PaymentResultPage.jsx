@@ -52,6 +52,47 @@ const PaymentResultPage = () => {
     navigate('/');
   };
 
+  // Format date from ISO string or Date object
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return 'N/A';
+    }
+  };
+
+  // Format datetime with time
+  const formatDateTime = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return 'N/A';
+    }
+  };
+
+  // Format VND currency
+  const formatVND = (amount) => {
+    if (!amount && amount !== 0) return 'N/A';
+    return `${Math.round(amount).toLocaleString('vi-VN')} VND`;
+  };
+
   if (loading) {
     return <Loader />;
   }
@@ -76,31 +117,31 @@ const PaymentResultPage = () => {
                 <h3>Chi tiết đặt phòng</h3>
                 <div className="detail-item">
                   <span className="label">Tên căn hộ:</span>
-                  <span className="value">{bookingDetails.listing?.title}</span>
+                  <span className="value">{bookingDetails.listing?.title || 'N/A'}</span>
                 </div>
                 <div className="detail-item">
                   <span className="label">Check-in:</span>
-                  <span className="value">{new Date(bookingDetails.startDate).toLocaleDateString('vi-VN')}</span>
+                  <span className="value">{formatDate(bookingDetails.startDate)}</span>
                 </div>
                 <div className="detail-item">
                   <span className="label">Check-out:</span>
-                  <span className="value">{new Date(bookingDetails.endDate).toLocaleDateString('vi-VN')}</span>
+                  <span className="value">{formatDate(bookingDetails.endDate)}</span>
                 </div>
                 {bookingDetails.paymentMethod === 'vnpay_deposit' && (
                   <>
                     <div className="detail-item">
                       <span className="label">Đã thanh toán (Cọc {bookingDetails.depositPercentage}%):</span>
-                      <span className="value paid">${bookingDetails.depositAmount?.toFixed(2)}</span>
+                      <span className="value paid">{formatVND(bookingDetails.depositAmount)}</span>
                     </div>
                     <div className="detail-item">
                       <span className="label">Còn lại (thanh toán khi check-in):</span>
-                      <span className="value pending">${(bookingDetails.totalPrice - bookingDetails.depositAmount)?.toFixed(2)}</span>
+                      <span className="value pending">{formatVND(bookingDetails.totalPrice - bookingDetails.depositAmount)}</span>
                     </div>
                   </>
                 )}
                 <div className="detail-item total">
                   <span className="label">Tổng tiền:</span>
-                  <span className="value">${bookingDetails.totalPrice?.toFixed(2)}</span>
+                  <span className="value">{formatVND(bookingDetails.totalPrice)}</span>
                 </div>
               </div>
             )}
@@ -119,9 +160,7 @@ const PaymentResultPage = () => {
               {bookingDetails?.paidAt && (
                 <div className="detail-item">
                   <span className="label">Thời gian thanh toán:</span>
-                  <span className="value">
-                    {new Date(bookingDetails.paidAt).toLocaleString('vi-VN')}
-                  </span>
+                  <span className="value">{formatDateTime(bookingDetails.paidAt)}</span>
                 </div>
               )}
             </div>

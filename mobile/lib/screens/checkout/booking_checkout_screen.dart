@@ -134,12 +134,12 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
 
       final ipAddr = await _paymentService.getClientIP();
 
-      debugPrint('💰 Payment amount: \$${paymentAmount.toStringAsFixed(2)} USD');
+      debugPrint('💰 Payment amount: ${paymentAmount.toStringAsFixed(0)} VND (no conversion)');
 
       // Create payment URL
       final paymentResult = await _paymentService.createPaymentUrl(
         bookingData: bookingData,
-        amount: paymentAmount, // Send USD amount directly
+        amount: paymentAmount, // Send VND amount directly (no conversion)
         ipAddr: ipAddr,
       );
 

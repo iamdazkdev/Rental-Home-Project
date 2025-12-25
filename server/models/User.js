@@ -22,6 +22,10 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    hostBio: {
+      type: String,
+      default: "",
+    },
     tripList: {
       type: Array,
       default: [],

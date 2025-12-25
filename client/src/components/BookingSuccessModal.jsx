@@ -14,12 +14,24 @@ const BookingSuccessModal = ({ isOpen, onClose, bookingData, paymentMethod, user
   };
 
   const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+    if (!dateStr) return 'N/A';
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleDateString('vi-VN', {
+        weekday: 'short',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      return 'N/A';
+    }
+  };
+
+  const formatVND = (amount) => {
+    if (!amount && amount !== 0) return '0 VND';
+    return `${Math.round(amount).toLocaleString('vi-VN')} VND`;
   };
 
   const getPaymentMethodText = () => {
@@ -92,7 +104,7 @@ const BookingSuccessModal = ({ isOpen, onClose, bookingData, paymentMethod, user
 
           <div className="total-price">
             <span>Total Amount</span>
-            <span className="price">${bookingData.totalPrice?.toFixed(2) || '0.00'}</span>
+            <span className="price">{formatVND(bookingData.totalPrice)}</span>
           </div>
         </div>
 

@@ -42,13 +42,13 @@ const BookingCheckoutPage = () => {
     try {
       setSubmitting(true);
 
-      // Calculate amount based on payment method (USD)
-      let paymentAmountUSD = bookingData.totalPrice;
+      // Calculate amount based on payment method (VND - no conversion)
+      let paymentAmount = bookingData.totalPrice;
       let depositPercentage = 0;
 
       if (paymentMethod === 'vnpay_deposit') {
         depositPercentage = 50; // 50% deposit
-        paymentAmountUSD = bookingData.totalPrice * 0.5;
+        paymentAmount = bookingData.totalPrice * 0.5;
       }
 
       // Handle cash payment - create booking immediately
@@ -88,10 +88,10 @@ const BookingCheckoutPage = () => {
         ...bookingData,
         paymentMethod: paymentMethod,
         depositPercentage: depositPercentage,
-        depositAmount: paymentMethod === 'vnpay_deposit' ? paymentAmountUSD : 0,
+        depositAmount: paymentMethod === 'vnpay_deposit' ? paymentAmount : 0,
       };
 
-      console.log(`💳 Payment amount: $${paymentAmountUSD} USD`);
+      console.log(`💳 Payment amount: ${paymentAmount.toLocaleString()} VND (no conversion)`);
 
       // Create booking and payment URL
       const paymentResponse = await fetch(API_ENDPOINTS.PAYMENT.CREATE_PAYMENT_URL, {
@@ -101,7 +101,7 @@ const BookingCheckoutPage = () => {
         },
         body: JSON.stringify({
           bookingData: bookingPayload,
-          amount: paymentAmountUSD, // Send USD amount directly
+          amount: paymentAmount, // Send VND amount directly (no conversion)
           ipAddr: await getClientIP(),
         }),
       });

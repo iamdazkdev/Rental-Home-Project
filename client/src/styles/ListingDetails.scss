@@ -342,6 +342,25 @@
     border: 2px solid #e0e0e0;
     margin: 20px 0;
 
+    // Host Bio Section - Make it prominent
+    .host-bio-section {
+      background: linear-gradient(135deg, #fff9f0 0%, #ffffff 100%);
+      border: 2px solid $pinkred;
+      margin-bottom: 24px;
+
+      h4 {
+        color: $pinkred;
+        font-size: 18px;
+      }
+
+      .host-bio {
+        font-size: 16px;
+        color: #333;
+        line-height: 1.8;
+        font-weight: 400;
+      }
+    }
+
     .profile-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);

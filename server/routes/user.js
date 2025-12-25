@@ -10,7 +10,7 @@ const { uploadUserProfile } = require("../services/cloudinaryService");
 router.patch("/:userId/profile", uploadUserProfile.single("profileImage"), async (req, res) => {
   try {
     const { userId } = req.params;
-    const { firstName, lastName, email } = req.body;
+    const { firstName, lastName, email, hostBio } = req.body;
 
     console.log(`📝 Updating profile for user: ${userId}`);
 
@@ -34,6 +34,7 @@ router.patch("/:userId/profile", uploadUserProfile.single("profileImage"), async
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (email) user.email = email;
+    if (hostBio !== undefined) user.hostBio = hostBio; // Allow empty string
 
     // Update profile image if provided
     if (req.file) {
@@ -53,6 +54,7 @@ router.patch("/:userId/profile", uploadUserProfile.single("profileImage"), async
         lastName: user.lastName,
         email: user.email,
         profileImagePath: user.profileImagePath,
+        hostBio: user.hostBio,
       }
     });
   } catch (err) {

@@ -113,6 +113,13 @@ const CreateListingPage = () => {
   const [pricingType, setPricingType] = useState("daily"); // "daily" or "monthly"
   const [dailyPrice, setDailyPrice] = useState(0);
   const [monthlyPrice, setMonthlyPrice] = useState(0);
+
+  // REDUX STATE - moved up before hostBio
+  const user = useSelector((state) => state.user);
+  const token = useSelector((state) => state.token);
+  const creatorId = user?.id || user?._id;
+  const navigate = useNavigate();
+
   // Host Profile for Room/Shared Room
   const [hostProfile, setHostProfile] = useState({
     sleepSchedule: "", // early_bird, night_owl, flexible
@@ -124,14 +131,10 @@ const CreateListingPage = () => {
     houseRules: "",
     additionalInfo: "",
   });
+  // Host Bio - stored in User model for display on Room/Shared Room listings
+  const [hostBio, setHostBio] = useState(user?.hostBio || "");
   const [isLoading, setIsLoading] = useState(false);
   const [loadingListing, setLoadingListing] = useState(isEditMode);
-
-  // REDUX STATE
-  const user = useSelector((state) => state.user);
-  const token = useSelector((state) => state.token);
-  const creatorId = user?.id || user?._id;
-  const navigate = useNavigate();
 
   // DRAG AND DROP
   const sensors = useSensors(
@@ -345,6 +348,11 @@ const CreateListingPage = () => {
 
       // Validate host profile for Room/Shared Room
       if (requiresHostProfile) {
+        if (!hostBio.trim()) {
+          alert("Please tell guests about yourself");
+          setIsLoading(false);
+          return;
+        }
         if (!hostProfile.sleepSchedule || !hostProfile.smoking || !hostProfile.personality ||
             !hostProfile.cleanliness || !hostProfile.occupation || !hostProfile.hobbies ||
             !hostProfile.houseRules) {
@@ -445,6 +453,30 @@ const CreateListingPage = () => {
 
         if (response.ok) {
           console.log("✅ Listing created successfully");
+
+          // If Room/Shared Room and hostBio is provided, save it to User model
+          if (requiresHostProfile && hostBio.trim()) {
+            try {
+              console.log("💾 Saving host bio to user profile...");
+              const userUpdateForm = new FormData();
+              userUpdateForm.append('hostBio', hostBio);
+
+              const userResponse = await fetch(`${CONFIG.API_BASE_URL}/user/${creatorId}/profile`, {
+                method: 'PATCH',
+                body: userUpdateForm,
+              });
+
+              if (userResponse.ok) {
+                console.log("✅ Host bio saved successfully");
+              } else {
+                console.warn("⚠️ Failed to save host bio, but listing created");
+              }
+            } catch (error) {
+              console.warn("⚠️ Error saving host bio:", error);
+              // Don't fail the whole process if bio save fails
+            }
+          }
+
           setTimeout(() => {
             navigate("/");
           }, 500);
@@ -951,6 +983,19 @@ const CreateListingPage = () => {
                   </div>
 
                   <div className="host-profile-grid">
+                    {/* About Yourself - Host Bio */}
+                    <div className="full-width form-group highlight-field">
+                      <label>✍️ About Yourself</label>
+                      <textarea
+                        value={hostBio}
+                        onChange={(e) => setHostBio(e.target.value)}
+                        placeholder="Introduce yourself to potential guests. Share what makes you a great host, your lifestyle, what you're looking for in a guest, etc. This will be displayed on all your Room/Shared Room listings."
+                        rows="5"
+                        required
+                      />
+                      <p className="field-note">💡 This introduction will be saved to your profile and displayed on all Room/Shared Room listings you create.</p>
+                    </div>
+
                     {/* Sleep Schedule */}
                     <div className="form-group">
                       <label>🌙 Sleep Schedule</label>
