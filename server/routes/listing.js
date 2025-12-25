@@ -64,9 +64,20 @@ router.post("/create", upload.array("listingPhotos"), async (req, res) => {
     const amenities = amenitiesString ? JSON.parse(amenitiesString) : [];
 
     // Parse host profile if provided
-    const hostProfile = hostProfileString ? JSON.parse(hostProfileString) : null;
-
-    console.log("📋 Received host profile:", hostProfile);
+    let hostProfile = null;
+    if (hostProfileString) {
+      try {
+        hostProfile = JSON.parse(hostProfileString);
+        console.log("📋 Received host profile:", hostProfile);
+      } catch (parseError) {
+        console.error("❌ Error parsing hostProfile:", parseError);
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
+          message: "Invalid host profile data",
+          error: "Failed to parse hostProfile JSON",
+          details: parseError.message,
+        });
+      }
+    }
 
     const listingPhotos = req.files;
     if (!listingPhotos || listingPhotos.length === 0) {
@@ -112,6 +123,18 @@ router.post("/create", upload.array("listingPhotos"), async (req, res) => {
     });
 
     console.log("💾 Saving listing with host profile:", newListing.hostProfile);
+    console.log("📝 Full listing object:", JSON.stringify(newListing, null, 2));
+
+    // Validate before saving
+    const validationError = newListing.validateSync();
+    if (validationError) {
+      console.error("❌ Validation error:", validationError);
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: "Validation error",
+        error: validationError.message,
+        details: validationError.errors,
+      });
+    }
 
     await newListing.save();
     res
@@ -120,10 +143,15 @@ router.post("/create", upload.array("listingPhotos"), async (req, res) => {
   } catch (error) {
     console.error("ERROR: Fail to create listing", error);
     console.error("Error stack:", error.stack);
+
+    // Return JSON error response, not HTML
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-      message: "ERROR: Fail to create listing",
-      error: error.message,
-      details: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      message: "Failed to create listing",
+      error: error.message || "Unknown error",
+      details: process.env.NODE_ENV === "development" ? {
+        stack: error.stack,
+        name: error.name,
+      } : undefined,
     });
   }
 });

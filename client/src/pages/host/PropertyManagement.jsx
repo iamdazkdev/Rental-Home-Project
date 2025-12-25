@@ -140,6 +140,13 @@ const PropertyManagement = () => {
     });
   };
 
+  // Format VND with Vietnamese thousand separator (dots)
+  const formatVND = (amount) => {
+    if (!amount && amount !== 0) return '0';
+    const rounded = Math.round(amount);
+    return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
   if (!userId) {
     return (
       <>
@@ -241,8 +248,8 @@ const PropertyManagement = () => {
                   </div>
 
                   <div className="price-info">
-                    <span className="price">${property.price}</span>
-                    <span className="period">/ night</span>
+                    <span className="price">{formatVND(property.price)} VND</span>
+                    <span className="period">/ đêm</span>
                   </div>
 
                   {property.hasActiveBooking && (

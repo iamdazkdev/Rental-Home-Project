@@ -87,10 +87,12 @@ const PaymentResultPage = () => {
     }
   };
 
-  // Format VND currency
+  // Format VND currency (Vietnamese format: 8.000.000)
   const formatVND = (amount) => {
     if (!amount && amount !== 0) return 'N/A';
-    return `${Math.round(amount).toLocaleString('vi-VN')} VND`;
+    const rounded = Math.round(amount);
+    const formatted = rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${formatted} VND`;
   };
 
   if (loading) {

@@ -31,7 +31,9 @@ const BookingSuccessModal = ({ isOpen, onClose, bookingData, paymentMethod, user
 
   const formatVND = (amount) => {
     if (!amount && amount !== 0) return '0 VND';
-    return `${Math.round(amount).toLocaleString('vi-VN')} VND`;
+    const rounded = Math.round(amount);
+    const formatted = rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${formatted} VND`;
   };
 
   const getPaymentMethodText = () => {

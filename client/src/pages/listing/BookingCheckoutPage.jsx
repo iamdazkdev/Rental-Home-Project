@@ -141,6 +141,13 @@ const BookingCheckoutPage = () => {
     }
   };
 
+  // Format VND with Vietnamese thousand separator (dots)
+  const formatVND = (amount) => {
+    if (!amount && amount !== 0) return '0';
+    const rounded = Math.round(amount);
+    return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
   if (loading || !bookingData) {
     return <Loader />;
   }
@@ -202,7 +209,7 @@ const BookingCheckoutPage = () => {
 
               <div className="detail-row">
                 <span className="label">Price per night:</span>
-                <span className="value">${listing?.price?.toFixed(2)}</span>
+                <span className="value">{formatVND(listing?.price)} VND</span>
               </div>
 
               <div className="detail-row">
@@ -214,16 +221,20 @@ const BookingCheckoutPage = () => {
 
               <div className="detail-row total">
                 <span className="label">Total:</span>
-                <span className="value">${totalPrice?.toFixed(2)}</span>
+                <span className="value">{formatVND(totalPrice)} VND</span>
               </div>
 
-              {/* VND Conversion for VNPay */}
-              {(paymentMethod === 'vnpay_full' || paymentMethod === 'vnpay_deposit') && (
-                <div className="currency-note">
-                  <small>
-                    ≈ {(totalPrice * 24000).toLocaleString('vi-VN')} VND
-                    {paymentMethod === 'vnpay_deposit' && ` (Cọc: ${((totalPrice * 0.5) * 24000).toLocaleString('vi-VN')} VND)`}
-                  </small>
+              {/* Payment method breakdown */}
+              {paymentMethod === 'vnpay_deposit' && (
+                <div className="payment-breakdown">
+                  <div className="detail-row deposit">
+                    <span className="label">Cọc 50%:</span>
+                    <span className="value">{formatVND(totalPrice * 0.5)} VND</span>
+                  </div>
+                  <div className="detail-row remaining">
+                    <span className="label">Còn lại (thanh toán khi check-in):</span>
+                    <span className="value">{formatVND(totalPrice * 0.5)} VND</span>
+                  </div>
                 </div>
               )}
             </div>

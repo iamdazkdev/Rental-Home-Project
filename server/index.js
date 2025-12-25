@@ -63,6 +63,20 @@ app.use("/host-reviews", hostReviewsRoutes);
 app.use("/messages", messageRoutes);
 app.use("/payment", paymentRoutes);
 
+// Global error handler - must be after all routes
+app.use((err, req, res, next) => {
+  console.error("🔥 Global error handler:", err);
+
+  // Ensure we always return JSON, not HTML
+  res.status(err.status || 500).json({
+    message: err.message || "Internal Server Error",
+    error: process.env.NODE_ENV === "development" ? {
+      stack: err.stack,
+      name: err.name,
+    } : undefined,
+  });
+});
+
 // Make io available to routes
 app.set("io", io);
 

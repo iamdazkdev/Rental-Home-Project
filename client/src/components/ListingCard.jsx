@@ -160,8 +160,19 @@ const ListingCard = ({
       console.error("❌ Error updating wishlist:", error);
     }
   }
+
+  // Format VND with Vietnamese thousand separator (dots)
+  const formatVND = (amount) => {
+    if (!amount && amount !== 0) return '0';
+    const rounded = Math.round(amount);
+    return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
   return (
-    <div className="listing-card" onClick={handleNavigateToDetails}>
+    <div
+      className="listing-card"
+      onClick={handleNavigateToDetails}
+    >
       <div className="slider-container">
         <div
           className="slider"
@@ -247,7 +258,7 @@ const ListingCard = ({
         <>
           <p>{type}</p>
           <p>
-            <span>${price}</span>
+            <span>{formatVND(price)} VND</span>
             &nbsp;per night
           </p>
         </>
@@ -261,7 +272,7 @@ const ListingCard = ({
             )}
           </p>
           <p>
-            <span>${typeof totalPrice === 'number' ? totalPrice.toFixed(2) : totalPrice}</span>
+            <span>{formatVND(totalPrice)} VND</span>
             &nbsp;total
             {isExtended && (
               <span className="updated-badge"> Updated</span>

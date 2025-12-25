@@ -6,6 +6,7 @@ import '../../config/app_constants.dart';
 import '../../models/listing.dart';
 import '../../services/listing_service.dart';
 import '../../services/wishlist_service.dart';
+import '../../utils/price_formatter.dart';
 import '../listings/listing_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -35,10 +36,29 @@ class _HomeScreenState extends State<HomeScreen> {
       _isLoading = true;
     });
 
+    // Get current user ID
+    final authProvider = context.read<AuthProvider>();
+    final currentUserId = authProvider.user?.id;
+
     // Get all listings first
     List<Listing> listings = await _listingService.getListings(
       category: _selectedCategory == 'All' ? null : _selectedCategory,
     );
+
+    debugPrint('🏠 HomeScreen: Received ${listings.length} listings before filtering');
+
+    // Filter out current user's own listings
+    if (currentUserId != null) {
+      listings = listings.where((listing) {
+        // listing.creator is String (creator ID)
+        final isOwnListing = listing.creator == currentUserId;
+        if (isOwnListing) {
+          debugPrint('🚫 Filtering out own listing: ${listing.title}');
+        }
+        return !isOwnListing;
+      }).toList();
+      debugPrint('🏠 HomeScreen: After filtering own listings: ${listings.length} listings');
+    }
 
     // Filter by type locally if selected
     if (_selectedType != null) {
@@ -46,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
       debugPrint('🏠 HomeScreen: Filtered to ${listings.length} listings of type: $_selectedType');
     }
 
-    debugPrint('🏠 HomeScreen: Received ${listings.length} listings');
+    debugPrint('🏠 HomeScreen: Final count: ${listings.length} listings');
 
     setState(() {
       _listings = listings;
@@ -417,14 +437,14 @@ class _ListingCardState extends State<_ListingCard> {
                     Row(
                       children: [
                         Text(
-                          '\$${widget.listing.price.toStringAsFixed(0)}',
+                          formatVND(widget.listing.price, showCurrency: false),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                         Text(
-                          '/${widget.listing.priceType ?? 'night'}',
+                          ' VND/${widget.listing.priceType ?? 'night'}',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
