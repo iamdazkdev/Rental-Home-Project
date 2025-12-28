@@ -3,6 +3,7 @@ const { RentalRequest, RentalAgreement, RentalPayment, RentalStatus } = require(
 const Listing = require("../models/Listing");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
+const { upload } = require("../services/cloudinaryService");
 const {
   validateRentalRequest,
   validateAgreementAcceptance,
@@ -29,6 +30,133 @@ const createNotification = async (userId, type, message, link) => {
 // ============================================
 // PHASE 1: CORE FLOW
 // ============================================
+
+/**
+ * POST /room-rental/rooms/create
+ * Create a new room rental listing
+ * This is used when a host wants to list a room for monthly rental
+ */
+router.post("/rooms/create", upload.array("roomPhotos"), async (req, res) => {
+  try {
+    const {
+      hostId,
+      category,
+      type,
+      streetAddress,
+      aptSuite,
+      city,
+      province,
+      country,
+      guestCount,
+      bedroomCount,
+      bedCount,
+      bathroomCount,
+      amenities,
+      title,
+      description,
+      highlight,
+      highlightDesc,
+      monthlyRent,
+      depositAmount,
+      roomArea, // Room area in m²
+      hostBio,
+      hostProfile,
+    } = req.body;
+
+    console.log("🏠 Creating Room Rental listing for host:", hostId);
+    console.log("📤 Request body:", req.body);
+    console.log("📸 Uploaded files:", req.files?.length || 0);
+
+    // Validate required fields
+    if (!hostId) {
+      return res.status(400).json({
+        success: false,
+        message: "Host ID is required",
+      });
+    }
+
+    if (!monthlyRent) {
+      return res.status(400).json({
+        success: false,
+        message: "Monthly rent is required",
+      });
+    }
+
+    // Process uploaded photos
+    const listingPhotoPaths = req.files ? req.files.map((file) => file.path) : [];
+
+    console.log("📷 Processed photo paths:", listingPhotoPaths);
+
+    // Parse JSON fields if they're strings
+    const parsedAmenities = typeof amenities === "string" ? JSON.parse(amenities) : amenities;
+    const parsedHostProfile = typeof hostProfile === "string" ? JSON.parse(hostProfile) : hostProfile;
+
+    // Calculate daily rate from monthly (for display purposes only)
+    const dailyPrice = Math.round((parseFloat(monthlyRent) / 30) * 100) / 100;
+
+    // Create listing data
+    const listingData = {
+      creator: hostId,
+      category: category || "Apartment",
+      type: type || "Room(s)", // Default to Room(s) for room rental
+      streetAddress: streetAddress || "",
+      aptSuite: aptSuite || "",
+      city: city || "",
+      province: province || "",
+      country: country || "",
+      guestCount: parseInt(guestCount) || 1,
+      bedroomCount: parseInt(bedroomCount) || 1,
+      bedCount: parseInt(bedCount) || 1,
+      bathroomCount: parseInt(bathroomCount) || 1,
+      amenities: parsedAmenities || [],
+      listingPhotoPaths,
+      title: title || "Room for Rent",
+      description: description || "",
+      price: dailyPrice, // Store daily equivalent for compatibility
+      monthlyRent: parseFloat(monthlyRent), // Store actual monthly rent
+      depositAmount: depositAmount ? parseFloat(depositAmount) : parseFloat(monthlyRent), // Default: 1 month deposit
+      roomArea: roomArea ? parseFloat(roomArea) : null, // Room area in m²
+      hostBio: hostBio || "",
+      hostProfile: parsedHostProfile || {},
+      rentalType: "MONTHLY", // Mark as monthly rental
+      isActive: true,
+    };
+
+    // Add optional fields only if they exist
+    if (highlight && highlight.trim()) {
+      listingData.highlight = highlight;
+    }
+    if (highlightDesc && highlightDesc.trim()) {
+      listingData.highlightDesc = highlightDesc;
+    }
+
+    console.log("📝 Listing data to save:", listingData);
+
+    // Create the listing
+    const newListing = new Listing(listingData);
+    await newListing.save();
+
+    // Update user's property list
+    await User.findByIdAndUpdate(hostId, {
+      $push: { propertyList: newListing._id },
+    });
+
+    console.log("✅ Room rental listing created:", newListing._id);
+
+    res.status(201).json({
+      success: true,
+      message: "Room rental listing created successfully",
+      listing: newListing,
+    });
+  } catch (error) {
+    console.error("❌ Error creating room rental listing:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create room rental listing",
+      error: error.message,
+    });
+  }
+});
 
 /**
  * GET /room-rental/search
@@ -99,6 +227,7 @@ router.post("/request", async (req, res) => {
     const { roomId, tenantId, message, moveInDate, intendedStayDuration } = req.body;
 
     console.log("📝 Creating rental request:", { roomId, tenantId, moveInDate, intendedStayDuration });
+    console.log("📄 Full request body:", req.body);
 
     // Validate request
     const validation = await validateRentalRequest({
@@ -110,6 +239,7 @@ router.post("/request", async (req, res) => {
     });
 
     if (!validation.valid) {
+      console.log("❌ Validation failed:", validation.errors);
       return res.status(400).json({
         success: false,
         message: "Validation failed",

@@ -79,7 +79,12 @@ const ListingCard = ({
 
   const navigate = useNavigate();
   const handleNavigateToDetails = () => {
-    navigate(`/listing/${listingId}`);
+    // Route to appropriate detail page based on listing type
+    if (type === "Room(s)") {
+      navigate(`/room-rental/${listingId}`);
+    } else {
+      navigate(`/listing/${listingId}`);
+    }
   };
 
   const dispatch = useDispatch();

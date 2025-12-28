@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Navbar from "../../components/Navbar";
@@ -23,14 +23,8 @@ const RoomRentalDetail = () => {
   const [error, setError] = useState("");
   const [identityStatus, setIdentityStatus] = useState(null);
 
-  useEffect(() => {
-    fetchRoomDetails();
-    if (user) {
-      checkIdentityVerification();
-    }
-  }, [roomId, user]);
-
-  const checkIdentityVerification = async () => {
+  const checkIdentityVerification = useCallback(async () => {
+    if (!user) return;
     try {
       const userId = user?.id || user?._id;
       const response = await fetch(
@@ -41,9 +35,9 @@ const RoomRentalDetail = () => {
     } catch (error) {
       console.error("Error checking identity:", error);
     }
-  };
+  }, [user]);
 
-  const fetchRoomDetails = async () => {
+  const fetchRoomDetails = useCallback(async () => {
     try {
       const response = await fetch(`http://localhost:3001/listing/${roomId}`);
       const data = await response.json();
@@ -53,7 +47,14 @@ const RoomRentalDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [roomId]);
+
+  useEffect(() => {
+    fetchRoomDetails();
+    if (user) {
+      checkIdentityVerification();
+    }
+  }, [fetchRoomDetails, checkIdentityVerification, user]);
 
   const handleRequestClick = () => {
     if (!user) {
@@ -61,15 +62,31 @@ const RoomRentalDetail = () => {
       return;
     }
 
-    if (identityStatus !== "approved") {
-      alert(
-        "⚠️ Identity verification required! Please verify your identity before requesting a room rental."
-      );
-      navigate("/create-listing"); // This will show identity verification form
+    // Check identity verification status
+    if (!identityStatus) {
+      // Show verification required modal
+      setShowRequestModal(true);
+      setError("verification_required");
       return;
     }
 
+    if (identityStatus === "pending") {
+      // Show pending verification modal
+      setShowRequestModal(true);
+      setError("verification_pending");
+      return;
+    }
+
+    if (identityStatus === "rejected") {
+      // Show rejected verification modal
+      setShowRequestModal(true);
+      setError("verification_rejected");
+      return;
+    }
+
+    // Identity verified - show request modal
     setShowRequestModal(true);
+    setError("");
   };
 
   const handleSubmitRequest = async (e) => {
@@ -79,26 +96,32 @@ const RoomRentalDetail = () => {
 
     try {
       const userId = user?.id || user?._id;
+      const requestPayload = {
+        roomId,
+        tenantId: userId,
+        tenantName: `${user.firstName} ${user.lastName}`,
+        ...requestData,
+      };
+
+      console.log("📤 Submitting rental request:", requestPayload);
+
       const response = await fetch("http://localhost:3001/room-rental/request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          roomId,
-          tenantId: userId,
-          tenantName: `${user.firstName} ${user.lastName}`,
-          ...requestData,
-        }),
+        body: JSON.stringify(requestPayload),
       });
 
       const data = await response.json();
+      console.log("📥 Response from server:", data);
 
       if (data.success) {
         alert("✅ Rental request submitted successfully! The host will review your request.");
         setShowRequestModal(false);
         navigate("/room-rental/my-requests");
       } else {
+        console.error("❌ Request failed:", data);
         setError(data.message || "Failed to submit request");
         if (data.errors) {
           setError(data.errors.join(", "));
@@ -147,9 +170,9 @@ const RoomRentalDetail = () => {
               📍 {room.city}, {room.province}, {room.country}
             </p>
 
-            <div className="price-section">
+            <div className="room-price">
               <span className="price">
-                {room.price?.toLocaleString("vi-VN")} VND
+                {(room.monthlyRent || room.price)?.toLocaleString("vi-VN")} VND
               </span>
               <span className="period">/ month</span>
             </div>
@@ -167,6 +190,12 @@ const RoomRentalDetail = () => {
                 <span className="icon">👥</span>
                 <span>{room.guestCount || 1} Guest</span>
               </div>
+              {room.roomArea && (
+                <div className="stat">
+                  <span className="icon">📏</span>
+                  <span>{room.roomArea} m²</span>
+                </div>
+              )}
             </div>
 
             <div className="description">
@@ -223,7 +252,7 @@ const RoomRentalDetail = () => {
                   <span className="icon">💰</span>
                   <div>
                     <strong>Deposit</strong>
-                    <p>1 month rent ({room.price?.toLocaleString("vi-VN")} VND)</p>
+                    <p>1 month rent ({(room.monthlyRent || room.price)?.toLocaleString("vi-VN")} VND)</p>
                   </div>
                 </div>
                 <div className="info-item">
@@ -247,10 +276,23 @@ const RoomRentalDetail = () => {
 
         {/* Request Modal */}
         {showRequestModal && (
-          <div className="modal-overlay" onClick={() => setShowRequestModal(false)}>
+          <div
+            className="modal-overlay"
+            onClick={() => {
+              // Only allow closing if showing request form (not verification messages)
+              if (!error) {
+                setShowRequestModal(false);
+              }
+            }}
+          >
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h2>📩 Submit Rental Request</h2>
+                <h2>
+                  {error === "verification_required" && "🔐 Identity Verification Required"}
+                  {error === "verification_pending" && "⏳ Verification Pending"}
+                  {error === "verification_rejected" && "❌ Verification Rejected"}
+                  {!error && "📩 Submit Rental Request"}
+                </h2>
                 <button
                   className="close-btn"
                   onClick={() => setShowRequestModal(false)}
@@ -259,75 +301,184 @@ const RoomRentalDetail = () => {
                 </button>
               </div>
 
-              {error && <div className="error-message">{error}</div>}
-
-              <form onSubmit={handleSubmitRequest}>
-                <div className="form-group">
-                  <label>
-                    Introduce yourself <span className="required">*</span>
-                  </label>
-                  <textarea
-                    value={requestData.message}
-                    onChange={(e) =>
-                      setRequestData({ ...requestData, message: e.target.value })
-                    }
-                    placeholder="Tell the host about yourself, your lifestyle, occupation, and why you're interested in this room (minimum 50 characters)"
-                    rows={6}
-                    required
-                    minLength={50}
-                  />
-                  <p className="hint">
-                    {requestData.message.length}/1000 characters (min: 50)
+              {/* Verification Required */}
+              {error === "verification_required" && (
+                <div className="verification-message">
+                  <div className="message-icon">🔐</div>
+                  <h3>Identity Verification Required</h3>
+                  <p>
+                    To ensure safety and trust in our community, you need to verify your identity
+                    before requesting a room rental.
                   </p>
+                  <div className="verification-benefits">
+                    <h4>Why verify?</h4>
+                    <ul>
+                      <li>✅ Build trust with hosts</li>
+                      <li>✅ Increase approval chances</li>
+                      <li>✅ Protect the community</li>
+                      <li>✅ Required for Room Rental</li>
+                    </ul>
+                  </div>
+                  <div className="modal-actions">
+                    <button
+                      className="primary-btn"
+                      onClick={() => navigate("/identity-verification")}
+                    >
+                      Verify My Identity
+                    </button>
+                    <button
+                      className="secondary-btn"
+                      onClick={() => setShowRequestModal(false)}
+                    >
+                      Maybe Later
+                    </button>
+                  </div>
                 </div>
+              )}
 
-                <div className="form-group">
-                  <label>
-                    Preferred Move-in Date <span className="required">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={requestData.moveInDate}
-                    onChange={(e) =>
-                      setRequestData({ ...requestData, moveInDate: e.target.value })
-                    }
-                    min={new Date().toISOString().split("T")[0]}
-                    required
-                  />
+              {/* Verification Pending */}
+              {error === "verification_pending" && (
+                <div className="verification-message">
+                  <div className="message-icon">⏳</div>
+                  <h3>Verification Under Review</h3>
+                  <p>
+                    Your identity verification is currently being reviewed by our admin team.
+                    This usually takes 1-2 business days.
+                  </p>
+                  <div className="info-box">
+                    <p>
+                      <strong>What's next?</strong>
+                    </p>
+                    <ul>
+                      <li>Wait for admin approval</li>
+                      <li>You'll receive a notification once approved</li>
+                      <li>Then you can submit room rental requests</li>
+                    </ul>
+                  </div>
+                  <div className="modal-actions">
+                    <button
+                      className="primary-btn"
+                      onClick={() => navigate("/identity-verification")}
+                    >
+                      Check Status
+                    </button>
+                    <button
+                      className="secondary-btn"
+                      onClick={() => setShowRequestModal(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
+              )}
 
-                <div className="form-group">
-                  <label>
-                    Intended Stay Duration (months) <span className="required">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={requestData.intendedStayDuration}
-                    onChange={(e) =>
-                      setRequestData({
-                        ...requestData,
-                        intendedStayDuration: parseInt(e.target.value),
-                      })
-                    }
-                    min={1}
-                    required
-                  />
-                  <p className="hint">Minimum 1 month</p>
+              {/* Verification Rejected */}
+              {error === "verification_rejected" && (
+                <div className="verification-message">
+                  <div className="message-icon">❌</div>
+                  <h3>Verification Rejected</h3>
+                  <p>
+                    Unfortunately, your identity verification was not approved.
+                    Please update your information and resubmit.
+                  </p>
+                  <div className="warning-box">
+                    <p>
+                      <strong>Common issues:</strong>
+                    </p>
+                    <ul>
+                      <li>Unclear ID card photos</li>
+                      <li>Information mismatch</li>
+                      <li>Expired documents</li>
+                      <li>Incomplete information</li>
+                    </ul>
+                  </div>
+                  <div className="modal-actions">
+                    <button
+                      className="primary-btn"
+                      onClick={() => navigate("/identity-verification")}
+                    >
+                      Update & Resubmit
+                    </button>
+                    <button
+                      className="secondary-btn"
+                      onClick={() => setShowRequestModal(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
+              )}
 
-                <div className="form-actions">
-                  <button
-                    type="button"
-                    className="cancel-btn"
-                    onClick={() => setShowRequestModal(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="submit-btn" disabled={submitting}>
-                    {submitting ? "Submitting..." : "Submit Request"}
-                  </button>
-                </div>
-              </form>
+              {/* Normal Request Form - Only show if verified */}
+              {!error && (
+                <form onSubmit={handleSubmitRequest}>
+                  <div className="form-group">
+                    <label>
+                      Introduce yourself <span className="required">*</span>
+                    </label>
+                    <textarea
+                      value={requestData.message}
+                      onChange={(e) =>
+                        setRequestData({ ...requestData, message: e.target.value })
+                      }
+                      placeholder="Tell the host about yourself, your lifestyle, occupation, and why you're interested in this room (minimum 50 characters)"
+                      rows={6}
+                      required
+                      minLength={50}
+                    />
+                    <p className="hint">
+                      {requestData.message.length}/1000 characters (min: 50)
+                    </p>
+                  </div>
+
+                  <div className="form-group">
+                    <label>
+                      Preferred Move-in Date <span className="required">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={requestData.moveInDate}
+                      onChange={(e) =>
+                        setRequestData({ ...requestData, moveInDate: e.target.value })
+                      }
+                      min={new Date().toISOString().split("T")[0]}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>
+                      Intended Stay Duration (months) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={requestData.intendedStayDuration}
+                      onChange={(e) =>
+                        setRequestData({
+                          ...requestData,
+                          intendedStayDuration: parseInt(e.target.value),
+                        })
+                      }
+                      min={1}
+                      required
+                    />
+                    <p className="hint">Minimum 1 month</p>
+                  </div>
+
+                  <div className="form-actions">
+                    <button
+                      type="button"
+                      className="cancel-btn"
+                      onClick={() => setShowRequestModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="submit-btn" disabled={submitting}>
+                      {submitting ? "Submitting..." : "Submit Request"}
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         )}

@@ -27,6 +27,9 @@ import VerificationManagement from "./pages/admin/VerificationManagement";
 import AdminRedirect from "./components/AdminRedirect";
 import { SocketProvider } from "./context/SocketContext";
 
+// Identity Verification
+import IdentityVerificationPage from "./pages/verification/IdentityVerificationPage";
+
 // Entire Place Rental Pages
 import EntirePlaceSearch from "./pages/entirePlace/EntirePlaceSearch";
 import BookingReview from "./pages/entirePlace/BookingReview";
@@ -83,6 +86,9 @@ function App() {
           <Route path="/payment/result" element={<PaymentResultPage />} />
           <Route path="/payment-reminder/:bookingId" element={<PaymentReminderPage />} />
           <Route path="/payment-reminder-result" element={<PaymentReminderResultPage />} />
+
+          {/* Identity Verification */}
+          <Route path="/identity-verification" element={<IdentityVerificationPage />} />
 
           {/* Entire Place Rental Routes */}
           <Route path="/entire-place" element={<EntirePlaceSearch />} />

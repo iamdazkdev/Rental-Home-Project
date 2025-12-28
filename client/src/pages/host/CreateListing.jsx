@@ -106,6 +106,7 @@ const CreateListingPage = () => {
   const [bedroomCount, setBedroomCount] = useState(1);
   const [bedCount, setBedCount] = useState(1);
   const [bathroomCount, setBathroomCount] = useState(1);
+  const [roomArea, setRoomArea] = useState(0); // Room area in m² (for Room Rental)
   const [amenities, setAmenities] = useState([]);
   const [photos, setPhotos] = useState([]);
   const [photoWarning, setPhotoWarning] = useState("");
@@ -630,6 +631,9 @@ const CreateListingPage = () => {
           // Room details
           roomData.append("maxOccupancy", guestCount);
           roomData.append("amenities", JSON.stringify(amenities));
+          if (roomArea > 0) {
+            roomData.append("roomArea", roomArea); // Room area in m²
+          }
 
           // Description
           roomData.append("title", formDescription.title);
@@ -996,6 +1000,15 @@ const CreateListingPage = () => {
                       setter: setBathroomCount,
                     },
                     { label: "🛌 Beds", value: bedCount, setter: setBedCount },
+                    ...(isRoomRental
+                      ? [
+                          {
+                            label: "📏 Room Area (m²)",
+                            value: roomArea,
+                            setter: setRoomArea,
+                          },
+                        ]
+                      : []),
                   ].map((item, index) => (
                     <div key={index} className="basic-item">
                       <div className="label">{item.label}</div>
@@ -1198,85 +1211,27 @@ const CreateListingPage = () => {
 
                     {/* Pricing Section - Different for Room Rental vs Entire Place */}
                     {isRoomRental ? (
-                      // Room Rental: Monthly pricing (with daily equivalent shown)
-                      <div className="full-width form-group dual-pricing-group">
+                      // Room Rental: Monthly pricing only
+                      <div className="full-width form-group">
                         <label>💰 Set your monthly rent</label>
                         <p className="pricing-hint">
-                          💡 <strong>Room Rental</strong> - Set your monthly rent. Daily rate will be calculated automatically for display purposes.
+                          💡 <strong>Room Rental</strong> - Monthly rent for your room.
                         </p>
-
-                        <div className="pricing-tabs">
-                          <button
-                            type="button"
-                            className={`pricing-tab ${pricingType === "monthly" ? "active" : ""}`}
-                            onClick={() => setPricingType("monthly")}
-                          >
-                            📆 Monthly Rent (Primary)
-                          </button>
-                          <button
-                            type="button"
-                            className={`pricing-tab ${pricingType === "daily" ? "active" : ""}`}
-                            onClick={() => setPricingType("daily")}
-                          >
-                            📅 Daily Equivalent
-                          </button>
+                        <div className="price-input-wrapper">
+                          <span className="currency">₫</span>
+                          <input
+                            type="number"
+                            placeholder="3000000"
+                            value={monthlyPrice || ""}
+                            onChange={handleMonthlyPriceChange}
+                            required
+                            min="1"
+                          />
+                          <span className="per-unit">/month</span>
                         </div>
-
-                        <div className="dual-price-inputs">
-                          <div className="price-input-box">
-                            <label className={pricingType === "monthly" ? "primary" : "secondary"}>
-                              💰 Monthly Rent
-                            </label>
-                            <div className="price-input-wrapper">
-                              <span className="currency">$</span>
-                              <input
-                                type="number"
-                                placeholder="1500"
-                                value={monthlyPrice || ""}
-                                onChange={handleMonthlyPriceChange}
-                                required
-                                min="1"
-                              />
-                              <span className="per-unit">/month</span>
-                            </div>
-                            {pricingType === "monthly" && (
-                              <p className="price-note">✨ This is your actual rent</p>
-                            )}
-                          </div>
-
-                          <div className="price-arrow">⇄</div>
-
-                          <div className="price-input-box">
-                            <label className={pricingType === "daily" ? "primary" : "secondary"}>
-                              💵 Daily Equivalent
-                            </label>
-                            <div className="price-input-wrapper">
-                              <span className="currency">$</span>
-                              <input
-                                type="number"
-                                placeholder="50"
-                                value={dailyPrice || ""}
-                                onChange={handleDailyPriceChange}
-                                required
-                                min="1"
-                                step="0.01"
-                              />
-                              <span className="per-unit">/day</span>
-                            </div>
-                            {pricingType === "daily" && (
-                              <p className="price-note">ℹ️ For reference only</p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="pricing-info room-rental-info">
-                          ℹ️ <strong>Room Rental Model:</strong> Tenants pay monthly rent.
-                          {pricingType === "monthly"
-                            ? " Daily equivalent is calculated as (Monthly ÷ 30) for display."
-                            : " Monthly rent is calculated as (Daily × 30)."}
-                          <br />
-                          💡 Default deposit: 1 month's rent (${monthlyPrice.toLocaleString()})
-                        </div>
+                        <p className="price-note">
+                          💡 Default deposit: 1 month's rent ({monthlyPrice ? monthlyPrice.toLocaleString() : '0'} ₫)
+                        </p>
                       </div>
                     ) : isEntirePlaceRental ? (
                       // Entire Place: Nightly pricing

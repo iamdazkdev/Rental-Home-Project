@@ -153,8 +153,14 @@ const RoomRentalSearch = () => {
                       📍 {room.city}, {room.province}
                     </p>
                     <p className="price">
-                      {room.price?.toLocaleString("vi-VN")} VND / month
+                      {(room.monthlyRent || room.price)?.toLocaleString("vi-VN")} VND / month
                     </p>
+
+                    {room.roomArea && (
+                      <p className="room-area">
+                        📏 {room.roomArea} m²
+                      </p>
+                    )}
 
                     {room.amenities && room.amenities.length > 0 && (
                       <div className="amenities">

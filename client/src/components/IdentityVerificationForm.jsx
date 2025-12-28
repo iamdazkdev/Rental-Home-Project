@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import VerificationSuccessModal from "./VerificationSuccessModal";
 import "../styles/IdentityVerification.scss";
 
-const IdentityVerificationForm = ({ userId, onSuccess, existingVerification }) => {
+const IdentityVerificationForm = ({ userId, onSuccess = () => {}, existingVerification }) => {
   const [formData, setFormData] = useState({
     fullName: existingVerification?.fullName || "",
     phoneNumber: existingVerification?.phoneNumber || "",
@@ -126,7 +126,7 @@ const IdentityVerificationForm = ({ userId, onSuccess, existingVerification }) =
     e.preventDefault();
     setError("");
 
-    console.log("📤 Submitting verification...", {
+    console.log("🔍 Submitting verification form:", {
       userId,
       formData,
       hasIdCardFront: !!idCardFront,
@@ -135,6 +135,13 @@ const IdentityVerificationForm = ({ userId, onSuccess, existingVerification }) =
       hasBackPreview: !!backPreview,
       existingVerification: !!existingVerification
     });
+
+    // Validate userId first
+    if (!userId) {
+      setError("User ID is missing. Please login again.");
+      console.error("❌ No userId provided to form");
+      return;
+    }
 
     // Validation
     if (!formData.fullName || !formData.phoneNumber || !formData.dateOfBirth) {
@@ -163,6 +170,7 @@ const IdentityVerificationForm = ({ userId, onSuccess, existingVerification }) =
 
     try {
       const submitData = new FormData();
+      console.log("📤 Appending userId to FormData:", userId);
       submitData.append("userId", userId);
       submitData.append("fullName", formData.fullName);
       submitData.append("phoneNumber", formData.phoneNumber);

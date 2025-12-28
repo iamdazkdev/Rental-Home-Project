@@ -279,6 +279,7 @@ const TripList = () => {
                 province={trip.listingId?.province}
                 country={trip.listingId?.country}
                 category={trip.listingId?.category}
+                type={trip.listingId?.type}
                 startDate={trip.startDate}
                 endDate={trip.finalEndDate || trip.endDate}
                 totalPrice={trip.finalTotalPrice || trip.totalPrice}

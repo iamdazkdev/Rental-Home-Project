@@ -38,26 +38,34 @@ const hasVerifiedIdentity = async (userId) => {
 const validateRentalRequest = async (data) => {
   const errors = [];
 
+  console.log("🔍 Validating rental request with data:", data);
+
   // Check if room exists and is a shared room
   const room = await Listing.findById(data.roomId);
   if (!room) {
+    console.log("❌ Room not found:", data.roomId);
     errors.push("Room not found");
     return { valid: false, errors };
   }
 
-  if (room.type !== "A Room") {
-    errors.push("This listing is not a shared room");
+  console.log("✅ Room found:", { id: room._id, type: room.type, title: room.title });
+
+  if (room.type !== "Room(s)") {
+    console.log("❌ Room type mismatch. Expected: Room(s), Got:", room.type);
+    errors.push("This listing is not a room rental");
     return { valid: false, errors };
   }
 
   // Check if room is available
   const available = await isRoomAvailable(data.roomId);
+  console.log("🏠 Room availability check:", available);
   if (!available) {
     errors.push("This room is not available for rental");
   }
 
   // Check if tenant has verified identity
   const verified = await hasVerifiedIdentity(data.tenantId);
+  console.log("🔐 Identity verification check:", { tenantId: data.tenantId, verified });
   if (!verified) {
     errors.push("Identity verification required before requesting rental");
   }
@@ -72,16 +80,31 @@ const validateRentalRequest = async (data) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  console.log("📅 Date validation:", {
+    moveInDate: moveInDate.toISOString(),
+    today: today.toISOString(),
+    isValid: moveInDate >= today
+  });
+
   if (moveInDate < today) {
     errors.push("Move-in date cannot be in the past");
   }
 
   // Check intended stay duration
+  console.log("⏱️ Duration validation:", {
+    duration: data.intendedStayDuration,
+    isValid: data.intendedStayDuration >= 1
+  });
   if (!data.intendedStayDuration || data.intendedStayDuration < 1) {
     errors.push("Intended stay duration must be at least 1 month");
   }
 
   // Check message length
+  console.log("✉️ Message validation:", {
+    length: data.message?.length || 0,
+    hasMessage: !!data.message,
+    isValidLength: data.message && data.message.length >= 50 && data.message.length <= 1000
+  });
   if (!data.message || data.message.length < 50) {
     errors.push("Please provide a detailed message (at least 50 characters)");
   }
@@ -89,6 +112,8 @@ const validateRentalRequest = async (data) => {
   if (data.message && data.message.length > 1000) {
     errors.push("Message is too long (maximum 1000 characters)");
   }
+
+  console.log("🎯 Final validation result:", { valid: errors.length === 0, errorCount: errors.length, errors });
 
   return {
     valid: errors.length === 0,

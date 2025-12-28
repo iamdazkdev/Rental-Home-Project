@@ -70,11 +70,11 @@ const ListingSchema = new mongoose.Schema(
     },
     highlight: {
       type: String,
-      required: true,
+      required: false, // Optional - not required for Room Rental
     },
     highlightDesc: {
       type: String,
-      required: true,
+      required: false, // Optional - not required for Room Rental
     },
     price: {
       type: Number,
@@ -86,6 +86,24 @@ const ListingSchema = new mongoose.Schema(
     pricingType: {
       type: String,
       enum: ["daily", "monthly"],
+    },
+    // Room Rental specific fields
+    monthlyRent: {
+      type: Number, // Primary rent for Room Rental (monthly)
+    },
+    depositAmount: {
+      type: Number, // Security deposit (usually 1 month rent)
+    },
+    roomArea: {
+      type: Number, // Room area in square meters (m²)
+    },
+    hostBio: {
+      type: String, // Host introduction for Room Rental
+    },
+    rentalType: {
+      type: String,
+      enum: ["NIGHTLY", "MONTHLY"], // NIGHTLY = Entire Place, MONTHLY = Room Rental
+      default: "NIGHTLY",
     },
     hostProfile: {
       sleepSchedule: String,
