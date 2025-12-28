@@ -27,6 +27,21 @@ const BookingConfirmation = () => {
   };
 
   const getPaymentMethodLabel = () => {
+    // v2.0: Use paymentType and paymentMethod
+    const type = booking.paymentType || paymentMethod;
+    const method = booking.paymentMethod;
+
+    if (method === 'vnpay' && type === 'full') {
+      return 'VNPay - Full Payment';
+    }
+    if (method === 'vnpay' && type === 'deposit') {
+      return 'VNPay - Deposit (30%)';
+    }
+    if (method === 'cash' || type === 'cash') {
+      return 'Cash Payment';
+    }
+
+    // Backward compatibility
     switch (paymentMethod) {
       case 'vnpay_full':
         return 'VNPay - Full Payment';
@@ -36,6 +51,46 @@ const BookingConfirmation = () => {
         return 'Cash Payment';
       default:
         return 'Unknown';
+    }
+  };
+
+  const getBookingStatusLabel = () => {
+    const status = booking.bookingStatus || booking.status || 'pending';
+
+    switch (status) {
+      case 'pending':
+        return 'Pending Host Approval';
+      case 'approved':
+        return 'Approved by Host';
+      case 'checked_in':
+        return 'Checked In';
+      case 'checked_out':
+        return 'Checked Out';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return status;
+    }
+  };
+
+  const getPaymentStatusLabel = () => {
+    const status = booking.paymentStatus || 'unpaid';
+
+    switch (status) {
+      case 'paid':
+        return 'Fully Paid';
+      case 'partially_paid':
+        return 'Partially Paid (Deposit)';
+      case 'unpaid':
+        return 'Unpaid';
+      case 'refunded':
+        return 'Refunded';
+      default:
+        return status;
     }
   };
 
@@ -57,10 +112,18 @@ const BookingConfirmation = () => {
               <span className="value">{booking._id}</span>
             </div>
 
+            {/* v2.0: Show both statuses separately */}
             <div className="detail-row">
-              <span className="label">Status:</span>
-              <span className={`value status-${booking.status}`}>
-                {booking.status === 'pending' ? 'Pending Host Approval' : booking.status}
+              <span className="label">Booking Status:</span>
+              <span className={`value status-badge ${booking.bookingStatus || booking.status}`}>
+                {getBookingStatusLabel()}
+              </span>
+            </div>
+
+            <div className="detail-row">
+              <span className="label">Payment Status:</span>
+              <span className={`value status-badge ${booking.paymentStatus}`}>
+                {getPaymentStatusLabel()}
               </span>
             </div>
 

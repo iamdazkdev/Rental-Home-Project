@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Filter, MapPin, Calendar, Users } from 'lucide-react';
 import '../../styles/EntirePlaceSearch.scss';
@@ -22,11 +22,7 @@ const EntirePlaceSearch = () => {
 
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    fetchListings();
-  }, []);
-
-  const fetchListings = async () => {
+  const fetchListings = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -38,22 +34,21 @@ const EntirePlaceSearch = () => {
         )
       });
 
-      const response = await fetch(`http://localhost:3001/listing?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const response = await fetch(`http://localhost:3001/entire-place-booking/search?${params}`);
+      const data = await response.json();
 
-      if (response.ok) {
-        const data = await response.json();
-        setListings(data.listings || data);
-      }
+      setListings(data.listings || []);
     } catch (error) {
       console.error('Error fetching listings:', error);
+      setListings([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    fetchListings();
+  }, [fetchListings]);
 
   const handleSearch = () => {
     fetchListings();

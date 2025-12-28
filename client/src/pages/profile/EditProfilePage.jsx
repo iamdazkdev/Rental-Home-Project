@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Loader from '../../components/Loader';
 import { setLogin } from '../../redux/state';
-import { API_ENDPOINTS, CONFIG } from '../../constants/api';
+import { CONFIG } from '../../constants/api';
 import '../../styles/EditProfile.scss';
 import { Person, Email, PhotoCamera } from '@mui/icons-material';
 

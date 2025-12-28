@@ -20,7 +20,6 @@ const ListingDetails = () => {
   const [listing, setListing] = useState(null);
   const [hasActiveBooking, setHasActiveBooking] = useState(false);
   const [userBooking, setUserBooking] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
 
   const getListingDetails = async () => {
     try {
@@ -124,12 +123,6 @@ const ListingDetails = () => {
 
   const navigate = useNavigate();
   const handleSubmit = async () => {
-    // Prevent double submission
-    if (submitting) {
-      console.log("⚠️ Already submitting, please wait...");
-      return;
-    }
-
     // Validate dates
     if (dayCount < 1) {
       alert("Please select valid dates (at least 1 night)");
@@ -481,9 +474,8 @@ const ListingDetails = () => {
                 className="button"
                 type="submit"
                 onClick={handleSubmit}
-                disabled={submitting}
               >
-                {submitting ? "Submitting..." : "BOOKING"}
+                BOOKING
               </button>
             </>
           );

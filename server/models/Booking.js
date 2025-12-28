@@ -184,11 +184,7 @@ const BookingSchema = new mongoose.Schema(
         },
       },
     ],
-    // Remaining payment tracking
-    remainingAmount: {
-      type: Number,
-      default: 0,
-    },
+    // Remaining due date tracking
     remainingDueDate: {
       type: Date,
       default: null,

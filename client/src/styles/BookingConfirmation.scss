@@ -81,6 +81,67 @@
               color: #ff9800;
               text-transform: capitalize;
             }
+
+            // v2.0: Status badge styles
+            &.status-badge {
+              padding: 4px 12px;
+              border-radius: 16px;
+              font-size: 13px;
+              font-weight: 600;
+              text-transform: uppercase;
+
+              // Booking statuses
+              &.pending {
+                background: #fff3cd;
+                color: #856404;
+              }
+
+              &.approved {
+                background: #d4edda;
+                color: #155724;
+              }
+
+              &.checked_in, &.checked-in {
+                background: #cfe2ff;
+                color: #004085;
+              }
+
+              &.checked_out, &.checked-out {
+                background: #e2e3e5;
+                color: #383d41;
+              }
+
+              &.completed {
+                background: #d1ecf1;
+                color: #0c5460;
+              }
+
+              &.cancelled, &.rejected {
+                background: #f8d7da;
+                color: #721c24;
+              }
+
+              // Payment statuses
+              &.paid {
+                background: #d4edda;
+                color: #155724;
+              }
+
+              &.partially_paid, &.partially-paid {
+                background: #fff3cd;
+                color: #856404;
+              }
+
+              &.unpaid {
+                background: #f8d7da;
+                color: #721c24;
+              }
+
+              &.refunded {
+                background: #e2e3e5;
+                color: #383d41;
+              }
+            }
           }
 
           strong {

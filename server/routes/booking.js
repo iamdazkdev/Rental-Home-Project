@@ -63,6 +63,10 @@ router.post("/create", async (req, res) => {
     const listing = await Listing.findById(listingId);
     const customer = await User.findById(customerId);
 
+    // Determine payment method and type
+    const paymentMethod = req.body.paymentMethod || "cash";
+    const paymentType = paymentMethod === "cash" ? "cash" : "full";
+
     // Create booking with pending status
     const newBooking = new Booking({
       customerId,
@@ -75,7 +79,8 @@ router.post("/create", async (req, res) => {
       finalEndDate: endDate,
       finalTotalPrice: totalPrice,
       // Set payment fields for cash booking
-      paymentMethod: req.body.paymentMethod || "cash",
+      paymentMethod: paymentMethod, // vnpay or cash
+      paymentType: paymentType, // ✅ FIXED: Add required field
       paymentStatus: "unpaid",
       remainingAmount: totalPrice,
       remainingDueDate: new Date(startDate), // Due at check-in

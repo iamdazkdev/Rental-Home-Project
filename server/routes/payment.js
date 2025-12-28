@@ -145,6 +145,12 @@ router.get("/vnpay-return", async (req, res) => {
       // Payment successful - create actual booking
       console.log(`✅ Payment successful, creating booking now...`);
 
+      // Determine payment method (map vnpay_full/vnpay_deposit to vnpay)
+      let paymentMethod = "vnpay";
+      if (pendingBooking.paymentMethod === "cash") {
+        paymentMethod = "cash";
+      }
+
       // Determine payment status based on payment method
       let paymentStatus = "paid";
       if (pendingBooking.paymentMethod === "vnpay_deposit") {
@@ -162,18 +168,22 @@ router.get("/vnpay-return", async (req, res) => {
         paymentType = "deposit";
         remainingAmount = pendingBooking.totalPrice - pendingBooking.depositAmount;
         remainingDueDate = new Date(pendingBooking.startDate); // Due at check-in
+      } else if (pendingBooking.paymentMethod === "cash") {
+        paymentType = "cash";
       }
 
       // Create payment history entry
       const paymentHistoryEntry = {
         amount: pendingBooking.paymentAmount,
-        method: "vnpay",
+        method: paymentMethod,
         status: "paid",
         transactionId: transactionNo,
         type: paymentType,
         paidAt: new Date(),
         notes: paymentType === "deposit"
           ? `Deposit payment (${pendingBooking.depositPercentage}%) via VNPay`
+          : paymentType === "cash"
+          ? "Cash payment on arrival"
           : "Full payment via VNPay",
       };
 
@@ -186,7 +196,8 @@ router.get("/vnpay-return", async (req, res) => {
         endDate: pendingBooking.endDate,
         totalPrice: pendingBooking.totalPrice,
         finalTotalPrice: pendingBooking.totalPrice,
-        paymentMethod: pendingBooking.paymentMethod,
+        paymentMethod: paymentMethod, // ✅ FIXED: Use mapped value (vnpay or cash)
+        paymentType: paymentType, // ✅ FIXED: Add required paymentType field
         depositPercentage: pendingBooking.depositPercentage || 0,
         depositAmount: pendingBooking.depositAmount || 0,
         paymentStatus: paymentStatus,
@@ -310,10 +321,29 @@ router.post("/vnpay-ipn", async (req, res) => {
 
     // Create booking if payment successful
     if (vnpayService.isSuccessful(verifyResult.rspCode)) {
+      // Determine payment method (map vnpay_full/vnpay_deposit to vnpay)
+      let paymentMethod = "vnpay";
+      if (pendingBooking.paymentMethod === "cash") {
+        paymentMethod = "cash";
+      }
+
       // Determine payment status based on payment method
       let paymentStatus = "paid";
       if (pendingBooking.paymentMethod === "vnpay_deposit") {
         paymentStatus = "partially_paid";
+      }
+
+      // Determine payment type
+      let paymentType = "full";
+      let remainingAmount = 0;
+      let remainingDueDate = null;
+
+      if (pendingBooking.paymentMethod === "vnpay_deposit") {
+        paymentType = "deposit";
+        remainingAmount = pendingBooking.totalPrice - pendingBooking.depositAmount;
+        remainingDueDate = new Date(pendingBooking.startDate);
+      } else if (pendingBooking.paymentMethod === "cash") {
+        paymentType = "cash";
       }
 
       const newBooking = new Booking({
@@ -324,13 +354,16 @@ router.post("/vnpay-ipn", async (req, res) => {
         endDate: pendingBooking.endDate,
         totalPrice: pendingBooking.totalPrice,
         finalTotalPrice: pendingBooking.totalPrice,
-        paymentMethod: pendingBooking.paymentMethod,
+        paymentMethod: paymentMethod, // ✅ FIXED: Use mapped value
+        paymentType: paymentType, // ✅ FIXED: Add required field
         depositPercentage: pendingBooking.depositPercentage || 0,
         depositAmount: pendingBooking.depositAmount || 0,
         paymentStatus: paymentStatus,
         status: 'pending', // Pending host approval
         paymentIntentId: verifyResult.transactionNo,
         paidAt: new Date(),
+        remainingAmount: remainingAmount,
+        remainingDueDate: remainingDueDate,
       });
 
       const savedBooking = await newBooking.save();

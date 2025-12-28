@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 .payment-callback {
   min-height: 100vh;
   display: flex;
@@ -47,6 +49,68 @@
           margin-bottom: 8px;
         }
 
+        // v2.0: Status info display
+        .booking-status-info {
+          margin: 20px 0;
+          padding: 20px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          text-align: left;
+
+          .status-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+
+            strong {
+              min-width: 140px;
+              color: #333;
+            }
+
+            .status-badge {
+              padding: 6px 16px;
+              border-radius: 20px;
+              font-size: 12px;
+              font-weight: 600;
+
+              &.pending {
+                background: #fff3cd;
+                color: #856404;
+              }
+
+              &.paid {
+                background: #d4edda;
+                color: #155724;
+              }
+
+              &.partially_paid {
+                background: #fff3cd;
+                color: #856404;
+              }
+
+              &.unpaid {
+                background: #f8d7da;
+                color: #721c24;
+              }
+            }
+          }
+
+          .payment-notice {
+            margin-top: 16px;
+            padding: 12px;
+            background: white;
+            border-left: 4px solid #4caf50;
+            border-radius: 4px;
+
+            p {
+              margin: 4px 0;
+              font-size: 14px;
+              color: #333;
+            }
+          }
+        }
+
         .redirect-notice {
           font-style: italic;
           font-size: 14px;
@@ -80,7 +144,7 @@
           transition: all 0.3s;
 
           &:hover {
-            background: darken(#FF385C, 10%);
+            background: color.scale(#FF385C, $lightness: -10%);
           }
         }
       }

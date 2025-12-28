@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader } from 'lucide-react';
 import '../../styles/PaymentCallback.scss';
@@ -11,11 +11,7 @@ const PaymentCallback = () => {
   const [booking, setBooking] = useState(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    handlePaymentReturn();
-  }, []);
-
-  const handlePaymentReturn = async () => {
+  const handlePaymentReturn = useCallback(async () => {
     try {
       const responseCode = searchParams.get('vnp_ResponseCode');
       const tempOrderId = searchParams.get('vnp_TxnRef');
@@ -77,7 +73,11 @@ const PaymentCallback = () => {
       setStatus('failed');
       setError(error.message || 'Failed to process payment');
     }
-  };
+  }, [searchParams, navigate]);
+
+  useEffect(() => {
+    handlePaymentReturn();
+  }, [handlePaymentReturn]);
 
   return (
     <div className="payment-callback">
@@ -90,11 +90,41 @@ const PaymentCallback = () => {
           </div>
         )}
 
-        {status === 'success' && (
+        {status === 'success' && booking && (
           <div className="status success">
             <CheckCircle size={64} />
             <h2>Payment Successful!</h2>
             <p>Your booking request has been sent to the host</p>
+
+            {/* v2.0: Show both statuses */}
+            <div className="booking-status-info">
+              <div className="status-item">
+                <strong>Booking Status:</strong>
+                <span className={`status-badge ${booking.bookingStatus || booking.status}`}>
+                  {(booking.bookingStatus || booking.status || 'pending').toUpperCase()}
+                </span>
+              </div>
+              <div className="status-item">
+                <strong>Payment Status:</strong>
+                <span className={`status-badge ${booking.paymentStatus}`}>
+                  {(booking.paymentStatus || 'unknown').toUpperCase()}
+                </span>
+              </div>
+
+              {booking.paymentStatus === 'partially_paid' && (
+                <div className="payment-notice">
+                  <p>✅ Deposit paid: {booking.depositAmount?.toLocaleString('vi-VN')} VND</p>
+                  <p>⏳ Remaining: {booking.remainingAmount?.toLocaleString('vi-VN')} VND (cash at check-in)</p>
+                </div>
+              )}
+
+              {booking.paymentStatus === 'paid' && (
+                <div className="payment-notice">
+                  <p>✅ Full payment: {booking.totalPrice?.toLocaleString('vi-VN')} VND</p>
+                </div>
+              )}
+            </div>
+
             <p className="redirect-notice">Redirecting to confirmation page...</p>
           </div>
         )}

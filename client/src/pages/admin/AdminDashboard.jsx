@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/AdminDashboard.scss';
@@ -22,7 +22,7 @@ const AdminDashboard = () => {
   }, [user, navigate]);
 
   // Fetch statistics
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     if (!user?._id) return;
 
     setLoading(true);
@@ -37,10 +37,10 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   // Fetch users
-  const fetchUsers = async (page = 1, search = '') => {
+  const fetchUsers = useCallback(async (page = 1, search = '') => {
     if (!user?._id) return;
 
     setLoading(true);
@@ -58,10 +58,10 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   // Fetch listings
-  const fetchListings = async (page = 1, status = '') => {
+  const fetchListings = useCallback(async (page = 1, status = '') => {
     if (!user?._id) return;
 
     setLoading(true);
@@ -79,7 +79,7 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   // Update user role
   const handleUpdateUserRole = async (userId, newRole) => {
@@ -191,7 +191,7 @@ const AdminDashboard = () => {
         fetchListings();
       }
     }
-  }, [activeSection, user]);
+  }, [activeSection, user, fetchStats, fetchUsers, fetchListings]);
 
   if (!user || user.role !== 'admin') {
     return null;

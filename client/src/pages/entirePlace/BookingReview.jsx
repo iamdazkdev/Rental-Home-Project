@@ -8,7 +8,6 @@ const BookingReview = () => {
   const navigate = useNavigate();
   const { listing, checkIn, checkOut, guests, pricing } = location.state || {};
 
-  const user = JSON.parse(localStorage.getItem('user'));
 
   const [paymentMethod, setPaymentMethod] = useState('vnpay_full');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -38,7 +37,7 @@ const BookingReview = () => {
       setError('');
 
       if (paymentMethod === 'cash') {
-        // Create cash booking directly
+        // Create cash booking directly (v2.0)
         const response = await fetch('http://localhost:3001/entire-place-booking/create-cash', {
           method: 'POST',
           headers: {
@@ -56,47 +55,80 @@ const BookingReview = () => {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to create booking');
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to create booking');
         }
 
         const booking = await response.json();
-        navigate('/booking/confirmation', { state: { booking, paymentMethod: 'cash' } });
+
+        console.log('✅ Cash booking created:', booking);
+
+        navigate('/booking/confirmation', {
+          state: {
+            booking,
+            paymentMethod: 'cash',
+            bookingStatus: booking.bookingStatus || 'pending',
+            paymentStatus: booking.paymentStatus || 'unpaid'
+          }
+        });
 
       } else {
-        // Create VNPay payment
-        const paymentAmount = paymentMethod === 'vnpay_full' ? pricing.total : depositAmount;
+        // v2.0: Create BookingIntent first, then redirect to VNPay
+        const paymentType = paymentMethod === 'vnpay_full' ? 'full' : 'deposit';
 
-        const response = await fetch('http://localhost:3001/payment/create-payment-url', {
+        console.log('📋 Creating BookingIntent...', { paymentType });
+
+        // Step 1: Create BookingIntent
+        const intentResponse = await fetch('http://localhost:3001/entire-place-booking/create-intent', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
           body: JSON.stringify({
-            bookingData: {
-              listingId: listing._id,
-              customerId: user._id,
-              hostId: listing.creator._id,
-              startDate: checkIn,
-              endDate: checkOut,
-              totalPrice: pricing.total,
-              paymentMethod,
-              depositPercentage: paymentMethod === 'vnpay_deposit' ? 30 : 0,
-              depositAmount: paymentMethod === 'vnpay_deposit' ? depositAmount : 0,
-              guestCount: guests
-            },
-            amount: paymentAmount,
-            paymentType: paymentMethod === 'vnpay_full' ? 'full' : 'deposit'
+            listingId: listing._id,
+            hostId: listing.creator._id,
+            startDate: checkIn,
+            endDate: checkOut,
+            totalPrice: pricing.total,
+            paymentType
           })
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to create payment');
+        if (!intentResponse.ok) {
+          const errorData = await intentResponse.json();
+          throw new Error(errorData.message || 'Failed to create booking intent');
         }
 
-        const { paymentUrl } = await response.json();
+        const { tempOrderId, paymentAmount } = await intentResponse.json();
 
-        // Redirect to VNPay
+        console.log('✅ BookingIntent created:', { tempOrderId, paymentAmount });
+
+        // Step 2: Create VNPay payment URL
+        const paymentResponse = await fetch('http://localhost:3001/payment/create-payment-url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            tempOrderId,
+            amount: paymentAmount,
+            orderInfo: `${paymentType === 'full' ? 'Full payment' : 'Deposit 30%'} - ${listing.title}`,
+            returnUrl: `${window.location.origin}/payment/callback`
+          })
+        });
+
+        if (!paymentResponse.ok) {
+          const errorData = await paymentResponse.json();
+          throw new Error(errorData.message || 'Failed to create payment');
+        }
+
+        const { paymentUrl } = await paymentResponse.json();
+
+        console.log('🔗 Redirecting to VNPay...', paymentUrl);
+
+        // Step 3: Redirect to VNPay
         window.location.href = paymentUrl;
       }
 

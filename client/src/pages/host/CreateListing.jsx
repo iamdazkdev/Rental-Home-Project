@@ -90,7 +90,6 @@ const CreateListingPage = () => {
   const [categories, setCategories] = useState([]);
   const [types, setTypes] = useState([]);
   const [facilities, setFacilities] = useState([]);
-  const [loadingStaticData, setLoadingStaticData] = useState(true);
 
   // FORM STATE
   const [category, setCategory] = useState("");
@@ -123,7 +122,6 @@ const CreateListingPage = () => {
 
   // REDUX STATE - moved up before hostBio
   const user = useSelector((state) => state.user);
-  const token = useSelector((state) => state.token);
   const creatorId = user?.id || user?._id;
   const navigate = useNavigate();
 
@@ -183,7 +181,6 @@ const CreateListingPage = () => {
   useEffect(() => {
     const fetchStaticData = async () => {
       try {
-        setLoadingStaticData(true);
         const url = `${CONFIG.API_BASE_URL}/static-data/all`;
         const response = await fetch(url, { method: HTTP_METHODS.GET });
 
@@ -217,8 +214,6 @@ const CreateListingPage = () => {
       } catch (error) {
         console.error("❌ Error fetching static data:", error);
         alert("Failed to connect to server. Please check your connection.");
-      } finally {
-        setLoadingStaticData(false);
       }
     };
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { IconButton } from "@mui/material";
 import {
   Search,
@@ -33,16 +33,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   // Fetch unread message count
-  useEffect(() => {
-    if (user) {
-      fetchUnreadCount();
-      // Poll every 30 seconds
-      const interval = setInterval(fetchUnreadCount, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [user]);
-
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -65,7 +56,16 @@ const Navbar = () => {
       console.error("Error fetching unread count:", error);
       setUnreadCount(0);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchUnreadCount();
+      // Poll every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user, fetchUnreadCount]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

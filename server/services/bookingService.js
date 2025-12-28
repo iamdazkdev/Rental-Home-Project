@@ -14,21 +14,30 @@ const vnpayService = require('./vnpayService');
 class BookingService {
 
   /**
-   * Check availability for given dates
+   * Check availability for given dates (v2.0)
    */
   async checkAvailability(listingId, startDate, endDate) {
     try {
-      // Find overlapping bookings
+      // Find overlapping bookings (v2.0 - use bookingStatus)
       const conflicts = await Booking.find({
         listingId,
-        status: { $in: ['pending', 'approved', 'checked_in'] },
         $or: [
-          // Start date falls within existing booking
-          { startDate: { $lte: startDate }, endDate: { $gte: startDate } },
-          // End date falls within existing booking
-          { startDate: { $lte: endDate }, endDate: { $gte: endDate } },
-          // New booking encompasses existing booking
-          { startDate: { $gte: startDate }, endDate: { $lte: endDate } }
+          // v2.0 field
+          { bookingStatus: { $in: ['pending', 'approved', 'checked_in'] } },
+          // Backward compatibility
+          { status: { $in: ['pending', 'approved', 'accepted', 'checked_in'] } }
+        ],
+        $and: [
+          {
+            $or: [
+              // Start date falls within existing booking
+              { startDate: { $lte: startDate }, endDate: { $gte: startDate } },
+              // End date falls within existing booking
+              { startDate: { $lte: endDate }, endDate: { $gte: endDate } },
+              // New booking encompasses existing booking
+              { startDate: { $gte: startDate }, endDate: { $lte: endDate } }
+            ]
+          }
         ]
       });
 
@@ -38,7 +47,8 @@ class BookingService {
           conflicts: conflicts.map(b => ({
             start: b.startDate,
             end: b.endDate,
-            bookingId: b._id
+            bookingId: b._id,
+            status: b.bookingStatus || b.status
           }))
         };
       }
@@ -271,14 +281,20 @@ class BookingService {
       let paymentStatus = 'unpaid';
       let depositAmount = 0;
       let remainingAmount = 0;
+      let paymentType = 'full';
 
       if (pendingBooking.paymentMethod === 'vnpay_full') {
         paymentStatus = 'paid';
+        paymentType = 'full';
       } else if (pendingBooking.paymentMethod === 'vnpay_deposit') {
         paymentStatus = 'partially_paid';
+        paymentType = 'deposit';
         depositAmount = pendingBooking.depositAmount;
         remainingAmount = pendingBooking.totalPrice - depositAmount;
       }
+
+      // Map payment method to valid enum value
+      const paymentMethod = pendingBooking.paymentMethod === 'cash' ? 'cash' : 'vnpay';
 
       // Create actual booking
       const booking = new Booking({
@@ -288,7 +304,8 @@ class BookingService {
         startDate: pendingBooking.startDate,
         endDate: pendingBooking.endDate,
         totalPrice: pendingBooking.totalPrice,
-        paymentMethod: pendingBooking.paymentMethod,
+        paymentMethod: paymentMethod, // ✅ FIXED: Use mapped value
+        paymentType: paymentType, // ✅ FIXED: Add required field
         paymentStatus,
         depositAmount,
         depositPercentage: pendingBooking.depositPercentage,
@@ -298,10 +315,10 @@ class BookingService {
         status: 'pending', // Waiting for host approval
         paymentHistory: [{
           amount: paidAmount,
-          method: 'vnpay',
+          method: paymentMethod, // ✅ Use mapped value
           status: 'paid',
           transactionId,
-          type: pendingBooking.paymentMethod === 'vnpay_full' ? 'full' : 'deposit',
+          type: paymentType, // ✅ Use paymentType
           paidAt: new Date()
         }]
       });
@@ -399,7 +416,7 @@ class BookingService {
   }
 
   /**
-   * Host approves booking
+   * Host approves booking (v2.0)
    */
   async approveBooking(bookingId, hostId) {
     try {
@@ -413,18 +430,28 @@ class BookingService {
         throw new Error('Unauthorized - not the property owner');
       }
 
-      if (booking.status !== 'pending') {
+      // Check bookingStatus (v2.0)
+      const currentStatus = booking.bookingStatus || booking.status;
+      if (currentStatus !== 'pending') {
         throw new Error('Booking is not in pending status');
       }
 
-      booking.status = 'approved';
+      // Update to approved (v2.0)
+      booking.bookingStatus = 'approved';
+      booking.status = 'approved'; // Backward compatibility
+      booking.approvedAt = new Date();
+
       await booking.save();
+
+      console.log(`✅ Booking approved: ${booking._id}, paymentType: ${booking.paymentType}, paymentStatus: ${booking.paymentStatus}`);
 
       // Notify guest
       await notificationService.sendBookingApproved(booking);
 
-      // If deposit payment, can release to host now
-      // If full payment, keep in escrow until check-in
+      // Payment handling based on type (v2.0):
+      // - FULL payment: Keep in escrow until check-in
+      // - DEPOSIT: Lock in escrow until remaining cash paid
+      // - CASH: No action needed, wait for check-in payment
 
       await booking.populate([
         { path: 'customerId', select: 'firstName lastName email profileImagePath' },
@@ -433,13 +460,13 @@ class BookingService {
 
       return booking;
     } catch (error) {
-      console.error('Error approving booking:', error);
+      console.error('❌ Error approving booking:', error);
       throw error;
     }
   }
 
   /**
-   * Host rejects booking
+   * Host rejects booking (v2.0)
    */
   async rejectBooking(bookingId, hostId, reason) {
     try {
@@ -453,15 +480,21 @@ class BookingService {
         throw new Error('Unauthorized');
       }
 
-      if (booking.status !== 'pending') {
+      const currentStatus = booking.bookingStatus || booking.status;
+      if (currentStatus !== 'pending') {
         throw new Error('Booking is not in pending status');
       }
 
-      booking.status = 'rejected';
+      // Update to rejected (v2.0)
+      booking.bookingStatus = 'rejected';
+      booking.status = 'rejected'; // Backward compatibility
       booking.rejectionReason = reason;
+
       await booking.save();
 
-      // Process refund if paid
+      console.log(`✅ Booking rejected: ${booking._id}, paymentStatus: ${booking.paymentStatus}`);
+
+      // Process refund if paid (v2.0)
       if (booking.paymentStatus === 'paid' || booking.paymentStatus === 'partially_paid') {
         await this.processRefund(booking, 'host_rejection');
       }
@@ -471,7 +504,7 @@ class BookingService {
 
       return booking;
     } catch (error) {
-      console.error('Error rejecting booking:', error);
+      console.error('❌ Error rejecting booking:', error);
       throw error;
     }
   }
@@ -589,64 +622,6 @@ class BookingService {
   }
 
   /**
-   * Host confirms cash payment
-   */
-  async confirmCashPayment(bookingId, hostId, amount, notes) {
-    try {
-      const booking = await Booking.findById(bookingId);
-
-      if (!booking) {
-        throw new Error('Booking not found');
-      }
-
-      if (booking.hostId.toString() !== hostId) {
-        throw new Error('Unauthorized');
-      }
-
-      // Add to payment history
-      booking.paymentHistory.push({
-        amount,
-        method: 'cash',
-        status: 'paid',
-        type: booking.paymentStatus === 'partially_paid' ? 'remaining' : 'full',
-        paidAt: new Date(),
-        notes
-      });
-
-      // Update payment status
-      if (booking.paymentStatus === 'partially_paid') {
-        booking.remainingAmount = Math.max(0, booking.remainingAmount - amount);
-        if (booking.remainingAmount === 0) {
-          booking.paymentStatus = 'paid';
-        }
-      } else {
-        booking.paymentStatus = 'paid';
-        booking.paidAt = new Date();
-      }
-
-      await booking.save();
-
-      // Create payment history record
-      await PaymentHistory.create({
-        bookingId: booking._id,
-        customerId: booking.customerId,
-        hostId: booking.hostId,
-        listingId: booking.listingId,
-        amount,
-        paymentMethod: 'cash',
-        paymentType: 'cash_payment',
-        status: 'completed',
-        description: notes || `Cash payment for booking ${booking._id}`
-      });
-
-      return booking;
-    } catch (error) {
-      console.error('Error confirming cash payment:', error);
-      throw error;
-    }
-  }
-
-  /**
    * Complete booking
    */
   async completeBooking(bookingId, hostId, hasDamage = false, damageReport = null) {
@@ -681,6 +656,88 @@ class BookingService {
       return booking;
     } catch (error) {
       console.error('Error completing booking:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Confirm cash payment received (v2.0)
+   * For cash bookings or remaining amount for deposit bookings
+   */
+  async confirmCashPayment(bookingId, hostId, paymentDetails) {
+    try {
+      const booking = await Booking.findById(bookingId);
+
+      if (!booking) {
+        throw new Error('Booking not found');
+      }
+
+      if (booking.hostId.toString() !== hostId) {
+        throw new Error('Unauthorized - not the property owner');
+      }
+
+      const { amount, notes } = paymentDetails;
+
+      // Update payment status
+      if (booking.paymentStatus === 'unpaid') {
+        // Cash booking - full payment received
+        booking.paymentStatus = 'paid';
+        booking.paidAmount = amount || booking.totalPrice;
+        booking.remainingAmount = 0;
+
+      } else if (booking.paymentStatus === 'partially_paid') {
+        // Deposit booking - remaining payment received
+        booking.paymentStatus = 'paid';
+        booking.paidAmount = booking.totalPrice;
+        booking.remainingAmount = 0;
+      }
+
+      booking.paidAt = new Date();
+
+      // Add to payment history
+      booking.paymentHistory.push({
+        amount: amount || booking.remainingAmount,
+        method: 'cash',
+        status: 'paid',
+        type: booking.paymentType === 'deposit' ? 'remaining' : 'full',
+        paidAt: new Date(),
+        notes: notes || 'Cash payment confirmed by host'
+      });
+
+      await booking.save();
+
+      // Create payment history record
+      await PaymentHistory.create({
+        bookingId: booking._id,
+        customerId: booking.customerId,
+        hostId: booking.hostId,
+        listingId: booking.listingId,
+        amount: amount || booking.remainingAmount,
+        paymentMethod: 'cash',
+        paymentType: booking.paymentType === 'deposit' ? 'remaining_payment' : 'full_payment',
+        status: 'completed',
+        description: notes || `Cash payment confirmed for booking ${booking._id}`
+      });
+
+      console.log(`✅ Cash payment confirmed: ${booking._id}, amount: ${amount}, paymentStatus: ${booking.paymentStatus}`);
+
+      // If deposit was paid, now release it to host
+      if (booking.paymentType === 'deposit' && booking.depositAmount > 0) {
+        console.log(`💰 Releasing deposit to host: ${booking.depositAmount} VND`);
+        // In production: actual payment processing here
+      }
+
+      // Notify guest
+      await notificationService.sendPaymentConfirmed(booking);
+
+      await booking.populate([
+        { path: 'customerId', select: 'firstName lastName email profileImagePath' },
+        { path: 'listingId' }
+      ]);
+
+      return booking;
+    } catch (error) {
+      console.error('❌ Error confirming cash payment:', error);
       throw error;
     }
   }

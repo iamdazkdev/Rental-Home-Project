@@ -1,9 +1,58 @@
 const router = require('express').Router();
 const Booking = require('../models/Booking');
+const BookingIntent = require('../models/BookingIntent');
 const PendingBooking = require('../models/PendingBooking');
 const bookingService = require('../services/bookingService');
 const vnpayService = require('../services/vnpayService');
 const { authenticateToken } = require('../middleware/auth');
+
+/**
+ * Create BookingIntent before VNPay redirect (v2.0)
+ * POST /booking/create-intent
+ */
+router.post('/create-intent', authenticateToken, async (req, res) => {
+  try {
+    const { listingId, hostId, startDate, endDate, totalPrice, paymentType } = req.body;
+
+    if (!listingId || !hostId || !startDate || !endDate || !totalPrice || !paymentType) {
+      return res.status(400).json({
+        message: 'Missing required fields: listingId, hostId, startDate, endDate, totalPrice, paymentType'
+      });
+    }
+
+    if (!['full', 'deposit'].includes(paymentType)) {
+      return res.status(400).json({ message: 'Invalid paymentType. Must be "full" or "deposit"' });
+    }
+
+    const bookingData = {
+      listingId,
+      customerId: req.user.id,
+      hostId,
+      startDate,
+      endDate,
+      totalPrice
+    };
+
+    const result = await bookingService.createBookingIntent(bookingData, paymentType);
+
+    console.log(`✅ BookingIntent created: ${result.tempOrderId}, type: ${paymentType}, amount: ${result.paymentAmount}`);
+
+    res.status(201).json({
+      success: true,
+      tempOrderId: result.tempOrderId,
+      paymentAmount: result.paymentAmount,
+      paymentType,
+      message: 'BookingIntent created successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error creating BookingIntent:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create BookingIntent',
+      error: error.message
+    });
+  }
+});
 
 /**
  * Check availability for dates
@@ -244,24 +293,38 @@ router.patch('/:id/check-out', authenticateToken, async (req, res) => {
 });
 
 /**
- * Host confirms cash payment received
+ * Host confirms cash payment received (v2.0)
  * POST /booking/:id/confirm-cash-payment
  */
 router.post('/:id/confirm-cash-payment', authenticateToken, async (req, res) => {
   try {
     const { amount, notes } = req.body;
 
+    const paymentDetails = {
+      amount,
+      notes
+    };
+
     const booking = await bookingService.confirmCashPayment(
       req.params.id,
       req.user.id,
-      amount,
-      notes
+      paymentDetails
     );
 
-    res.json(booking);
+    console.log(`✅ Cash payment confirmed: ${booking._id}, paymentStatus: ${booking.paymentStatus}`);
+
+    res.json({
+      success: true,
+      booking,
+      message: 'Cash payment confirmed successfully'
+    });
   } catch (error) {
-    console.error('Error confirming cash payment:', error);
-    res.status(500).json({ message: 'Failed to confirm payment', error: error.message });
+    console.error('❌ Error confirming cash payment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to confirm payment',
+      error: error.message
+    });
   }
 });
 

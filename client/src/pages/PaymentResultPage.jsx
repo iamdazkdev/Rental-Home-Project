@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API_ENDPOINTS, HTTP_METHODS } from '../constants/api';
 import Loader from '../components/Loader';
@@ -15,18 +15,7 @@ const PaymentResultPage = () => {
   const [loading, setLoading] = useState(true);
   const [bookingDetails, setBookingDetails] = useState(null);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-
-    // Fetch booking details if successful payment
-    if (status === 'success' && bookingId) {
-      fetchBookingDetails();
-    } else {
-      setLoading(false);
-    }
-  }, [status, bookingId]);
-
-  const fetchBookingDetails = async () => {
+  const fetchBookingDetails = useCallback(async () => {
     try {
       const response = await fetch(
         API_ENDPOINTS.PAYMENT.STATUS(bookingId),
@@ -42,7 +31,18 @@ const PaymentResultPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [bookingId]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+
+    // Fetch booking details if successful payment
+    if (status === 'success' && bookingId) {
+      fetchBookingDetails();
+    } else {
+      setLoading(false);
+    }
+  }, [status, bookingId, fetchBookingDetails]);
 
   const handleNavigateToTrips = () => {
     navigate('/trips');

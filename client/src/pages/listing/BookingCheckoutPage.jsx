@@ -5,7 +5,7 @@ import Navbar from '../../components/Navbar';
 import Loader from '../../components/Loader';
 import BookingSuccessModal from '../../components/BookingSuccessModal';
 import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from '../../constants/api';
-import { validateBookingData, getPaymentGatewayLogo, formatUSD } from '../../utils/paymentUtils';
+import { validateBookingData, getPaymentGatewayLogo } from '../../utils/paymentUtils';
 import '../../styles/BookingCheckout.scss';
 
 const BookingCheckoutPage = () => {
