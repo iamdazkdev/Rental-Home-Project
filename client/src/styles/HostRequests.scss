@@ -1,0 +1,390 @@
+@import './variables.scss';
+
+.host-requests {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  .requests-header {
+    text-align: center;
+    margin-bottom: 3rem;
+
+    svg {
+      color: $pinkred;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #333;
+      margin: 0.5rem 0;
+    }
+
+    p {
+      color: #666;
+    }
+  }
+
+  .no-requests {
+    text-align: center;
+    padding: 4rem 2rem;
+
+    svg {
+      color: #ccc;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #666;
+    }
+  }
+
+  .requests-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    gap: 2rem;
+
+    .request-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      transition: all 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      }
+
+      .card-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+
+        .tenant-info {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          margin-bottom: 1rem;
+
+          .tenant-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+          }
+
+          h3 {
+            font-size: 1.25rem;
+            margin: 0 0 0.25rem 0;
+          }
+
+          .tenant-email {
+            opacity: 0.9;
+            margin: 0;
+            font-size: 0.9rem;
+          }
+        }
+
+        .room-name {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.95rem;
+          opacity: 0.9;
+        }
+      }
+
+      .request-details {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        border-bottom: 1px solid #f0f0f0;
+
+        .detail-row {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          color: #555;
+          font-size: 0.95rem;
+
+          svg {
+            color: $pinkred;
+            flex-shrink: 0;
+          }
+        }
+      }
+
+      .tenant-message {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+
+        h4 {
+          font-size: 0.9rem;
+          color: #666;
+          margin: 0 0 0.75rem 0;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        p {
+          margin: 0;
+          color: #333;
+          line-height: 1.6;
+          background: #f8f9fa;
+          padding: 1rem;
+          border-radius: 8px;
+          border-left: 4px solid $pinkred;
+        }
+      }
+
+      .approval-section {
+        padding: 1.5rem;
+        background: #f8f9fa;
+
+        h4 {
+          font-size: 0.9rem;
+          color: #666;
+          margin: 0 0 1rem 0;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .form-group {
+          margin-bottom: 1rem;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+          }
+
+          textarea,
+          input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+
+            &:focus {
+              outline: none;
+              border-color: $pinkred;
+            }
+          }
+
+          textarea {
+            resize: vertical;
+            min-height: 80px;
+          }
+
+          input[type="number"] {
+            max-width: 150px;
+          }
+        }
+      }
+
+      .card-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1rem;
+        padding: 1.5rem;
+
+        button {
+          padding: 0.75rem;
+          border: none;
+          border-radius: 8px;
+          font-size: 0.95rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+
+          &.chat-btn {
+            background: #667eea;
+            color: white;
+
+            &:hover {
+              background: darken(#667eea, 10%);
+            }
+          }
+
+          &.approve-btn {
+            background: #28a745;
+            color: white;
+
+            &:hover {
+              background: darken(#28a745, 10%);
+            }
+          }
+
+          &.reject-btn {
+            background: #fff;
+            color: #dc3545;
+            border: 2px solid #dc3545;
+
+            &:hover {
+              background: #dc3545;
+              color: white;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .reject-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e0e0e0;
+
+        h2 {
+          margin: 0;
+          color: #333;
+        }
+
+        .close-btn {
+          background: none;
+          border: none;
+          font-size: 2rem;
+          color: #999;
+          cursor: pointer;
+          line-height: 1;
+          transition: color 0.3s ease;
+
+          &:hover {
+            color: #333;
+          }
+        }
+      }
+
+      .modal-body {
+        padding: 2rem;
+
+        .info-text {
+          color: #666;
+          line-height: 1.6;
+          margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+          label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+          }
+
+          textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+
+            &:focus {
+              outline: none;
+              border-color: $pinkred;
+            }
+          }
+        }
+      }
+
+      .modal-footer {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-top: 1px solid #e0e0e0;
+
+        button {
+          flex: 1;
+          padding: 0.75rem;
+          border: none;
+          border-radius: 8px;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+
+          &.cancel-btn {
+            background: #f0f0f0;
+            color: #333;
+
+            &:hover {
+              background: #e0e0e0;
+            }
+          }
+
+          &.submit-btn {
+            background: #dc3545;
+            color: white;
+
+            &:hover {
+              background: darken(#dc3545, 10%);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .host-requests {
+    padding: 1rem;
+
+    .requests-grid {
+      grid-template-columns: 1fr;
+
+      .request-card {
+        .card-actions {
+          grid-template-columns: 1fr;
+        }
+      }
+    }
+  }
+}
+

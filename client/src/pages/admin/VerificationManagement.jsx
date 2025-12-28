@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import "../../styles/VerificationManagement.scss";
 import Navbar from "../../components/Navbar";
+import VerificationReviewModal from "../../components/VerificationReviewModal";
 
 const VerificationManagement = () => {
   const [verifications, setVerifications] = useState([]);
@@ -13,6 +14,11 @@ const VerificationManagement = () => {
   const [reviewAction, setReviewAction] = useState(""); // approve or reject
   const [rejectionReason, setRejectionReason] = useState("");
   const [processing, setProcessing] = useState(false);
+
+  // Success/Error Modal State
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successModalType, setSuccessModalType] = useState(""); // approved or rejected
+  const [successModalUserName, setSuccessModalUserName] = useState("");
 
   const user = useSelector((state) => state.user);
   const navigate = useNavigate();
@@ -80,9 +86,16 @@ const VerificationManagement = () => {
       );
 
       if (response.ok) {
-        alert(`Verification ${reviewAction} successfully!`);
+        // Close review modal first
         setShowModal(false);
-        fetchVerifications(); // Refresh list
+
+        // Show success modal
+        setSuccessModalType(reviewAction);
+        setSuccessModalUserName(selectedVerification.fullName);
+        setShowSuccessModal(true);
+
+        // Refresh list
+        fetchVerifications();
       } else {
         throw new Error("Failed to review verification");
       }
@@ -264,23 +277,66 @@ const VerificationManagement = () => {
         {/* Review Modal */}
         {showModal && (
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h2>
-                {reviewAction === "approved" ? "✅ Approve" : "❌ Reject"} Verification
+            <div
+              className={`modal-content ${reviewAction === "rejected" ? "rejection-modal" : "approval-modal"}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Icon */}
+              <div className={`modal-icon ${reviewAction === "rejected" ? "warning-icon" : "success-icon"}`}>
+                {reviewAction === "approved" ? (
+                  <span className="icon-emoji">✓</span>
+                ) : (
+                  <span className="icon-emoji">⚠</span>
+                )}
+              </div>
+
+              <h2 className={reviewAction === "rejected" ? "rejection-title" : ""}>
+                {reviewAction === "approved" ? "Approve Verification" : "Reject Verification"}
               </h2>
-              <p>
-                User: <strong>{selectedVerification?.fullName}</strong>
+
+              <p className="modal-user-info">
+                {reviewAction === "approved" ? (
+                  <>
+                    Are you sure you want to approve <strong>{selectedVerification?.fullName}</strong>'s identity verification?
+                  </>
+                ) : (
+                  <>
+                    You are about to reject <strong>{selectedVerification?.fullName}</strong>'s identity verification.
+                  </>
+                )}
               </p>
 
               {reviewAction === "rejected" && (
-                <div className="form-group">
-                  <label>Rejection Reason *</label>
-                  <textarea
-                    value={rejectionReason}
-                    onChange={(e) => setRejectionReason(e.target.value)}
-                    placeholder="Please explain why this verification is rejected..."
-                    rows={4}
-                  />
+                <>
+                  <div className="warning-box">
+                    <span className="warning-icon-small">⚠️</span>
+                    <p>This action will notify the user and allow them to resubmit their documents.</p>
+                  </div>
+
+                  <div className="form-group rejection-reason-group">
+                    <label>
+                      <span className="required-label">Rejection Reason</span>
+                      <span className="char-counter">{rejectionReason.length}/500</span>
+                    </label>
+                    <textarea
+                      value={rejectionReason}
+                      onChange={(e) => setRejectionReason(e.target.value)}
+                      placeholder="Please provide a clear explanation why this verification is rejected. This will help the user understand what needs to be corrected..."
+                      rows={5}
+                      maxLength={500}
+                      className={rejectionReason.trim() ? "has-content" : ""}
+                    />
+                    {!rejectionReason.trim() && (
+                      <span className="field-hint">A detailed reason is required for rejection</span>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {reviewAction === "approved" && (
+                <div className="info-box approval-info">
+                  <p>✓ User will be able to create listings as a host</p>
+                  <p>✓ Notification email will be sent automatically</p>
                 </div>
               )}
 
@@ -290,18 +346,36 @@ const VerificationManagement = () => {
                   onClick={() => setShowModal(false)}
                   disabled={processing}
                 >
-                  Cancel
+                  <span>Cancel</span>
                 </button>
                 <button
                   className={reviewAction === "approved" ? "approve-btn" : "reject-btn"}
                   onClick={handleReview}
-                  disabled={processing}
+                  disabled={processing || (reviewAction === "rejected" && !rejectionReason.trim())}
                 >
-                  {processing ? "Processing..." : `Confirm ${reviewAction}`}
+                  {processing ? (
+                    <>
+                      <span className="spinner-small"></span>
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      {reviewAction === "approved" ? "✓ Confirm Approval" : "✕ Confirm Rejection"}
+                    </>
+                  )}
                 </button>
               </div>
             </div>
           </div>
+        )}
+
+        {/* Success/Error Modal */}
+        {showSuccessModal && (
+          <VerificationReviewModal
+            type={successModalType}
+            userName={successModalUserName}
+            onClose={() => setShowSuccessModal(false)}
+          />
         )}
       </div>
     </>

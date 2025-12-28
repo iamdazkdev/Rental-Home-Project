@@ -35,6 +35,7 @@ const NotificationSchema = new mongoose.Schema(
         "payment_received",
         "payment_refunded",
         "payment_reminder",
+        "payment_confirmed",
 
         // Messages
         "new_message",

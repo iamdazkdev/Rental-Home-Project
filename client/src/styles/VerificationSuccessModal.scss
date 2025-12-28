@@ -1,0 +1,351 @@
+@import './variables.scss';
+
+.verification-success-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.verification-success-modal {
+  background: white;
+  border-radius: 24px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// Success Animation
+.success-animation {
+  padding: 40px 20px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.checkmark-circle {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.checkmark {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: block;
+  stroke-width: 3;
+  stroke: #4CAF50;
+  stroke-miterlimit: 10;
+  box-shadow: inset 0 0 0 #4CAF50;
+  animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
+}
+
+.checkmark-circle-path {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 3;
+  stroke-miterlimit: 10;
+  stroke: #4CAF50;
+  fill: none;
+  animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  stroke: #4CAF50;
+  stroke-width: 3;
+  animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes scale {
+  0%, 100% {
+    transform: none;
+  }
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+  }
+}
+
+@keyframes fill {
+  100% {
+    box-shadow: inset 0 0 0 60px #4CAF50;
+  }
+}
+
+// Success Content
+.success-content {
+  padding: 0 40px 40px;
+  text-align: center;
+
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 12px;
+  }
+
+  .success-message {
+    font-size: 16px;
+    color: #4CAF50;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .info-message {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+}
+
+// Verification Info Card
+.verification-info-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #e0e0e0;
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      font-size: 14px;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .info-value {
+      font-size: 14px;
+      color: #1a1a1a;
+      font-weight: 600;
+      text-align: right;
+
+      &.status-pending {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #ff9800;
+
+        .status-dot {
+          width: 8px;
+          height: 8px;
+          background: #ff9800;
+          border-radius: 50%;
+          animation: pulse 2s infinite;
+        }
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+}
+
+// Next Steps
+.next-steps {
+  background: #f0f7ff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  text-align: left;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1976d2;
+    margin-bottom: 12px;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.8;
+      padding: 4px 0;
+
+      &::before {
+        content: '';
+        display: inline-block;
+        width: 4px;
+        height: 4px;
+        background: #1976d2;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Action Buttons
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+
+  button {
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  .btn-view-status {
+    background: linear-gradient(135deg, $pinkred 0%, darken($pinkred, 10%) 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba($pinkred, 0.3);
+
+    .btn-icon {
+      font-size: 18px;
+    }
+
+    &:hover {
+      box-shadow: 0 6px 20px rgba($pinkred, 0.4);
+      transform: translateY(-2px);
+    }
+  }
+
+  .btn-continue {
+    background: white;
+    color: #666;
+    border: 2px solid #e0e0e0;
+
+    &:hover {
+      background: #f5f5f5;
+      border-color: #ccc;
+    }
+  }
+}
+
+// Close Button
+.modal-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.1);
+    transform: rotate(90deg);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .verification-success-modal {
+    max-width: 95%;
+    border-radius: 20px;
+  }
+
+  .success-content {
+    padding: 0 24px 24px;
+
+    h2 {
+      font-size: 24px;
+    }
+  }
+
+  .checkmark-circle {
+    width: 100px;
+    height: 100px;
+  }
+
+  .checkmark {
+    width: 100px;
+    height: 100px;
+  }
+
+  .modal-actions {
+    button {
+      padding: 12px 20px;
+      font-size: 14px;
+    }
+  }
+}
+

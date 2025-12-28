@@ -3,6 +3,12 @@ const multer = require("multer");
 const IdentityVerification = require("../models/IdentityVerification");
 const { uploadToCloudinary } = require("../services/cloudinaryService");
 
+// Verify uploadToCloudinary function exists
+console.log("🔍 [Identity Verification] uploadToCloudinary function:", typeof uploadToCloudinary);
+if (typeof uploadToCloudinary !== 'function') {
+  console.error("❌ [Identity Verification] uploadToCloudinary is not a function!");
+}
+
 // Multer config for ID card images
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -76,30 +82,80 @@ router.post(
     try {
       const { userId, fullName, phoneNumber, dateOfBirth } = req.body;
 
+      console.log("📥 [Identity Verification] Submit request received:", {
+        userId,
+        fullName,
+        phoneNumber,
+        dateOfBirth,
+        hasIdCardFront: !!req.files?.idCardFront,
+        hasIdCardBack: !!req.files?.idCardBack
+      });
+
       // Validation
       if (!userId || !fullName || !phoneNumber || !dateOfBirth) {
         return res.status(400).json({ message: "All fields are required" });
       }
 
-      if (!req.files?.idCardFront || !req.files?.idCardBack) {
-        return res.status(400).json({ message: "Both ID card images are required" });
-      }
-
-      // Upload ID card images to Cloudinary
-      console.log("📤 Uploading ID card images to Cloudinary...");
-      const frontImageResult = await uploadToCloudinary(req.files.idCardFront[0], "id-cards");
-      const backImageResult = await uploadToCloudinary(req.files.idCardBack[0], "id-cards");
-
       // Check if verification already exists
       let verification = await IdentityVerification.findOne({ userId });
+      const isUpdate = !!verification;
+
+      // For new submissions, require both images
+      if (!isUpdate && (!req.files?.idCardFront || !req.files?.idCardBack)) {
+        return res.status(400).json({ message: "Both ID card images are required for new submission" });
+      }
+
+      let frontImageUrl = verification?.idCardFront;
+      let backImageUrl = verification?.idCardBack;
+
+      // Upload new images if provided
+      if (req.files?.idCardFront) {
+        console.log("📤 [Identity Verification] Uploading front ID card image...");
+        console.log("📁 [Identity Verification] File details:", {
+          fieldname: req.files.idCardFront[0].fieldname,
+          originalname: req.files.idCardFront[0].originalname,
+          mimetype: req.files.idCardFront[0].mimetype,
+          size: req.files.idCardFront[0].size,
+          hasBuffer: !!req.files.idCardFront[0].buffer
+        });
+
+        try {
+          const frontImageResult = await uploadToCloudinary(req.files.idCardFront[0], "id-cards");
+          frontImageUrl = frontImageResult.url;
+          console.log("✅ [Identity Verification] Front image uploaded:", frontImageUrl);
+        } catch (uploadError) {
+          console.error("❌ [Identity Verification] Failed to upload front image:", uploadError);
+          throw new Error(`Failed to upload front image: ${uploadError.message}`);
+        }
+      }
+
+      if (req.files?.idCardBack) {
+        console.log("📤 [Identity Verification] Uploading back ID card image...");
+        console.log("📁 [Identity Verification] File details:", {
+          fieldname: req.files.idCardBack[0].fieldname,
+          originalname: req.files.idCardBack[0].originalname,
+          mimetype: req.files.idCardBack[0].mimetype,
+          size: req.files.idCardBack[0].size,
+          hasBuffer: !!req.files.idCardBack[0].buffer
+        });
+
+        try {
+          const backImageResult = await uploadToCloudinary(req.files.idCardBack[0], "id-cards");
+          backImageUrl = backImageResult.url;
+          console.log("✅ [Identity Verification] Back image uploaded:", backImageUrl);
+        } catch (uploadError) {
+          console.error("❌ [Identity Verification] Failed to upload back image:", uploadError);
+          throw new Error(`Failed to upload back image: ${uploadError.message}`);
+        }
+      }
 
       if (verification) {
         // Update existing verification (resubmit)
         verification.fullName = fullName;
         verification.phoneNumber = phoneNumber;
         verification.dateOfBirth = dateOfBirth;
-        verification.idCardFront = frontImageResult.url;
-        verification.idCardBack = backImageResult.url;
+        verification.idCardFront = frontImageUrl;
+        verification.idCardBack = backImageUrl;
         verification.status = "pending"; // Reset to pending
         verification.submittedAt = new Date();
         verification.rejectionReason = "";
@@ -115,8 +171,8 @@ router.post(
           fullName,
           phoneNumber,
           dateOfBirth,
-          idCardFront: frontImageResult.url,
-          idCardBack: backImageResult.url,
+          idCardFront: frontImageUrl,
+          idCardBack: backImageUrl,
           status: "pending",
         });
 
@@ -125,7 +181,7 @@ router.post(
       }
 
       res.status(201).json({
-        message: "Identity verification submitted successfully",
+        message: "Identity verification submitted successfully. Please wait for admin approval.",
         verification: {
           status: verification.status,
           submittedAt: verification.submittedAt,

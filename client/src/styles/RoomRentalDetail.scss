@@ -1,0 +1,453 @@
+@import "variables";
+
+.room-rental-detail {
+  min-height: 100vh;
+  padding-top: 80px;
+
+  .room-images {
+    max-width: 1400px;
+    margin: 0 auto 40px;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 10px;
+    padding: 0 20px;
+
+    .main-image {
+      height: 500px;
+      overflow: hidden;
+      border-radius: 15px;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .thumbnail-images {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+
+      img {
+        width: 100%;
+        height: 245px;
+        object-fit: cover;
+        border-radius: 10px;
+      }
+    }
+  }
+
+  .room-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px 60px;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 40px;
+
+    .room-main {
+      h1 {
+        font-size: 2.2rem;
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      .location {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 20px;
+      }
+
+      .price-section {
+        margin-bottom: 30px;
+
+        .price {
+          font-size: 2rem;
+          font-weight: 700;
+          color: #ff385c;
+        }
+
+        .period {
+          font-size: 1.2rem;
+          color: #666;
+          margin-left: 8px;
+        }
+      }
+
+      .room-stats {
+        display: flex;
+        gap: 30px;
+        padding: 20px 0;
+        border-top: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e0e0e0;
+        margin-bottom: 30px;
+
+        .stat {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          .icon {
+            font-size: 1.5rem;
+          }
+
+          span:last-child {
+            font-size: 1rem;
+            color: #555;
+          }
+        }
+      }
+
+      .description {
+        margin-bottom: 40px;
+
+        h2 {
+          font-size: 1.6rem;
+          margin-bottom: 15px;
+          color: #333;
+        }
+
+        p {
+          font-size: 1.05rem;
+          line-height: 1.8;
+          color: #555;
+        }
+      }
+
+      .amenities {
+        margin-bottom: 40px;
+
+        h2 {
+          font-size: 1.6rem;
+          margin-bottom: 20px;
+          color: #333;
+        }
+
+        .amenities-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          gap: 15px;
+
+          .amenity-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f8f8f8;
+            border-radius: 8px;
+
+            span {
+              color: #ff385c;
+              font-weight: 700;
+            }
+          }
+        }
+      }
+
+      .host-section {
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 1px solid #e0e0e0;
+
+        h2 {
+          font-size: 1.6rem;
+          margin-bottom: 20px;
+          color: #333;
+        }
+
+        .host-card {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          padding: 20px;
+          background: #f8f8f8;
+          border-radius: 12px;
+
+          img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+          }
+
+          .host-details {
+            h3 {
+              font-size: 1.3rem;
+              margin-bottom: 5px;
+              color: #333;
+            }
+
+            p {
+              color: #666;
+              font-size: 0.95rem;
+            }
+          }
+        }
+      }
+    }
+
+    .room-sidebar {
+      .request-card {
+        position: sticky;
+        top: 100px;
+        padding: 30px;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+        h3 {
+          font-size: 1.4rem;
+          margin-bottom: 10px;
+          color: #333;
+        }
+
+        p {
+          color: #666;
+          margin-bottom: 20px;
+        }
+
+        .request-btn {
+          width: 100%;
+          padding: 15px;
+          background: #ff385c;
+          color: white;
+          border: none;
+          border-radius: 10px;
+          font-size: 1.1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s;
+          margin-bottom: 25px;
+
+          &:hover {
+            background: #e0204e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 56, 92, 0.3);
+          }
+        }
+
+        .info-list {
+          .info-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+
+            &:last-child {
+              border-bottom: none;
+            }
+
+            .icon {
+              font-size: 1.5rem;
+            }
+
+            div {
+              flex: 1;
+
+              strong {
+                display: block;
+                margin-bottom: 5px;
+                color: #333;
+              }
+
+              p {
+                margin: 0;
+                font-size: 0.9rem;
+                color: #666;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+
+    .modal-content {
+      background: white;
+      border-radius: 15px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 25px 30px;
+        border-bottom: 1px solid #e0e0e0;
+
+        h2 {
+          font-size: 1.6rem;
+          color: #333;
+        }
+
+        .close-btn {
+          background: none;
+          border: none;
+          font-size: 1.8rem;
+          cursor: pointer;
+          color: #999;
+          transition: color 0.3s;
+
+          &:hover {
+            color: #333;
+          }
+        }
+      }
+
+      .error-message {
+        margin: 20px 30px;
+        padding: 15px;
+        background: #fee;
+        border-left: 4px solid #f00;
+        color: #c00;
+        border-radius: 5px;
+      }
+
+      form {
+        padding: 30px;
+
+        .form-group {
+          margin-bottom: 25px;
+
+          label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+
+            .required {
+              color: #f00;
+            }
+          }
+
+          input,
+          textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s;
+
+            &:focus {
+              outline: none;
+              border-color: #ff385c;
+              box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.1);
+            }
+          }
+
+          textarea {
+            resize: vertical;
+            min-height: 120px;
+          }
+
+          .hint {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #666;
+          }
+        }
+
+        .form-actions {
+          display: flex;
+          gap: 15px;
+          margin-top: 30px;
+
+          button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+
+            &.cancel-btn {
+              background: #f0f0f0;
+              color: #333;
+
+              &:hover {
+                background: #e0e0e0;
+              }
+            }
+
+            &.submit-btn {
+              background: #ff385c;
+              color: white;
+
+              &:hover:not(:disabled) {
+                background: #e0204e;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(255, 56, 92, 0.3);
+              }
+
+              &:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .room-rental-detail {
+    .room-images {
+      grid-template-columns: 1fr;
+
+      .thumbnail-images {
+        display: none;
+      }
+    }
+
+    .room-content {
+      grid-template-columns: 1fr;
+
+      .room-sidebar {
+        .request-card {
+          position: static;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .room-rental-detail {
+    .room-content {
+      .room-main {
+        h1 {
+          font-size: 1.8rem;
+        }
+
+        .room-stats {
+          flex-wrap: wrap;
+          gap: 15px;
+        }
+      }
+    }
+  }
+}
+

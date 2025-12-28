@@ -192,10 +192,49 @@ const getOptimizedImageUrl = (publicId, transformation = {}) => {
   return cloudinary.url(publicId, defaultTransformation);
 };
 
+/**
+ * Upload buffer to Cloudinary (for multer memory storage)
+ * @param {Object} file - Multer file object with buffer
+ * @param {String} folder - Cloudinary folder name
+ * @returns {Promise<Object>} Upload result with url and public_id
+ */
+const uploadToCloudinary = (file, folder = "rental-home-listings") => {
+  return new Promise((resolve, reject) => {
+    console.log("📤 [Cloudinary] Uploading file to folder:", folder);
+
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: folder,
+        allowed_formats: ["jpg", "jpeg", "png", "webp"],
+        transformation: [
+          { width: 1200, height: 800, crop: "limit", quality: "auto:good" }
+        ],
+        public_id: `${folder}_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`,
+      },
+      (error, result) => {
+        if (error) {
+          console.error("❌ [Cloudinary] Upload error:", error);
+          reject(error);
+        } else {
+          console.log("✅ [Cloudinary] Upload successful:", result.secure_url);
+          resolve({
+            url: result.secure_url,
+            public_id: result.public_id,
+          });
+        }
+      }
+    );
+
+    // Write buffer to stream
+    uploadStream.end(file.buffer);
+  });
+};
+
 module.exports = {
   cloudinary,
   upload,
   uploadUserProfile,
+  uploadToCloudinary,
   deleteCloudinaryImage,
   extractPublicId,
   getOptimizedImageUrl,

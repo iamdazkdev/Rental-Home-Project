@@ -1,0 +1,229 @@
+@import "variables";
+
+.room-rental-search {
+  min-height: 100vh;
+  padding: 80px 20px 40px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+
+  .search-header {
+    text-align: center;
+    margin-bottom: 40px;
+
+    h1 {
+      font-size: 2.5rem;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1.2rem;
+      color: #666;
+    }
+  }
+
+  .search-filters {
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    padding: 30px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+
+    .filter-group {
+      flex: 1;
+      min-width: 200px;
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+        font-size: 0.95rem;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s;
+
+        &:focus {
+          outline: none;
+          border-color: #ff385c;
+          box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.1);
+        }
+      }
+    }
+
+    .search-btn {
+      padding: 12px 30px;
+      background: #ff385c;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+
+      &:hover {
+        background: #e0204e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 56, 92, 0.3);
+      }
+    }
+  }
+
+  .search-results {
+    max-width: 1200px;
+    margin: 0 auto;
+
+    h2 {
+      margin-bottom: 30px;
+      color: #333;
+      font-size: 1.8rem;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+      p {
+        font-size: 1.2rem;
+        color: #666;
+      }
+    }
+
+    .rooms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 30px;
+
+      .room-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+        cursor: pointer;
+
+        &:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .room-image {
+          width: 100%;
+          height: 220px;
+          overflow: hidden;
+
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+          }
+
+          &:hover img {
+            transform: scale(1.05);
+          }
+        }
+
+        .room-info {
+          padding: 20px;
+
+          h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .location {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+          }
+
+          .price {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ff385c;
+            margin-bottom: 15px;
+          }
+
+          .amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+
+            .amenity-tag {
+              background: #f0f0f0;
+              padding: 5px 12px;
+              border-radius: 20px;
+              font-size: 0.85rem;
+              color: #555;
+            }
+          }
+
+          .host-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+
+            img {
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              object-fit: cover;
+            }
+
+            span {
+              font-size: 0.95rem;
+              color: #666;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .room-rental-search {
+    .search-header h1 {
+      font-size: 2rem;
+    }
+
+    .search-filters {
+      .filter-group {
+        min-width: 100%;
+      }
+
+      .search-btn {
+        width: 100%;
+      }
+    }
+
+    .search-results {
+      .rooms-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+}
+

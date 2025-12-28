@@ -1,0 +1,374 @@
+@import './variables.scss';
+
+.my-agreements {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  .agreements-header {
+    text-align: center;
+    margin-bottom: 3rem;
+
+    svg {
+      color: $pinkred;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #333;
+      margin: 0.5rem 0;
+    }
+
+    p {
+      color: #666;
+    }
+  }
+
+  .no-agreements {
+    text-align: center;
+    padding: 4rem 2rem;
+
+    svg {
+      color: #ccc;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #666;
+    }
+  }
+
+  .agreements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 2rem;
+
+    .agreement-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      transition: all 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+
+        .agreement-info {
+          h3 {
+            font-size: 1.25rem;
+            margin: 0 0 0.5rem 0;
+          }
+
+          .location {
+            opacity: 0.9;
+            margin: 0;
+          }
+        }
+
+        .status-badge {
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          text-transform: uppercase;
+
+          &.draft {
+            background: rgba(255, 255, 255, 0.3);
+          }
+
+          &.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #28a745;
+          }
+
+          &.terminated {
+            background: rgba(255, 255, 255, 0.3);
+          }
+        }
+      }
+
+      .agreement-summary {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+
+        .summary-item {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+
+          svg {
+            color: $pinkred;
+            flex-shrink: 0;
+          }
+
+          div {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .label {
+              color: #666;
+              font-size: 0.9rem;
+            }
+
+            .value {
+              font-weight: 600;
+              color: #333;
+            }
+          }
+        }
+      }
+
+      .acceptance-status {
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+
+        .acceptance-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          font-size: 0.9rem;
+
+          .accepted {
+            color: #28a745;
+          }
+
+          .pending {
+            color: #ffc107;
+          }
+        }
+      }
+
+      .card-actions {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+
+        button {
+          flex: 1;
+          padding: 0.75rem;
+          border: none;
+          border-radius: 8px;
+          font-size: 0.95rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+
+          &.view-btn {
+            background: #f0f0f0;
+            color: #333;
+
+            &:hover {
+              background: #e0e0e0;
+            }
+          }
+
+          &.accept-btn {
+            background: $pinkred;
+            color: white;
+
+            &:hover {
+              background: darken($pinkred, 10%);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .agreement-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      max-width: 700px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e0e0e0;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+
+        h2 {
+          margin: 0;
+          color: #333;
+        }
+
+        .close-btn {
+          background: none;
+          border: none;
+          font-size: 2rem;
+          color: #999;
+          cursor: pointer;
+          line-height: 1;
+          transition: color 0.3s ease;
+
+          &:hover {
+            color: #333;
+          }
+        }
+      }
+
+      .modal-body {
+        padding: 2rem;
+
+        section {
+          margin-bottom: 2rem;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          h3 {
+            color: $pinkred;
+            font-size: 1.1rem;
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid $pinkred;
+          }
+
+          p {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+            color: #555;
+
+            strong {
+              color: #333;
+              font-weight: 600;
+            }
+          }
+
+          .signatures {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+
+            .signature-item {
+              display: flex;
+              align-items: center;
+              gap: 1rem;
+              padding: 1rem;
+              background: #f8f9fa;
+              border-radius: 8px;
+
+              strong {
+                min-width: 80px;
+              }
+
+              .signed {
+                color: #28a745;
+                font-weight: 600;
+              }
+
+              .unsigned {
+                color: #dc3545;
+                font-style: italic;
+              }
+            }
+          }
+        }
+      }
+
+      .modal-footer {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-top: 1px solid #e0e0e0;
+        position: sticky;
+        bottom: 0;
+        background: white;
+
+        button {
+          flex: 1;
+          padding: 0.75rem;
+          border: none;
+          border-radius: 8px;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+
+          &.accept-modal-btn {
+            background: $pinkred;
+            color: white;
+
+            &:hover {
+              background: darken($pinkred, 10%);
+            }
+          }
+
+          &.close-modal-btn {
+            background: #f0f0f0;
+            color: #333;
+
+            &:hover {
+              background: #e0e0e0;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .my-agreements {
+    padding: 1rem;
+
+    .agreements-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .agreement-modal {
+      .modal-content {
+        .modal-body {
+          padding: 1.5rem;
+        }
+      }
+    }
+  }
+}
+

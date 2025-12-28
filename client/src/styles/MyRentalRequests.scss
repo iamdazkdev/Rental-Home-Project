@@ -1,0 +1,335 @@
+@import './variables.scss';
+
+.my-rental-requests {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  .requests-header {
+    margin-bottom: 2rem;
+    text-align: center;
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+
+      .header-icon {
+        width: 36px;
+        height: 36px;
+        color: $pinkred;
+      }
+
+      h1 {
+        font-size: 2rem;
+        color: #333;
+        margin: 0;
+      }
+    }
+
+    .header-subtitle {
+      color: #666;
+      font-size: 1rem;
+    }
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #e0e0e0;
+    overflow-x: auto;
+
+    button {
+      padding: 0.75rem 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+
+      &:hover {
+        color: $pinkred;
+      }
+
+      &.active {
+        color: $pinkred;
+        border-bottom-color: $pinkred;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .no-requests {
+    text-align: center;
+    padding: 4rem 2rem;
+
+    svg {
+      color: #ccc;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+
+    .primary-btn {
+      background: $pinkred;
+      color: white;
+      padding: 0.75rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: darken($pinkred, 10%);
+        transform: translateY(-2px);
+      }
+    }
+  }
+
+  .requests-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+
+    .request-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      transition: all 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        transform: translateY(-4px);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+
+        .room-info {
+          flex: 1;
+
+          h3 {
+            font-size: 1.25rem;
+            color: #333;
+            margin: 0 0 0.5rem 0;
+          }
+
+          .location {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0;
+          }
+        }
+
+        .status-badge {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          text-transform: uppercase;
+
+          .status-icon {
+            width: 18px;
+            height: 18px;
+          }
+
+          &.requested {
+            background: #fff3cd;
+            color: #856404;
+
+            .status-icon {
+              color: #856404;
+            }
+          }
+
+          &.approved {
+            background: #d4edda;
+            color: #155724;
+
+            .status-icon {
+              color: #155724;
+            }
+          }
+
+          &.rejected {
+            background: #f8d7da;
+            color: #721c24;
+
+            .status-icon {
+              color: #721c24;
+            }
+          }
+
+          &.cancelled {
+            background: #e0e0e0;
+            color: #666;
+
+            .status-icon {
+              color: #666;
+            }
+          }
+        }
+      }
+
+      .room-image {
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+
+      .request-details {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+
+        .detail-row {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          color: #555;
+          font-size: 0.95rem;
+
+          svg {
+            color: $pinkred;
+            flex-shrink: 0;
+          }
+        }
+      }
+
+      .request-message {
+        padding: 0 1.5rem 1.5rem;
+
+        h4 {
+          font-size: 0.9rem;
+          color: #666;
+          margin: 0 0 0.5rem 0;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        p {
+          color: #333;
+          line-height: 1.6;
+          margin: 0;
+        }
+      }
+
+      .rejection-reason {
+        padding: 1rem 1.5rem;
+        background: #fff3cd;
+        border-left: 4px solid #856404;
+
+        h4 {
+          font-size: 0.9rem;
+          color: #856404;
+          margin: 0 0 0.5rem 0;
+          font-weight: 600;
+        }
+
+        p {
+          color: #333;
+          margin: 0;
+          line-height: 1.6;
+        }
+      }
+
+      .card-actions {
+        display: flex;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-top: 1px solid #f0f0f0;
+
+        button {
+          flex: 1;
+          padding: 0.75rem;
+          border: none;
+          border-radius: 8px;
+          font-size: 0.95rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+
+          &.view-btn {
+            background: #f0f0f0;
+            color: #333;
+
+            &:hover {
+              background: #e0e0e0;
+            }
+          }
+
+          &.cancel-btn {
+            background: #fff;
+            color: #dc3545;
+            border: 2px solid #dc3545;
+
+            &:hover {
+              background: #dc3545;
+              color: white;
+            }
+          }
+
+          &.agreement-btn {
+            background: $pinkred;
+            color: white;
+
+            &:hover {
+              background: darken($pinkred, 10%);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .my-rental-requests {
+    padding: 1rem;
+
+    .requests-header {
+      .header-content {
+        h1 {
+          font-size: 1.5rem;
+        }
+      }
+    }
+
+    .requests-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+}
+

@@ -34,8 +34,18 @@ import PaymentCallback from "./pages/entirePlace/PaymentCallback";
 import BookingConfirmation from "./pages/entirePlace/BookingConfirmation";
 
 // Room Rental Pages (Process 2)
+import RoomRentalSearch from "./pages/roomRental/RoomRentalSearch";
+import RoomRentalDetail from "./pages/roomRental/RoomRentalDetail";
 import RoomRentalApplicationPage from "./pages/roomRental/RoomRentalApplicationPage";
 import HostApplicationDashboard from "./pages/roomRental/HostApplicationDashboard";
+import MyRentalRequests from "./pages/roomRental/MyRentalRequests";
+import MyAgreements from "./pages/roomRental/MyAgreements";
+import MyRentals from "./pages/roomRental/MyRentals";
+import MyPayments from "./pages/roomRental/MyPayments";
+import HostRequests from "./pages/roomRental/HostRequests";
+import HostAgreements from "./pages/roomRental/HostAgreements";
+import HostRentals from "./pages/roomRental/HostRentals";
+import HostPayments from "./pages/roomRental/HostPayments";
 
 function App() {
   return (
@@ -81,8 +91,22 @@ function App() {
           <Route path="/booking/confirmation" element={<BookingConfirmation />} />
 
           {/* Room Rental Routes (Process 2) */}
+          <Route path="/room-rental" element={<RoomRentalSearch />} />
+          <Route path="/room-rental/:roomId" element={<RoomRentalDetail />} />
           <Route path="/room-rental/apply/:listingId" element={<RoomRentalApplicationPage />} />
           <Route path="/room-rental/applications" element={<HostApplicationDashboard />} />
+
+          {/* Room Rental - Tenant Pages */}
+          <Route path="/room-rental/my-requests" element={<MyRentalRequests />} />
+          <Route path="/room-rental/my-agreements" element={<MyAgreements />} />
+          <Route path="/room-rental/my-rentals" element={<MyRentals />} />
+          <Route path="/room-rental/my-payments" element={<MyPayments />} />
+
+          {/* Room Rental - Host Pages */}
+          <Route path="/room-rental/host/requests" element={<HostRequests />} />
+          <Route path="/room-rental/host/agreements" element={<HostAgreements />} />
+          <Route path="/room-rental/host/rentals" element={<HostRentals />} />
+          <Route path="/room-rental/host/payments" element={<HostPayments />} />
 
           {/* Admin Routes */}
           <Route path="/admin/manage" element={<AdminManagement />} />

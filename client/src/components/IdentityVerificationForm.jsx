@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import VerificationSuccessModal from "./VerificationSuccessModal";
 import "../styles/IdentityVerification.scss";
 
 const IdentityVerificationForm = ({ userId, onSuccess, existingVerification }) => {
@@ -21,6 +22,8 @@ const IdentityVerificationForm = ({ userId, onSuccess, existingVerification }) =
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [dragActive, setDragActive] = useState({ front: false, back: false });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submittedData, setSubmittedData] = useState(null);
 
   const frontInputRef = useRef(null);
   const backInputRef = useRef(null);
@@ -123,14 +126,36 @@ const IdentityVerificationForm = ({ userId, onSuccess, existingVerification }) =
     e.preventDefault();
     setError("");
 
+    console.log("📤 Submitting verification...", {
+      userId,
+      formData,
+      hasIdCardFront: !!idCardFront,
+      hasIdCardBack: !!idCardBack,
+      hasFrontPreview: !!frontPreview,
+      hasBackPreview: !!backPreview,
+      existingVerification: !!existingVerification
+    });
+
     // Validation
     if (!formData.fullName || !formData.phoneNumber || !formData.dateOfBirth) {
       setError("All fields are required");
       return;
     }
 
-    if (!idCardFront || !idCardBack) {
-      setError("Please upload both ID card images");
+    // For new verification, require both images
+    // For updating (resubmit), allow using existing images if no new ones uploaded
+    const isUpdate = !!existingVerification;
+    const hasNewFront = !!idCardFront;
+    const hasNewBack = !!idCardBack;
+    const hasExistingImages = frontPreview && backPreview;
+
+    if (!isUpdate && (!hasNewFront || !hasNewBack)) {
+      setError("Please upload both ID card images (front and back)");
+      return;
+    }
+
+    if (isUpdate && !hasExistingImages && (!hasNewFront || !hasNewBack)) {
+      setError("Please upload both ID card images (front and back)");
       return;
     }
 
@@ -142,9 +167,23 @@ const IdentityVerificationForm = ({ userId, onSuccess, existingVerification }) =
       submitData.append("fullName", formData.fullName);
       submitData.append("phoneNumber", formData.phoneNumber);
       submitData.append("dateOfBirth", formData.dateOfBirth);
-      submitData.append("idCardFront", idCardFront);
-      submitData.append("idCardBack", idCardBack);
 
+      // Only append new images if they exist
+      if (idCardFront) {
+        submitData.append("idCardFront", idCardFront);
+        console.log("✅ Appending new front image");
+      } else if (frontPreview) {
+        console.log("ℹ️ Using existing front image");
+      }
+
+      if (idCardBack) {
+        submitData.append("idCardBack", idCardBack);
+        console.log("✅ Appending new back image");
+      } else if (backPreview) {
+        console.log("ℹ️ Using existing back image");
+      }
+
+      console.log("🚀 Sending request to server...");
       const response = await fetch(
         "http://localhost:3001/identity-verification/submit",
         {
@@ -153,17 +192,47 @@ const IdentityVerificationForm = ({ userId, onSuccess, existingVerification }) =
         }
       );
 
+      console.log("📥 Response status:", response.status);
+
       if (response.ok) {
         const data = await response.json();
-        console.log("✅ Verification submitted:", data);
-        onSuccess();
+        console.log("✅ Verification submitted successfully:", data);
+
+        // Save submitted data and show success modal
+        setSubmittedData({
+          fullName: formData.fullName,
+          phoneNumber: formData.phoneNumber,
+          dateOfBirth: formData.dateOfBirth,
+          submittedAt: new Date(),
+        });
+        setShowSuccessModal(true);
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit verification");
+        // Get error details
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // If response is not JSON, get text
+          const errorText = await response.text();
+          console.error("❌ Server response (text):", errorText);
+          throw new Error(`Server error (${response.status}): ${errorText}`);
+        }
+
+        console.error("❌ Server error response:", {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        });
+        throw new Error(errorData.message || `Failed to submit verification (${response.status})`);
       }
     } catch (error) {
       console.error("❌ Error submitting verification:", error);
-      setError(error.message);
+      console.error("❌ Error details:", {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+      setError(error.message || "Failed to submit verification. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -171,51 +240,123 @@ const IdentityVerificationForm = ({ userId, onSuccess, existingVerification }) =
 
   return (
     <div className="identity-verification-form">
+      {/* Status Display for Pending/Rejected */}
+      {existingVerification && existingVerification.status !== "approved" && (
+        <div className={`verification-status-banner ${existingVerification.status}`}>
+          {existingVerification.status === "pending" ? (
+            <>
+              <div className="status-icon pending-icon">
+                <span className="icon">⏳</span>
+                <div className="pulse-ring"></div>
+              </div>
+              <div className="status-content">
+                <h3>
+                  <span className="status-badge pending">Pending Review</span>
+                </h3>
+                <p className="status-message">
+                  Your identity verification is currently under review by our admin team.
+                  This usually takes 24-48 hours. You'll be notified via email once it's approved.
+                </p>
+                <div className="status-info">
+                  <div className="info-item">
+                    <span className="label">📝 Submitted:</span>
+                    <span className="value">
+                      {new Date(existingVerification.submittedAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <span className="label">👤 Name:</span>
+                    <span className="value">{existingVerification.fullName}</span>
+                  </div>
+                </div>
+                <div className="status-actions">
+                  <p className="note">
+                    ℹ️ You cannot create Shared Room or Roommate listings until approved.
+                  </p>
+                </div>
+              </div>
+            </>
+          ) : existingVerification.status === "rejected" ? (
+            <>
+              <div className="status-icon rejected-icon">
+                <span className="icon">❌</span>
+                <div className="warning-ring"></div>
+              </div>
+              <div className="status-content">
+                <h3>
+                  <span className="status-badge rejected">Verification Rejected</span>
+                </h3>
+                <p className="status-message error">
+                  Unfortunately, your identity verification was rejected.
+                  {existingVerification.rejectionReason && " Please review the reason below and resubmit with corrected information."}
+                </p>
+
+                {existingVerification.rejectionReason && (
+                  <div className="rejection-reason-box">
+                    <div className="reason-header">
+                      <span className="icon">⚠️</span>
+                      <strong>Rejection Reason:</strong>
+                    </div>
+                    <p className="reason-text">{existingVerification.rejectionReason}</p>
+                  </div>
+                )}
+
+                <div className="status-info">
+                  <div className="info-item">
+                    <span className="label">📅 Rejected At:</span>
+                    <span className="value">
+                      {new Date(existingVerification.reviewedAt || existingVerification.updatedAt).toLocaleString()}
+                    </span>
+                  </div>
+                  {existingVerification.reviewedBy && (
+                    <div className="info-item">
+                      <span className="label">👨‍💼 Reviewed By:</span>
+                      <span className="value">Admin</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="status-actions">
+                  <div className="alert-box">
+                    <span className="alert-icon">💡</span>
+                    <p>
+                      <strong>What to do next:</strong>
+                      <br />
+                      • Review the rejection reason carefully
+                      <br />
+                      • Update your information below with correct details
+                      <br />
+                      • Upload clear, valid ID card images
+                      <br />
+                      • Submit again for review
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : null}
+        </div>
+      )}
+
       <div className="form-header">
         <div className="header-icon">🔐</div>
-        <h2>Identity Verification</h2>
+        <h2>
+          {existingVerification?.status === "rejected"
+            ? "Resubmit Identity Verification"
+            : existingVerification?.status === "pending"
+            ? "Your Verification Details"
+            : "Identity Verification"
+          }
+        </h2>
         <p className="subtitle">
-          To ensure safety and trust in our community, please verify your identity before creating
-          Shared Room or Roommate listings.
+          {existingVerification?.status === "rejected"
+            ? "Please correct the information and resubmit your verification."
+            : existingVerification?.status === "pending"
+            ? "Your verification is being reviewed. Details submitted are shown below."
+            : "To ensure safety and trust in our community, please verify your identity before creating Shared Room or Roommate listings."
+          }
         </p>
       </div>
-
-      {/* Status Banner for Pending/Rejected */}
-      {existingVerification?.status === "pending" && (
-        <div className="verification-status-banner pending">
-          <div className="status-icon">⏳</div>
-          <div className="status-content">
-            <h3>Verification Pending</h3>
-            <p>
-              Your verification is currently under review. Our team will process it within 24-48 hours.
-            </p>
-            <p style={{ marginTop: '8px', fontSize: '14px', fontWeight: '500' }}>
-              💡 You can still update your information below if needed. Changes will be saved and reviewed.
-            </p>
-            <p style={{ marginTop: '12px', fontSize: '13px', fontStyle: 'italic', opacity: 0.8 }}>
-              Submitted: {new Date(existingVerification.createdAt).toLocaleDateString()}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {existingVerification?.status === "rejected" && (
-        <div className="verification-status-banner rejected">
-          <div className="status-icon">❌</div>
-          <div className="status-content">
-            <h3>Verification Rejected</h3>
-            <p>
-              Unfortunately, your verification was rejected. Please review the reason below and resubmit
-              with correct information.
-            </p>
-            {existingVerification.rejectionReason && (
-              <div className="rejection-reason">
-                <strong>Reason:</strong> {existingVerification.rejectionReason}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {error && (
         <div className="error-banner">
@@ -462,6 +603,17 @@ const IdentityVerificationForm = ({ userId, onSuccess, existingVerification }) =
           )}
         </button>
       </form>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <VerificationSuccessModal
+          verificationData={submittedData}
+          onClose={() => {
+            setShowSuccessModal(false);
+            onSuccess();
+          }}
+        />
+      )}
     </div>
   );
 };

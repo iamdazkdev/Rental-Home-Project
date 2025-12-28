@@ -455,12 +455,17 @@ const CreateListingPage = () => {
   // Check if host profile is required
   const requiresHostProfile = type === "Room(s)" || type === "A Shared Room";
 
+  // Determine if this is a Room Rental (monthly-based) vs Entire Place Rental (nightly-based)
+  const isRoomRental = type === "Room(s)"; // Shared living, monthly rent
+  const isEntirePlaceRental = type === "An Entire Place"; // Full property, nightly booking
+  const isRoommateMatching = type === "A Shared Room"; // Roommate finding (future feature)
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Validation
+      // Common validation
       if (!category) {
         alert("Please select a category");
         setIsLoading(false);
@@ -477,7 +482,7 @@ const CreateListingPage = () => {
         return;
       }
 
-      // Validate host profile for Room/Shared Room
+      // Validate host profile for Room Rental/Roommate Matching
       if (requiresHostProfile) {
         // Check verification status first
         if (verificationStatus !== "approved") {
@@ -504,7 +509,14 @@ const CreateListingPage = () => {
           setIsLoading(false);
           return;
         }
-        if (dailyPrice <= 0) {
+        if (dailyPrice <= 0 || monthlyPrice <= 0) {
+          alert("Please enter valid daily and monthly prices");
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        // Entire Place validation
+        if (formDescription.price <= 0) {
           alert("Please enter a valid price");
           setIsLoading(false);
           return;
@@ -551,82 +563,142 @@ const CreateListingPage = () => {
         }
       } else {
         // CREATE NEW LISTING
-        const listingForm = new FormData();
-        listingForm.append("creator", creatorId);
-        listingForm.append("category", category);
-        listingForm.append("type", type);
-        listingForm.append("streetAddress", formLocation.streetAddress);
-        listingForm.append("aptSuite", formLocation.aptSuite);
-        listingForm.append("city", formLocation.city);
-        listingForm.append("province", formLocation.province);
-        listingForm.append("country", formLocation.country);
-        listingForm.append("guestCount", guestCount);
-        listingForm.append("bedroomCount", bedroomCount);
-        listingForm.append("bedCount", bedCount);
-        listingForm.append("bathroomCount", bathroomCount);
-        listingForm.append("amenities", JSON.stringify(amenities));
-        listingForm.append("title", formDescription.title);
-        listingForm.append("description", formDescription.description);
-        listingForm.append("highlight", formDescription.highlight);
-        listingForm.append("highlightDesc", formDescription.highlightDesc);
 
-        // Add pricing based on type
-        if (requiresHostProfile) {
-          // Room/Shared Room: Use daily price (will be stored as main price)
-          listingForm.append("price", dailyPrice);
-          listingForm.append("monthlyPrice", monthlyPrice);
-          listingForm.append("pricingType", pricingType);
-          // Add host profile
-          listingForm.append("hostProfile", JSON.stringify(hostProfile));
-          console.log("📋 Sending host profile:", hostProfile);
-        } else {
-          // Entire Place: Use regular price
+        // PROCESS 1: ENTIRE PLACE RENTAL (Nightly booking)
+        if (isEntirePlaceRental) {
+          console.log("🏠 Creating Entire Place Rental listing...");
+
+          const listingForm = new FormData();
+          listingForm.append("creator", creatorId);
+          listingForm.append("category", category);
+          listingForm.append("type", type);
+          listingForm.append("streetAddress", formLocation.streetAddress);
+          listingForm.append("aptSuite", formLocation.aptSuite);
+          listingForm.append("city", formLocation.city);
+          listingForm.append("province", formLocation.province);
+          listingForm.append("country", formLocation.country);
+          listingForm.append("guestCount", guestCount);
+          listingForm.append("bedroomCount", bedroomCount);
+          listingForm.append("bedCount", bedCount);
+          listingForm.append("bathroomCount", bathroomCount);
+          listingForm.append("amenities", JSON.stringify(amenities));
+          listingForm.append("title", formDescription.title);
+          listingForm.append("description", formDescription.description);
+          listingForm.append("highlight", formDescription.highlight);
+          listingForm.append("highlightDesc", formDescription.highlightDesc);
           listingForm.append("price", formDescription.price);
+
+          photos.forEach((photo) => {
+            if (photo.file) {
+              listingForm.append("listingPhotos", photo.file);
+            }
+          });
+
+          const response = await fetch(API_ENDPOINTS.LISTINGS.CREATE, {
+            method: HTTP_METHODS.POST,
+            body: listingForm,
+          });
+
+          if (response.ok) {
+            console.log("✅ Entire Place listing created successfully");
+            alert("🎉 Your property has been listed successfully!");
+            navigate("/properties");
+          } else {
+            const errorData = await response.text();
+            throw new Error(`HTTP error! status: ${response.status} - ${errorData}`);
+          }
         }
 
-        photos.forEach((photo) => {
-          if (photo.file) {
-            listingForm.append("listingPhotos", photo.file);
-          }
-        });
+        // PROCESS 2: ROOM RENTAL (Monthly rental with host profile)
+        else if (isRoomRental) {
+          console.log("🚪 Creating Room Rental listing...");
 
-        const response = await fetch(API_ENDPOINTS.LISTINGS.CREATE, {
-          method: HTTP_METHODS.POST,
-          body: listingForm,
-        });
+          const roomData = new FormData();
 
-        if (response.ok) {
-          console.log("✅ Listing created successfully");
+          // Basic info
+          roomData.append("hostId", creatorId);
+          roomData.append("category", category);
+          roomData.append("type", type);
 
-          // If Room/Shared Room and hostBio is provided, save it to User model
-          if (requiresHostProfile && hostBio.trim()) {
-            try {
-              console.log("💾 Saving host bio to user profile...");
-              const userUpdateForm = new FormData();
-              userUpdateForm.append('hostBio', hostBio);
+          // Location
+          roomData.append("streetAddress", formLocation.streetAddress);
+          roomData.append("aptSuite", formLocation.aptSuite);
+          roomData.append("city", formLocation.city);
+          roomData.append("province", formLocation.province);
+          roomData.append("country", formLocation.country);
 
-              const userResponse = await fetch(`${CONFIG.API_BASE_URL}/user/${creatorId}/profile`, {
-                method: 'PATCH',
-                body: userUpdateForm,
-              });
+          // Room details
+          roomData.append("maxOccupancy", guestCount);
+          roomData.append("amenities", JSON.stringify(amenities));
 
-              if (userResponse.ok) {
-                console.log("✅ Host bio saved successfully");
-              } else {
-                console.warn("⚠️ Failed to save host bio, but listing created");
-              }
-            } catch (error) {
-              console.warn("⚠️ Error saving host bio:", error);
-              // Don't fail the whole process if bio save fails
+          // Description
+          roomData.append("title", formDescription.title);
+          roomData.append("description", formDescription.description);
+
+          // Pricing - Room Rental uses MONTHLY rent as primary
+          roomData.append("monthlyRent", monthlyPrice);
+          roomData.append("depositAmount", monthlyPrice); // Default: 1 month deposit
+
+          // Host Profile
+          roomData.append("hostBio", hostBio);
+          roomData.append("hostProfile", JSON.stringify(hostProfile));
+
+          // Photos
+          photos.forEach((photo) => {
+            if (photo.file) {
+              roomData.append("roomPhotos", photo.file);
             }
-          }
+          });
 
-          setTimeout(() => {
-            navigate("/");
-          }, 500);
-        } else {
-          const errorData = await response.text();
-          throw new Error(`HTTP error! status: ${response.status} - ${errorData}`);
+          console.log("📤 Sending Room Rental data to API...");
+
+          const response = await fetch(`${CONFIG.API_BASE_URL}/room-rental/rooms/create`, {
+            method: HTTP_METHODS.POST,
+            body: roomData,
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log("✅ Room Rental created successfully:", data);
+
+            // Save host bio to user profile
+            if (hostBio.trim()) {
+              try {
+                console.log("💾 Saving host bio to user profile...");
+                const userUpdateForm = new FormData();
+                userUpdateForm.append('hostBio', hostBio);
+
+                const userResponse = await fetch(`${CONFIG.API_BASE_URL}/user/${creatorId}/profile`, {
+                  method: 'PATCH',
+                  body: userUpdateForm,
+                });
+
+                if (userResponse.ok) {
+                  console.log("✅ Host bio saved successfully");
+                }
+              } catch (error) {
+                console.warn("⚠️ Error saving host bio:", error);
+              }
+            }
+
+            alert("🎉 Your room has been listed successfully!");
+            navigate("/properties");
+          } else {
+            const errorText = await response.text();
+            console.error("❌ Room Rental creation failed:", errorText);
+            throw new Error(`Failed to create room rental: ${errorText}`);
+          }
+        }
+
+        // PROCESS 3: ROOMMATE MATCHING (Future feature)
+        else if (isRoommateMatching) {
+          alert("🚧 Roommate matching feature is coming soon!");
+          setIsLoading(false);
+          return;
+        }
+
+        else {
+          throw new Error("Invalid property type selected");
         }
       }
     } catch (error) {
@@ -1124,58 +1196,36 @@ const CreateListingPage = () => {
                       />
                     </div>
 
-                    {/* Pricing Section - Different for Room/Shared Room */}
-                    {requiresHostProfile ? (
-                      // Room/Shared Room: Dual pricing
+                    {/* Pricing Section - Different for Room Rental vs Entire Place */}
+                    {isRoomRental ? (
+                      // Room Rental: Monthly pricing (with daily equivalent shown)
                       <div className="full-width form-group dual-pricing-group">
-                        <label>💰 Set your pricing</label>
-                        <p className="pricing-hint">Choose your preferred pricing method. The other will be calculated automatically.</p>
+                        <label>💰 Set your monthly rent</label>
+                        <p className="pricing-hint">
+                          💡 <strong>Room Rental</strong> - Set your monthly rent. Daily rate will be calculated automatically for display purposes.
+                        </p>
 
                         <div className="pricing-tabs">
-                          <button
-                            type="button"
-                            className={`pricing-tab ${pricingType === "daily" ? "active" : ""}`}
-                            onClick={() => setPricingType("daily")}
-                          >
-                            📅 Daily Price
-                          </button>
                           <button
                             type="button"
                             className={`pricing-tab ${pricingType === "monthly" ? "active" : ""}`}
                             onClick={() => setPricingType("monthly")}
                           >
-                            📆 Monthly Price
+                            📆 Monthly Rent (Primary)
+                          </button>
+                          <button
+                            type="button"
+                            className={`pricing-tab ${pricingType === "daily" ? "active" : ""}`}
+                            onClick={() => setPricingType("daily")}
+                          >
+                            📅 Daily Equivalent
                           </button>
                         </div>
 
                         <div className="dual-price-inputs">
                           <div className="price-input-box">
-                            <label className={pricingType === "daily" ? "primary" : "secondary"}>
-                              💵 Daily Rate
-                            </label>
-                            <div className="price-input-wrapper">
-                              <span className="currency">$</span>
-                              <input
-                                type="number"
-                                placeholder="50"
-                                value={dailyPrice || ""}
-                                onChange={handleDailyPriceChange}
-                                required
-                                min="1"
-                                step="0.01"
-                              />
-                              <span className="per-unit">/night</span>
-                            </div>
-                            {pricingType === "daily" && (
-                              <p className="price-note">✨ Primary pricing</p>
-                            )}
-                          </div>
-
-                          <div className="price-arrow">⇄</div>
-
-                          <div className="price-input-box">
                             <label className={pricingType === "monthly" ? "primary" : "secondary"}>
-                              💰 Monthly Rate
+                              💰 Monthly Rent
                             </label>
                             <div className="price-input-wrapper">
                               <span className="currency">$</span>
@@ -1190,21 +1240,51 @@ const CreateListingPage = () => {
                               <span className="per-unit">/month</span>
                             </div>
                             {pricingType === "monthly" && (
-                              <p className="price-note">✨ Primary pricing</p>
+                              <p className="price-note">✨ This is your actual rent</p>
+                            )}
+                          </div>
+
+                          <div className="price-arrow">⇄</div>
+
+                          <div className="price-input-box">
+                            <label className={pricingType === "daily" ? "primary" : "secondary"}>
+                              💵 Daily Equivalent
+                            </label>
+                            <div className="price-input-wrapper">
+                              <span className="currency">$</span>
+                              <input
+                                type="number"
+                                placeholder="50"
+                                value={dailyPrice || ""}
+                                onChange={handleDailyPriceChange}
+                                required
+                                min="1"
+                                step="0.01"
+                              />
+                              <span className="per-unit">/day</span>
+                            </div>
+                            {pricingType === "daily" && (
+                              <p className="price-note">ℹ️ For reference only</p>
                             )}
                           </div>
                         </div>
 
-                        <div className="pricing-info">
-                          ℹ️ {pricingType === "daily"
-                            ? "Monthly price is automatically calculated (Daily × 30 days)"
-                            : "Daily price is automatically calculated (Monthly ÷ 30 days)"}
+                        <div className="pricing-info room-rental-info">
+                          ℹ️ <strong>Room Rental Model:</strong> Tenants pay monthly rent.
+                          {pricingType === "monthly"
+                            ? " Daily equivalent is calculated as (Monthly ÷ 30) for display."
+                            : " Monthly rent is calculated as (Daily × 30)."}
+                          <br />
+                          💡 Default deposit: 1 month's rent (${monthlyPrice.toLocaleString()})
                         </div>
                       </div>
-                    ) : (
-                      // Entire Place: Single pricing
+                    ) : isEntirePlaceRental ? (
+                      // Entire Place: Nightly pricing
                       <div className="full-width form-group price-group">
                         <label>💰 Set your price per night</label>
+                        <p className="pricing-hint">
+                          🏠 <strong>Entire Place Rental</strong> - Guests book nightly and pay per night.
+                        </p>
                         <div className="price-input-wrapper">
                           <span className="currency">$</span>
                           <input
@@ -1216,22 +1296,30 @@ const CreateListingPage = () => {
                             required
                             min="1"
                           />
+                          <span className="per-unit">/night</span>
                         </div>
+                      </div>
+                    ) : (
+                      // Roommate Matching or other types
+                      <div className="full-width form-group price-group">
+                        <label>💰 Pricing</label>
+                        <p className="pricing-hint">This feature is under development.</p>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Step 7: Host Profile (for Room/Shared Room only) */}
-              {requiresHostProfile && (
+              {/* Step 7: Host Profile (for Room Rental only - where host lives with tenant) */}
+              {isRoomRental && (
                 <div className="step-section host-profile-section">
                   <div className="step-header">
                     <div className="step-number">7</div>
                     <div>
                       <h2>👤 Tell guests about yourself</h2>
                       <p className="step-subtitle">
-                        Help guests understand who they'll be living with
+                        🏠 <strong>Important for Room Rental:</strong> You'll be living with your tenant.
+                        Help them understand your lifestyle and expectations.
                       </p>
                     </div>
                   </div>

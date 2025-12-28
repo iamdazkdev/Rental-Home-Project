@@ -39,6 +39,7 @@ const staticDataRoutes = require("./routes/staticData.js");
 
 // Import services
 const { startPaymentReminderScheduler } = require("./services/paymentReminderService");
+const { startMonthlyRentScheduler } = require("./services/monthlyRentScheduler");
 
 // Middleware
 const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE;
@@ -61,7 +62,8 @@ app.use("/auth", authRoutes);
 app.use("/listing", listingRoutes);
 app.use("/booking", bookingRoutes);
 app.use("/entire-place-booking", entirePlaceBookingRoutes); // New route for Entire Place Rental
-app.use("/room-rental", require("./routes/roomRental")); // Room Rental (Process 2)
+app.use("/room-rental", require("./routes/roomRental")); // Room Rental (Process 2) - Core
+app.use("/room-rental-advanced", require("./routes/roomRentalAdvanced")); // Room Rental (Process 2) - Advanced
 app.use("/user", userRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/reviews", reviewRoutes);
@@ -195,6 +197,9 @@ mongoose
 
       // Start payment reminder scheduler
       startPaymentReminderScheduler();
+
+      // Start monthly rent scheduler (for Room Rental)
+      startMonthlyRentScheduler();
     });
   })
   .catch((error) => {

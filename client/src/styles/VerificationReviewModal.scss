@@ -1,0 +1,323 @@
+@import './variables.scss';
+
+.verification-review-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+.verification-review-modal {
+  background: white;
+  border-radius: 24px;
+  max-width: 500px;
+  width: 100%;
+  padding: 48px 40px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
+  animation: modalBounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  position: relative;
+  text-align: center;
+
+  @keyframes modalBounceIn {
+    0% {
+      transform: scale(0.3) translateY(-100px);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    70% {
+      transform: scale(0.95);
+    }
+    100% {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+  }
+
+  // Animated Icon Container
+  .animated-icon {
+    margin: 0 auto 32px;
+    width: 120px;
+    height: 120px;
+    position: relative;
+
+    svg {
+      width: 120px;
+      height: 120px;
+    }
+
+    &.success {
+      .checkmark-circle {
+        stroke: #28a745;
+        stroke-width: 3;
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        animation: strokeCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+      }
+
+      .checkmark-check {
+        stroke: #28a745;
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 48;
+        stroke-dashoffset: 48;
+        animation: strokeCheck 0.4s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+      }
+    }
+
+    &.error {
+      .cross-circle {
+        stroke: #dc3545;
+        stroke-width: 3;
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        animation: strokeCircle 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+      }
+
+      .cross-line {
+        stroke: #dc3545;
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-dasharray: 28;
+        stroke-dashoffset: 28;
+      }
+
+      .cross-line-1 {
+        animation: strokeCheck 0.4s cubic-bezier(0.65, 0, 0.45, 1) 0.6s forwards;
+      }
+
+      .cross-line-2 {
+        animation: strokeCheck 0.4s cubic-bezier(0.65, 0, 0.45, 1) 0.7s forwards;
+      }
+    }
+  }
+
+  @keyframes strokeCircle {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes strokeCheck {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  // Message Content
+  .modal-message {
+    margin-bottom: 32px;
+
+    h2 {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 16px 0;
+      animation: slideUp 0.4s ease 0.3s both;
+
+      &.success-title {
+        color: #28a745;
+      }
+
+      &.error-title {
+        color: #dc3545;
+      }
+    }
+
+    .user-message {
+      font-size: 16px;
+      color: #555;
+      line-height: 1.6;
+      margin: 0 0 24px 0;
+      animation: slideUp 0.4s ease 0.4s both;
+
+      strong {
+        color: $pinkred;
+        font-weight: 700;
+      }
+
+      .highlight {
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 4px;
+
+        &.success {
+          color: #28a745;
+          background: rgba(40, 167, 69, 0.1);
+        }
+
+        &.error {
+          color: #dc3545;
+          background: rgba(220, 53, 69, 0.1);
+        }
+      }
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: left;
+      animation: slideUp 0.4s ease 0.5s both;
+      border: 2px solid transparent;
+
+      &.success-box {
+        background: linear-gradient(135deg, #e6f7e6 0%, #d4edda 100%);
+        border-color: #28a745;
+      }
+
+      &.error-box {
+        background: linear-gradient(135deg, #fff5f5 0%, #f8d7da 100%);
+        border-color: #dc3545;
+      }
+
+      p {
+        margin: 0;
+        font-size: 14px;
+        color: #333;
+        line-height: 2;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        &:not(:last-child) {
+          margin-bottom: 8px;
+        }
+      }
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  // Action Button
+  .modal-action-btn {
+    width: 100%;
+    padding: 16px 32px;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    animation: slideUp 0.4s ease 0.6s both;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.4);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    &:hover::before {
+      width: 400px;
+      height: 400px;
+    }
+
+    &.success-btn {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+
+      &:hover {
+        box-shadow: 0 8px 30px rgba(40, 167, 69, 0.6);
+        transform: translateY(-3px);
+      }
+
+      &:active {
+        transform: translateY(-1px);
+      }
+    }
+
+    &.error-btn {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      color: white;
+      box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+
+      &:hover {
+        box-shadow: 0 8px 30px rgba(220, 53, 69, 0.6);
+        transform: translateY(-3px);
+      }
+
+      &:active {
+        transform: translateY(-1px);
+      }
+    }
+  }
+
+  // Responsive
+  @media (max-width: 768px) {
+    padding: 36px 28px;
+
+    .animated-icon {
+      width: 100px;
+      height: 100px;
+
+      svg {
+        width: 100px;
+        height: 100px;
+      }
+    }
+
+    .modal-message {
+      h2 {
+        font-size: 24px;
+      }
+
+      .user-message {
+        font-size: 15px;
+      }
+
+      .info-box {
+        padding: 16px;
+
+        p {
+          font-size: 13px;
+        }
+      }
+    }
+
+    .modal-action-btn {
+      font-size: 14px;
+      padding: 14px 24px;
+    }
+  }
+}
+
