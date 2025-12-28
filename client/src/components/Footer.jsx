@@ -22,11 +22,11 @@ const Footer = () => {
         <h3>Contact</h3>
         <div className="footer_right_info">
           <LocalPhone />
-          <p>+1 234 567 890</p>
+          <p>+84 816 904 167</p>
         </div>
         <div className="footer_right_info">
           <Email />
-          <p>dreamnest@support.com</p>
+          <p>anhaaa2305@gmail.com</p>
         </div>
         <img src="/assets/payment.png" alt="payment" />
       </div>
