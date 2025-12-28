@@ -1,11 +1,18 @@
 const mongoose = require("mongoose");
 
-const PendingBookingSchema = new mongoose.Schema(
+/**
+ * BookingIntent Model (v2.0)
+ * Temporary record created before VNPay redirect
+ * Prevents race conditions and stores payment details
+ * Auto-expires after 30 minutes
+ */
+const BookingIntentSchema = new mongoose.Schema(
   {
     tempOrderId: {
       type: String,
       required: true,
       unique: true,
+      index: true,
     },
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -36,7 +43,17 @@ const PendingBookingSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["vnpay_full", "vnpay_deposit", "cash"],
+      enum: ["vnpay"],
+      required: true,
+      default: "vnpay",
+    },
+    paymentType: {
+      type: String,
+      enum: ["full", "deposit"],
+      required: true,
+    },
+    paymentAmount: {
+      type: Number,
       required: true,
     },
     depositPercentage: {
@@ -47,18 +64,14 @@ const PendingBookingSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    paymentAmount: {
+    remainingAmount: {
       type: Number,
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ["pending_payment", "expired", "converted"],
-      default: "pending_payment",
+      default: 0,
     },
     expiresAt: {
       type: Date,
-      default: () => new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
+      required: true,
+      index: { expires: 0 }, // TTL index - MongoDB will auto-delete after expiresAt
     },
   },
   {
@@ -66,12 +79,12 @@ const PendingBookingSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for efficient queries
-PendingBookingSchema.index({ customerId: 1, status: 1 });
-// Note: tempOrderId already has unique index from unique: true declaration above
-PendingBookingSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // TTL index - MongoDB will auto-delete expired documents
+// Indexes
+BookingIntentSchema.index({ tempOrderId: 1 });
+BookingIntentSchema.index({ expiresAt: 1 });
+BookingIntentSchema.index({ customerId: 1 });
 
-const PendingBooking = mongoose.model("PendingBooking", PendingBookingSchema);
+const BookingIntent = mongoose.model("BookingIntent", BookingIntentSchema);
 
-module.exports = PendingBooking;
+module.exports = BookingIntent;
 

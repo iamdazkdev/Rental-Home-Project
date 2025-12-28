@@ -1,7 +1,8 @@
+require('dotenv').config();
+
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-const dotenv = require("dotenv").config();
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -22,6 +23,7 @@ const io = new Server(server, {
 const authRoutes = require("./routes/auth.js");
 const listingRoutes = require("./routes/listing.js");
 const bookingRoutes = require("./routes/booking.js");
+const entirePlaceBookingRoutes = require("./routes/entirePlaceBooking.js");
 const userRoutes = require("./routes/user.js");
 const notificationRoutes = require("./routes/notification.js");
 const reviewRoutes = require("./routes/review.js");
@@ -32,6 +34,7 @@ const searchRoutes = require("./routes/search.js");
 const hostReviewsRoutes = require("./routes/hostReviews.js");
 const messageRoutes = require("./routes/messages.js");
 const paymentRoutes = require("./routes/payment.js");
+const staticDataRoutes = require("./routes/staticData.js");
 // Middleware
 const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE;
 app.use(cors());
@@ -52,6 +55,7 @@ app.get("/health", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/listing", listingRoutes);
 app.use("/booking", bookingRoutes);
+app.use("/entire-place-booking", entirePlaceBookingRoutes); // New route for Entire Place Rental
 app.use("/user", userRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/reviews", reviewRoutes);
@@ -63,6 +67,7 @@ app.use("/host-reviews", hostReviewsRoutes);
 app.use("/messages", messageRoutes);
 app.use("/payment", paymentRoutes);
 app.use("/payment-history", require("./routes/paymentHistory"));
+app.use("/static-data", staticDataRoutes); // Static data API (categories, types, facilities)
 // Global templates (admin manages)
 app.use("/categories", require("./routes/categories"));
 app.use("/property-types", require("./routes/propertyTypes"));
@@ -168,7 +173,7 @@ mongoose
   .then(() => {
     const HOST = process.env.HOST || "localhost";
     server.listen(PORT, HOST, () => {
-      console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+      console.log(`🚀 Server running on https://${HOST}:${PORT}`);
       console.log(`💬 Socket.io enabled for real-time chat`);
     });
   })

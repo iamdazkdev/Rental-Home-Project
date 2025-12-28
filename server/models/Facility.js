@@ -49,7 +49,6 @@ const FacilitySchema = new mongoose.Schema(
 );
 
 // Indexes
-FacilitySchema.index({ name: 1 });
 FacilitySchema.index({ isActive: 1, category: 1, displayOrder: 1 });
 
 // Static methods

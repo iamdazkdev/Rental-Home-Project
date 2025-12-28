@@ -11,19 +11,16 @@ const PaymentHistorySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Booking",
       required: true,
-      index: true,
     },
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     hostId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     listingId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -49,7 +46,6 @@ const PaymentHistorySchema = new mongoose.Schema(
     transactionId: {
       type: String,
       default: null,
-      index: true,
     },
     type: {
       type: String,
@@ -92,21 +88,15 @@ const PaymentHistorySchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    // Add indexes for common queries
-    indexes: [
-      { bookingId: 1, createdAt: -1 },
-      { customerId: 1, createdAt: -1 },
-      { hostId: 1, createdAt: -1 },
-      { status: 1, createdAt: -1 },
-    ],
   }
 );
 
-// Indexes
+// Indexes for common queries
 PaymentHistorySchema.index({ bookingId: 1, createdAt: -1 });
 PaymentHistorySchema.index({ customerId: 1, createdAt: -1 });
 PaymentHistorySchema.index({ hostId: 1, createdAt: -1 });
 PaymentHistorySchema.index({ transactionId: 1 });
+PaymentHistorySchema.index({ status: 1, createdAt: -1 });
 
 // Virtual for formatted amount
 PaymentHistorySchema.virtual('formattedAmount').get(function() {

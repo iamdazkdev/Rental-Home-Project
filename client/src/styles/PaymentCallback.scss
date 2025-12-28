@@ -1,0 +1,95 @@
+.payment-callback {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7f7f7;
+  padding: 20px;
+
+  .callback-container {
+    background: white;
+    border-radius: 12px;
+    padding: 60px 40px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+
+    .status {
+      &.processing {
+        .spin {
+          animation: spin 1s linear infinite;
+          color: var(--pinkred);
+        }
+
+        h2 {
+          margin: 20px 0 10px;
+          color: #333;
+        }
+
+        p {
+          color: #666;
+        }
+      }
+
+      &.success {
+        svg {
+          color: #4caf50;
+        }
+
+        h2 {
+          margin: 20px 0 10px;
+          color: #4caf50;
+        }
+
+        p {
+          color: #666;
+          margin-bottom: 8px;
+        }
+
+        .redirect-notice {
+          font-style: italic;
+          font-size: 14px;
+          color: #999;
+        }
+      }
+
+      &.failed {
+        svg {
+          color: #f44336;
+        }
+
+        h2 {
+          margin: 20px 0 10px;
+          color: #f44336;
+        }
+
+        p {
+          color: #666;
+          margin-bottom: 20px;
+        }
+
+        button {
+          background: var(--pinkred);
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-size: 16px;
+          cursor: pointer;
+          transition: all 0.3s;
+
+          &:hover {
+            background: darken(#FF385C, 10%);
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+

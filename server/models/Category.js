@@ -52,7 +52,6 @@ const CategorySchema = new mongoose.Schema(
 );
 
 // Indexes
-CategorySchema.index({ label: 1 });
 CategorySchema.index({ isActive: 1, displayOrder: 1 });
 
 // Static methods

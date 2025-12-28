@@ -101,6 +101,11 @@ const ListingSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    cancellationPolicy: {
+      type: String,
+      enum: ['flexible', 'moderate', 'strict'],
+      default: 'flexible',
+    },
   },
   { timestamps: true }
 );

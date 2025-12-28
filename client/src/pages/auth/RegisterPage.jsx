@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import "../../styles/Register.scss";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setLogin } from "../../redux/state";
 import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 
 const RegisterPage = () => {
@@ -41,7 +43,9 @@ const RegisterPage = () => {
         formData.confirmPassword === ""
     );
   }, [formData.password, formData.confirmPassword]);
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,11 +70,52 @@ const RegisterPage = () => {
       console.log("Registration response:", data);
 
       if (response.ok) {
-        // Success - user registered
-        setSuccess("Account created successfully! Redirecting to login...");
-        setTimeout(() => {
-          navigate("/login");
-        }, 500);
+        // Success - user registered, now auto-login
+        setSuccess("Account created successfully! Logging you in...");
+
+        // Auto-login with the registered credentials
+        try {
+          const loginResponse = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
+            method: HTTP_METHODS.POST,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: formData.email,
+              password: formData.password,
+            }),
+          });
+
+          const loginData = await loginResponse.json();
+
+          if (loginResponse.ok) {
+            // Login successful - dispatch to Redux and redirect to home
+            dispatch(
+              setLogin({
+                user: loginData.user,
+                token: loginData.token,
+              })
+            );
+
+            // Redirect to home page
+            setTimeout(() => {
+              navigate("/");
+            }, 500);
+          } else {
+            // Login failed after registration - redirect to login page
+            setSuccess("Account created! Please login to continue.");
+            setTimeout(() => {
+              navigate("/login");
+            }, 1500);
+          }
+        } catch (loginError) {
+          console.error("Auto-login error:", loginError);
+          // If auto-login fails, redirect to login page
+          setSuccess("Account created! Please login to continue.");
+          setTimeout(() => {
+            navigate("/login");
+          }, 1500);
+        }
       } else {
         // Handle different error status codes
         switch (response.status) {

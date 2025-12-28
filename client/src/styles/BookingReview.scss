@@ -1,0 +1,277 @@
+.booking-review {
+  min-height: 100vh;
+  background: #f7f7f7;
+  padding: 40px 20px;
+
+  .review-container {
+    max-width: 1200px;
+    margin: 0 auto;
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .review-content {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 30px;
+
+      .booking-details {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+        .property-info {
+          display: flex;
+          gap: 16px;
+          padding-bottom: 20px;
+          border-bottom: 1px solid #eee;
+          margin-bottom: 20px;
+
+          img {
+            width: 120px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+          }
+
+          h2 {
+            font-size: 20px;
+            margin-bottom: 4px;
+          }
+
+          p {
+            color: #666;
+            font-size: 14px;
+          }
+        }
+
+        .booking-info,
+        .price-details,
+        .cancellation-policy,
+        .house-rules {
+          margin-bottom: 24px;
+
+          h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+          }
+
+          .info-row,
+          .price-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+
+            &:not(:last-child) {
+              border-bottom: 1px solid #f5f5f5;
+            }
+
+            &.total {
+              padding-top: 16px;
+              margin-top: 12px;
+              border-top: 2px solid #ddd;
+              font-size: 16px;
+
+              strong {
+                color: var(--pinkred);
+              }
+            }
+          }
+        }
+
+        .cancellation-policy,
+        .house-rules {
+          p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+          }
+        }
+      }
+
+      .payment-section {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+
+        h3 {
+          font-size: 20px;
+          margin-bottom: 20px;
+        }
+
+        .payment-options {
+          margin-bottom: 20px;
+
+          .payment-option {
+            display: block;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+
+            &:hover {
+              border-color: #999;
+            }
+
+            &.selected {
+              border-color: var(--pinkred);
+              background: #fff5f7;
+            }
+
+            input[type="radio"] {
+              display: none;
+            }
+
+            .option-content {
+              .option-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+
+                svg {
+                  color: var(--pinkred);
+                  flex-shrink: 0;
+                }
+
+                strong {
+                  flex: 1;
+                  font-size: 16px;
+                }
+
+                .recommended {
+                  background: #4caf50;
+                  color: white;
+                  padding: 2px 8px;
+                  border-radius: 12px;
+                  font-size: 11px;
+                  font-weight: 600;
+                }
+              }
+
+              .option-details {
+                p {
+                  color: #666;
+                  font-size: 14px;
+                  margin-bottom: 8px;
+                }
+
+                ul {
+                  list-style: none;
+                  padding: 0;
+
+                  li {
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 13px;
+                    color: #666;
+                    margin-bottom: 4px;
+
+                    svg {
+                      flex-shrink: 0;
+                      width: 16px;
+                      height: 16px;
+
+                      &:first-child {
+                        color: #4caf50;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        .terms-agreement {
+          margin-bottom: 20px;
+
+          label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 14px;
+
+            input[type="checkbox"] {
+              margin-top: 2px;
+              cursor: pointer;
+            }
+
+            span {
+              line-height: 1.5;
+            }
+          }
+        }
+
+        .error-message {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px;
+          background: #fff3f3;
+          border: 1px solid #ffcccc;
+          border-radius: 8px;
+          color: #d32f2f;
+          font-size: 14px;
+          margin-bottom: 16px;
+        }
+
+        .confirm-btn {
+          width: 100%;
+          background: var(--pinkred);
+          color: white;
+          border: none;
+          padding: 16px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s;
+
+          &:hover:not(:disabled) {
+            background: darken(#FF385C, 10%);
+          }
+
+          &:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+          }
+        }
+
+        .security-note {
+          text-align: center;
+          font-size: 12px;
+          color: #666;
+          margin-top: 12px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 968px) {
+  .booking-review {
+    .review-content {
+      grid-template-columns: 1fr !important;
+
+      .payment-section {
+        position: relative;
+        top: 0;
+      }
+    }
+  }
+}
+

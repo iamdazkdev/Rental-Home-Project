@@ -1,8 +1,9 @@
 import React from "react";
 import "../../styles/CreateListing.scss";
 import Navbar from "../../components/Navbar";
-import { categories, types, facilities } from "../../data";
+// Removed static imports - will fetch from API
 import { useState, useEffect } from "react";
+import { getIcon } from "../../utils/iconMapper";
 
 import {
   DndContext,
@@ -84,6 +85,12 @@ const CreateListingPage = () => {
   // DETECT EDIT MODE
   const { listingId } = useParams();
   const isEditMode = !!listingId;
+
+  // STATIC DATA FROM API
+  const [categories, setCategories] = useState([]);
+  const [types, setTypes] = useState([]);
+  const [facilities, setFacilities] = useState([]);
+  const [loadingStaticData, setLoadingStaticData] = useState(true);
 
   // FORM STATE
   const [category, setCategory] = useState("");
@@ -171,6 +178,52 @@ const CreateListingPage = () => {
       setAmenities((prev) => [...prev, facility]);
     }
   };
+
+  // FETCH STATIC DATA FROM API ON MOUNT
+  useEffect(() => {
+    const fetchStaticData = async () => {
+      try {
+        setLoadingStaticData(true);
+        const url = `${CONFIG.API_BASE_URL}/static-data/all`;
+        const response = await fetch(url, { method: HTTP_METHODS.GET });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("📦 Loaded static data from API:", data);
+
+          // Transform data to include icon components
+          const transformedCategories = data.categories.map(cat => ({
+            ...cat,
+            icon: getIcon(cat.icon)
+          }));
+
+          const transformedTypes = data.types.map(type => ({
+            ...type,
+            icon: getIcon(type.icon)
+          }));
+
+          const transformedFacilities = data.facilities.map(facility => ({
+            ...facility,
+            icon: getIcon(facility.icon)
+          }));
+
+          setCategories(transformedCategories);
+          setTypes(transformedTypes);
+          setFacilities(transformedFacilities);
+        } else {
+          console.error("❌ Failed to fetch static data");
+          alert("Failed to load categories, types, and facilities. Please refresh.");
+        }
+      } catch (error) {
+        console.error("❌ Error fetching static data:", error);
+        alert("Failed to connect to server. Please check your connection.");
+      } finally {
+        setLoadingStaticData(false);
+      }
+    };
+
+    fetchStaticData();
+  }, []); // Run once on mount
 
   // FETCH LISTING DATA IN EDIT MODE
   useEffect(() => {
@@ -527,33 +580,7 @@ const CreateListingPage = () => {
                   <h2>🏠 Tell us about your place</h2>
                 </div>
 
-                {/* Categories */}
-                <div style={{ marginBottom: "40px" }}>
-                  <h3 className="section-title">
-                    Which category best describes your place?
-                  </h3>
-                  <div className="categories-grid">
-                    {categories?.map((item, index) => (
-                      <div
-                        key={index}
-                        onClick={() => setCategory(item.label)}
-                        className={`category-item ${
-                          category === item.label ? "selected" : ""
-                        }`}
-                      >
-                        <div className="icon">{item.icon}</div>
-                        <div className="content">
-                          <h4>{item.label}</h4>
-                          <p>
-                            {item.description || "Perfect for your listing"}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Property Types */}
+                {/* Property Types - Moved to top */}
                 <div style={{ marginBottom: "40px" }}>
                   <h3 className="section-title">
                     What type of place will guests have?
@@ -570,6 +597,32 @@ const CreateListingPage = () => {
                         <div className="icon">{item.icon}</div>
                         <h4>{item.name}</h4>
                         <p>{item.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Categories - Filter out "All" category */}
+                <div style={{ marginBottom: "40px" }}>
+                  <h3 className="section-title">
+                    Which category best describes your place?
+                  </h3>
+                  <div className="categories-grid">
+                    {categories?.filter(item => item.label !== "All").map((item, index) => (
+                      <div
+                        key={index}
+                        onClick={() => setCategory(item.label)}
+                        className={`category-item ${
+                          category === item.label ? "selected" : ""
+                        }`}
+                      >
+                        <div className="icon">{item.icon}</div>
+                        <div className="content">
+                          <h4>{item.label}</h4>
+                          <p>
+                            {item.description || "Perfect for your listing"}
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>

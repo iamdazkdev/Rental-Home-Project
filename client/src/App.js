@@ -23,6 +23,12 @@ import AdminManagement from "./pages/admin/AdminManagement";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import { SocketProvider } from "./context/SocketContext";
 
+// Entire Place Rental Pages
+import EntirePlaceSearch from "./pages/entirePlace/EntirePlaceSearch";
+import BookingReview from "./pages/entirePlace/BookingReview";
+import PaymentCallback from "./pages/entirePlace/PaymentCallback";
+import BookingConfirmation from "./pages/entirePlace/BookingConfirmation";
+
 function App() {
   return (
     <div>
@@ -50,6 +56,14 @@ function App() {
           <Route path="/profile/edit" element={<EditProfilePage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/payment/result" element={<PaymentResultPage />} />
+
+          {/* Entire Place Rental Routes */}
+          <Route path="/entire-place" element={<EntirePlaceSearch />} />
+          <Route path="/booking/review" element={<BookingReview />} />
+          <Route path="/payment/callback" element={<PaymentCallback />} />
+          <Route path="/booking/confirmation" element={<BookingConfirmation />} />
+
+          {/* Admin Routes */}
           <Route path="/admin/manage" element={<AdminManagement />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>

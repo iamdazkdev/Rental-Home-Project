@@ -48,7 +48,6 @@ const PropertyTypeSchema = new mongoose.Schema(
 );
 
 // Indexes
-PropertyTypeSchema.index({ name: 1 });
 PropertyTypeSchema.index({ isActive: 1, displayOrder: 1 });
 
 // Static methods
