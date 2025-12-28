@@ -31,7 +31,7 @@ const PaymentReminderResultPage = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, [navigate, user?._id, user?.id]);
 
   return (
     <>

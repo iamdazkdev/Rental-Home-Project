@@ -1,0 +1,368 @@
+@import "./variables.scss";
+
+.room-rental-application {
+  padding: 100px 20px 40px;
+  max-width: 900px;
+  margin: 0 auto;
+
+  .application-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .listing-preview {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+
+    img {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .listing-info {
+      flex: 1;
+
+      h2 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+        color: #333;
+      }
+
+      .location {
+        color: #666;
+        margin: 5px 0;
+      }
+
+      .price {
+        font-size: 20px;
+        font-weight: bold;
+        color: $pinkred;
+        margin: 10px 0 0 0;
+      }
+    }
+  }
+
+  .compatibility-section {
+    padding: 30px;
+    background: #f8f9fa;
+    border-bottom: 2px solid #e0e0e0;
+
+    h3 {
+      margin: 0 0 20px 0;
+      font-size: 22px;
+      text-align: center;
+    }
+
+    .score-display {
+      text-align: center;
+      margin-bottom: 30px;
+
+      .score-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        margin: 0 auto 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 8px solid;
+        background: white;
+
+        .score-number {
+          font-size: 48px;
+          font-weight: bold;
+        }
+      }
+
+      .score-label {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      &.excellent {
+        .score-circle {
+          border-color: #10b981;
+          color: #10b981;
+        }
+        .score-label {
+          color: #10b981;
+        }
+      }
+
+      &.good {
+        .score-circle {
+          border-color: #3b82f6;
+          color: #3b82f6;
+        }
+        .score-label {
+          color: #3b82f6;
+        }
+      }
+
+      &.fair {
+        .score-circle {
+          border-color: #f59e0b;
+          color: #f59e0b;
+        }
+        .score-label {
+          color: #f59e0b;
+        }
+      }
+
+      &.poor {
+        .score-circle {
+          border-color: #ef4444;
+          color: #ef4444;
+        }
+        .score-label {
+          color: #ef4444;
+        }
+      }
+    }
+
+    .deal-breakers-warning {
+      background: #fee2e2;
+      border: 2px solid #ef4444;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+
+      h4 {
+        margin: 0 0 10px 0;
+        color: #dc2626;
+      }
+
+      ul {
+        margin: 10px 0;
+        padding-left: 20px;
+
+        li {
+          color: #991b1b;
+          margin: 5px 0;
+        }
+      }
+
+      .warning-text {
+        margin: 10px 0 0 0;
+        font-weight: 600;
+        color: #dc2626;
+      }
+    }
+
+    .compatibility-breakdown {
+      margin-top: 30px;
+
+      h4 {
+        margin: 0 0 15px 0;
+        font-size: 18px;
+      }
+
+      .breakdown-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .breakdown-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+
+        > span:first-child {
+          min-width: 120px;
+          font-weight: 500;
+        }
+
+        .progress-bar {
+          flex: 1;
+          height: 24px;
+          background: #e5e7eb;
+          border-radius: 12px;
+          overflow: hidden;
+
+          .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            transition: width 0.3s ease;
+          }
+        }
+
+        > span:last-child {
+          min-width: 50px;
+          text-align: right;
+          font-weight: 600;
+          color: #3b82f6;
+        }
+      }
+    }
+  }
+
+  .application-form {
+    padding: 30px;
+
+    h3 {
+      margin: 0 0 25px 0;
+      font-size: 22px;
+      text-align: center;
+    }
+
+    h4 {
+      margin: 30px 0 15px 0;
+      font-size: 18px;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 15px;
+        transition: border-color 0.2s;
+
+        &:focus {
+          outline: none;
+          border-color: $pinkred;
+        }
+      }
+
+      textarea {
+        resize: vertical;
+        font-family: inherit;
+      }
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+
+      button {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &.btn-primary {
+          background: $pinkred;
+          color: white;
+
+          &:hover:not(:disabled) {
+            background: darken($pinkred, 10%);
+          }
+
+          &:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+          }
+        }
+
+        &.btn-secondary {
+          background: #f3f4f6;
+          color: #374151;
+
+          &:hover {
+            background: #e5e7eb;
+          }
+        }
+      }
+    }
+  }
+
+  .loading,
+  .error {
+    padding: 100px 20px;
+    text-align: center;
+    font-size: 18px;
+    color: #666;
+  }
+
+  .error {
+    color: #dc2626;
+  }
+}
+
+@media (max-width: 768px) {
+  .room-rental-application {
+    padding: 80px 10px 20px;
+
+    .listing-preview {
+      flex-direction: column;
+
+      img {
+        width: 100%;
+        height: 200px;
+      }
+    }
+
+    .compatibility-section {
+      padding: 20px;
+
+      .score-display .score-circle {
+        width: 120px;
+        height: 120px;
+
+        .score-number {
+          font-size: 36px;
+        }
+      }
+
+      .compatibility-breakdown .breakdown-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+
+        .progress-bar {
+          width: 100%;
+        }
+      }
+    }
+
+    .application-form {
+      padding: 20px;
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .form-actions {
+        flex-direction: column;
+
+        button {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import Navbar from '../../components/Navbar';
+import VerificationManagement from './VerificationManagement';
 import '../../styles/AdminDashboard.scss';
 
 const AdminDashboard = () => {
@@ -202,11 +204,13 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="admin-dashboard">
-      <div className="dashboard-header">
-        <h1>🔐 Admin Dashboard</h1>
-        <p>System-wide management and statistics</p>
-      </div>
+    <>
+      <Navbar />
+      <div className="admin-dashboard">
+        <div className="dashboard-header">
+          <h1>🔐 Admin Dashboard</h1>
+          <p>System-wide management and statistics</p>
+        </div>
 
       {/* Navigation */}
       <div className="dashboard-nav">
@@ -227,6 +231,12 @@ const AdminDashboard = () => {
           onClick={() => setActiveSection('listings')}
         >
           🏠 Listings
+        </button>
+        <button
+          className={activeSection === 'verifications' ? 'active' : ''}
+          onClick={() => setActiveSection('verifications')}
+        >
+          🪪 Identity Verifications
         </button>
       </div>
 
@@ -482,7 +492,15 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
-    </div>
+
+      {/* Identity Verifications Section */}
+      {activeSection === 'verifications' && (
+        <div className="verifications-section">
+          <VerificationManagement />
+        </div>
+      )}
+      </div>
+    </>
   );
 };
 

@@ -227,107 +227,121 @@ const Navbar = () => {
                 </div>
               ) : (
                 <div className="menu_section">
-                  <Link
-                    to={`/${user._id || user.id}/trips`}
-                    className="menu_item"
-                    onClick={() => setDropdownMenu(false)}
-                  >
-                    <ListAlt sx={{ fontSize: 20 }} />
-                    <span>Trip List</span>
-                  </Link>
-                  <Link
-                    to="/messages"
-                    className="menu_item"
-                    onClick={() => setDropdownMenu(false)}
-                  >
-                    <span className="menu_icon">💬</span>
-                    <span>Messages</span>
-                    {unreadCount > 0 && (
-                      <span className="unread_badge">{unreadCount}</span>
-                    )}
-                  </Link>
-                  <Link
-                    to="/booking-history"
-                    className="menu_item"
-                    onClick={() => setDropdownMenu(false)}
-                  >
-                    <History sx={{ fontSize: 20 }} />
-                    <span>Booking History</span>
-                  </Link>
-                  <Link
-                    to={`/${user._id || user.id}/wishlist`}
-                    className="menu_item"
-                    onClick={() => setDropdownMenu(false)}
-                  >
-                    <FavoriteBorder sx={{ fontSize: 20 }} />
-                    <span>Wish List</span>
-                  </Link>
-                  <Link
-                    to="/profile/edit"
-                    className="menu_item"
-                    onClick={() => setDropdownMenu(false)}
-                  >
-                    <Settings sx={{ fontSize: 20 }} />
-                    <span>Edit Profile</span>
-                  </Link>
+                  {/* Admin-only menu - Only Admin Dashboard + Logout */}
+                  {user.role === 'admin' ? (
+                    <>
+                      <Link
+                        to="/admin/dashboard"
+                        className="menu_item admin-only"
+                        onClick={() => setDropdownMenu(false)}
+                      >
+                        <Settings sx={{ fontSize: 20 }} />
+                        <span>🔐 Admin Dashboard</span>
+                      </Link>
 
-                  <div className="menu_divider"></div>
+                      <div className="menu_divider"></div>
 
-                  <Link
-                    to="/properties"
-                    className="menu_item"
-                    onClick={() => setDropdownMenu(false)}
-                  >
-                    <Home sx={{ fontSize: 20 }} />
-                    <span>Manage Properties</span>
-                  </Link>
-                  <Link
-                    to="/reservations"
-                    className="menu_item"
-                    onClick={() => setDropdownMenu(false)}
-                  >
-                    <EventNote sx={{ fontSize: 20 }} />
-                    <span>Booking Requests</span>
-                  </Link>
-                  <Link
-                    to="/hosting-history"
-                    className="menu_item"
-                    onClick={() => setDropdownMenu(false)}
-                  >
-                    <Assessment sx={{ fontSize: 20 }} />
-                    <span>Revenue Dashboard</span>
-                  </Link>
-                  <Link
-                    to="/admin/manage"
-                    className="menu_item"
-                    onClick={() => setDropdownMenu(false)}
-                  >
-                    <Settings sx={{ fontSize: 20 }} />
-                    <span>📊 Manage Data</span>
-                  </Link>
+                      <button
+                        className="menu_item logout_btn"
+                        onClick={handleLogout}
+                      >
+                        <Logout sx={{ fontSize: 20 }} />
+                        <span>Logout</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {/* Regular user/host menu */}
+                      <Link
+                        to={`/${user._id || user.id}/trips`}
+                        className="menu_item"
+                        onClick={() => setDropdownMenu(false)}
+                      >
+                        <ListAlt sx={{ fontSize: 20 }} />
+                        <span>Trip List</span>
+                      </Link>
+                      <Link
+                        to="/messages"
+                        className="menu_item"
+                        onClick={() => setDropdownMenu(false)}
+                      >
+                        <span className="menu_icon">💬</span>
+                        <span>Messages</span>
+                        {unreadCount > 0 && (
+                          <span className="unread_badge">{unreadCount}</span>
+                        )}
+                      </Link>
+                      <Link
+                        to="/booking-history"
+                        className="menu_item"
+                        onClick={() => setDropdownMenu(false)}
+                      >
+                        <History sx={{ fontSize: 20 }} />
+                        <span>Booking History</span>
+                      </Link>
+                      <Link
+                        to={`/${user._id || user.id}/wishlist`}
+                        className="menu_item"
+                        onClick={() => setDropdownMenu(false)}
+                      >
+                        <FavoriteBorder sx={{ fontSize: 20 }} />
+                        <span>Wish List</span>
+                      </Link>
+                      <Link
+                        to="/profile/edit"
+                        className="menu_item"
+                        onClick={() => setDropdownMenu(false)}
+                      >
+                        <Settings sx={{ fontSize: 20 }} />
+                        <span>Edit Profile</span>
+                      </Link>
 
-                  {user.role === 'admin' && (
-                    <Link
-                      to="/admin/dashboard"
-                      className="menu_item admin-only"
-                      onClick={() => setDropdownMenu(false)}
-                    >
-                      <Settings sx={{ fontSize: 20 }} />
-                      <span>🔐 Admin Dashboard</span>
-                    </Link>
+                      <div className="menu_divider"></div>
+
+                      <Link
+                        to="/properties"
+                        className="menu_item"
+                        onClick={() => setDropdownMenu(false)}
+                      >
+                        <Home sx={{ fontSize: 20 }} />
+                        <span>Manage Properties</span>
+                      </Link>
+                      <Link
+                        to="/reservations"
+                        className="menu_item"
+                        onClick={() => setDropdownMenu(false)}
+                      >
+                        <EventNote sx={{ fontSize: 20 }} />
+                        <span>Booking Requests</span>
+                      </Link>
+                      <Link
+                        to="/hosting-history"
+                        className="menu_item"
+                        onClick={() => setDropdownMenu(false)}
+                      >
+                        <Assessment sx={{ fontSize: 20 }} />
+                        <span>Revenue Dashboard</span>
+                      </Link>
+                      <Link
+                        to="/admin/manage"
+                        className="menu_item"
+                        onClick={() => setDropdownMenu(false)}
+                      >
+                        <Settings sx={{ fontSize: 20 }} />
+                        <span>📊 Manage Data</span>
+                      </Link>
+
+                      <div className="menu_divider"></div>
+
+                      <button
+                        className="menu_item logout_btn"
+                        onClick={handleLogout}
+                      >
+                        <Logout sx={{ fontSize: 20 }} />
+                        <span>Logout</span>
+                      </button>
+                    </>
                   )}
-
-                  <div className="menu_divider"></div>
-
-                  <div className="menu_divider"></div>
-
-                  <button
-                    className="menu_item logout_btn"
-                    onClick={handleLogout}
-                  >
-                    <Logout sx={{ fontSize: 20 }} />
-                    <span>Logout</span>
-                  </button>
                 </div>
               )}
             </div>

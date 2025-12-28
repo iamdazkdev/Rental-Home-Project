@@ -1,6 +1,7 @@
 import React from "react";
 import "../../styles/CreateListing.scss";
 import Navbar from "../../components/Navbar";
+import IdentityVerificationForm from "../../components/IdentityVerificationForm";
 // Removed static imports - will fetch from API
 import { useState, useEffect } from "react";
 import { getIcon } from "../../utils/iconMapper";
@@ -140,6 +141,15 @@ const CreateListingPage = () => {
   const [hostBio, setHostBio] = useState(user?.hostBio || "");
   const [isLoading, setIsLoading] = useState(false);
   const [loadingListing, setLoadingListing] = useState(isEditMode);
+
+  // Type selection modal - only show in create mode
+  const [showTypeModal, setShowTypeModal] = useState(!isEditMode);
+
+  // Identity Verification (for Shared Room & Roommate)
+  const [verificationStatus, setVerificationStatus] = useState(null); // null, pending, approved, rejected
+  const [verificationData, setVerificationData] = useState(null);
+  const [loadingVerification, setLoadingVerification] = useState(false);
+  const [showVerificationForm, setShowVerificationForm] = useState(false);
 
   // DRAG AND DROP
   const sensors = useSensors(
@@ -369,6 +379,79 @@ const CreateListingPage = () => {
     setDailyPrice(Math.round((value / 30) * 100) / 100); // Auto-calculate daily price (rounded to 2 decimals)
   };
 
+  // Handle type selection from modal
+  const handleTypeSelection = (selectedType) => {
+    console.log("🎯 Type selected:", selectedType);
+    setType(selectedType);
+    setShowTypeModal(false);
+
+    // Check if verification is required for Shared Room and Roommate
+    const requiresVerification =
+      selectedType === "Room(s)" ||        // Shared Room (living with host)
+      selectedType === "A Shared Room";    // Roommate (finding roommates)
+
+    console.log("🔐 Requires verification?", requiresVerification);
+
+    if (requiresVerification && !isEditMode) {
+      console.log("✅ Checking verification status...");
+      checkVerificationStatus();
+    }
+  };
+
+  // Check verification status
+  const checkVerificationStatus = async () => {
+    if (!creatorId) {
+      console.log("❌ No creatorId found");
+      return;
+    }
+
+    console.log("🔍 Checking verification for user:", creatorId);
+    setLoadingVerification(true);
+    try {
+      const response = await fetch(
+        `${CONFIG.API_BASE_URL}/identity-verification/${creatorId}/status`,
+        { method: HTTP_METHODS.GET }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("📥 Verification status response:", data);
+
+        if (data.exists) {
+          setVerificationStatus(data.status);
+          setVerificationData(data.verification);
+          console.log("✅ Verification exists, status:", data.status);
+
+          // Show form if not approved (pending, rejected, or null)
+          if (data.status !== "approved") {
+            setShowVerificationForm(true);
+            console.log("🚨 Verification not approved, showing fullscreen form");
+          }
+        } else {
+          setVerificationStatus(null);
+          setShowVerificationForm(true); // Show form if no verification exists
+          console.log("📝 No verification found, showing form");
+        }
+      } else {
+        console.log("❌ API response not OK:", response.status);
+        // On error, show form to be safe
+        setShowVerificationForm(true);
+      }
+    } catch (error) {
+      console.error("❌ Error checking verification:", error);
+      // On error, show form to be safe
+      setShowVerificationForm(true);
+    } finally {
+      setLoadingVerification(false);
+    }
+  };
+
+  // Handle verification form success
+  const handleVerificationSuccess = () => {
+    setShowVerificationForm(false);
+    checkVerificationStatus(); // Refresh status
+  };
+
   // Check if host profile is required
   const requiresHostProfile = type === "Room(s)" || type === "A Shared Room";
 
@@ -396,6 +479,19 @@ const CreateListingPage = () => {
 
       // Validate host profile for Room/Shared Room
       if (requiresHostProfile) {
+        // Check verification status first
+        if (verificationStatus !== "approved") {
+          alert(
+            verificationStatus === "pending"
+              ? "Please wait for identity verification approval before publishing."
+              : verificationStatus === "rejected"
+              ? "Your verification was rejected. Please resubmit with correct information."
+              : "Please complete identity verification before creating a listing."
+          );
+          setIsLoading(false);
+          return;
+        }
+
         if (!hostBio.trim()) {
           alert("Please tell guests about yourself");
           setIsLoading(false);
@@ -547,6 +643,38 @@ const CreateListingPage = () => {
   return (
     <>
       <Navbar />
+
+      {/* Type Selection Modal - Full Screen, Mandatory */}
+      {showTypeModal && (
+        <div className="type-selection-modal-overlay">
+          <div className="type-selection-modal">
+            <div className="modal-header">
+              <h1>🏠 Choose Your Property Type</h1>
+              <p className="modal-subtitle">Select what type of place guests will have access to</p>
+            </div>
+
+            <div className="type-selection-grid">
+              {types?.map((item, index) => (
+                <div
+                  key={index}
+                  onClick={() => handleTypeSelection(item.name)}
+                  className="type-selection-card"
+                >
+                  <div className="type-icon-large">{item.icon}</div>
+                  <h3>{item.name}</h3>
+                  <p>{item.description}</p>
+                  <div className="select-button">Select →</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="modal-footer">
+              <p>💡 You must select a type to continue</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loadingListing ? (
         <div className="modern-create-listing">
           <div className="form-background">
@@ -566,6 +694,96 @@ const CreateListingPage = () => {
                 <p>{isEditMode ? "Update your property details" : "Share your space with the world"}</p>
               </div>
 
+              {/* Identity Verification Section (for Shared Room/Roommate) */}
+              {requiresHostProfile && !isEditMode && (
+                <>
+                  {loadingVerification ? (
+                    <div className="verification-status-banner pending">
+                      <div className="status-icon">⏳</div>
+                      <div className="status-content">
+                        <h3>Checking verification status...</h3>
+                      </div>
+                    </div>
+                  ) : verificationStatus === "pending" ? (
+                    <div className="verification-status-banner pending">
+                      <div className="status-icon">⏳</div>
+                      <div className="status-content">
+                        <h3>Verification Pending</h3>
+                        <p>
+                          Your identity verification is under review. We'll notify you once it's approved.
+                          This usually takes 1-2 business days.
+                        </p>
+                        <p style={{ marginTop: '0.75rem', fontWeight: 600 }}>
+                          You can continue filling out the form, but you won't be able to publish
+                          until verification is approved.
+                        </p>
+                      </div>
+                    </div>
+                  ) : verificationStatus === "approved" ? (
+                    <div className="verification-status-banner approved">
+                      <div className="status-icon">✅</div>
+                      <div className="status-content">
+                        <h3>Identity Verified</h3>
+                        <p>Your identity has been verified. You can now create listings!</p>
+                      </div>
+                    </div>
+                  ) : verificationStatus === "rejected" ? (
+                    <div className="verification-status-banner rejected">
+                      <div className="status-icon">❌</div>
+                      <div className="status-content">
+                        <h3>Verification Rejected</h3>
+                        <p>
+                          Unfortunately, your verification was rejected. Please review the reason below
+                          and resubmit with correct information.
+                        </p>
+                        {verificationData?.rejectionReason && (
+                          <div className="rejection-reason">
+                            Reason: {verificationData.rejectionReason}
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          className="resubmit-btn"
+                          onClick={() => setShowVerificationForm(true)}
+                          style={{
+                            marginTop: '1rem',
+                            padding: '0.75rem 1.5rem',
+                            background: '#dc2626',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          📝 Resubmit Verification
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Show verification form as full screen - CANNOT BE CLOSED */}
+                  {loadingVerification && (
+                    <div className="verification-loading-overlay">
+                      <div className="loading-content">
+                        <div className="loading-spinner"></div>
+                        <p>Checking verification status...</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {showVerificationForm && !loadingVerification && (
+                    <div className="verification-fullscreen-wrapper">
+                      <IdentityVerificationForm
+                        userId={creatorId}
+                        onSuccess={handleVerificationSuccess}
+                        existingVerification={verificationData}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+
             {/* Form Content */}
             <form onSubmit={handleSubmit} className="form-content">
               {/* Step 1: Property Details */}
@@ -575,27 +793,15 @@ const CreateListingPage = () => {
                   <h2>🏠 Tell us about your place</h2>
                 </div>
 
-                {/* Property Types - Moved to top */}
-                <div style={{ marginBottom: "40px" }}>
-                  <h3 className="section-title">
-                    What type of place will guests have?
-                  </h3>
-                  <div className="types-grid">
-                    {types?.map((item, index) => (
-                      <div
-                        key={index}
-                        onClick={() => setType(item.name)}
-                        className={`type-item ${
-                          type === item.name ? "selected" : ""
-                        }`}
-                      >
-                        <div className="icon">{item.icon}</div>
-                        <h4>{item.name}</h4>
-                        <p>{item.description}</p>
-                      </div>
-                    ))}
+                {/* Show selected type info only (not selectable again) */}
+                {type && (
+                  <div className="selected-type-info">
+                    <div className="info-label">Selected Property Type:</div>
+                    <div className="selected-type-badge">
+                      {types?.find(t => t.name === type)?.icon} <strong>{type}</strong>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Categories - Filter out "All" category */}
                 <div style={{ marginBottom: "40px" }}>

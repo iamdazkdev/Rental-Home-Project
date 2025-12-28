@@ -1,6 +1,351 @@
 @import "../styles/variables.scss";
 @import "../styles/breakpoints.scss";
 
+// Type Selection Modal - Full Screen, Mandatory
+.type-selection-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+.type-selection-modal {
+  background: white;
+  border-radius: 24px;
+  max-width: 1000px;
+  width: 100%;
+  padding: 3rem;
+  animation: slideUp 0.4s ease;
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(50px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @include sm {
+    padding: 2rem 1.5rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    text-align: center;
+    margin-bottom: 3rem;
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 0.75rem;
+
+      @include sm {
+        font-size: 1.75rem;
+      }
+    }
+
+    .modal-subtitle {
+      font-size: 1.125rem;
+      color: #6b7280;
+      font-weight: 400;
+    }
+  }
+
+  .type-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    @include md {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+
+    @include sm {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+
+  .type-selection-card {
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+    border: 3px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba($pinkred, 0.1), transparent);
+      transition: left 0.5s ease;
+    }
+
+    &:hover {
+      border-color: $pinkred;
+      transform: translateY(-8px);
+      box-shadow: 0 12px 40px rgba($pinkred, 0.2);
+
+      &::before {
+        left: 100%;
+      }
+
+      .type-icon-large {
+        transform: scale(1.1) rotate(5deg);
+      }
+
+      .select-button {
+        background: $pinkred;
+        color: white;
+        transform: translateX(5px);
+      }
+    }
+
+    .type-icon-large {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      transition: transform 0.3s ease;
+      display: inline-block;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      font-size: 0.95rem;
+      color: #6b7280;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+      min-height: 3rem;
+    }
+
+    .select-button {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: white;
+      border: 2px solid $pinkred;
+      color: $pinkred;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+  }
+
+  .modal-footer {
+    text-align: center;
+    padding-top: 1.5rem;
+    border-top: 2px solid #f3f4f6;
+
+    p {
+      color: #9ca3af;
+      font-size: 0.95rem;
+      font-style: italic;
+    }
+  }
+}
+
+// =============================================
+// IDENTITY VERIFICATION - FULLSCREEN (Cannot be closed)
+// =============================================
+.verification-fullscreen-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  z-index: 10000; // Higher than type modal
+  overflow-y: auto;
+  animation: fadeIn 0.4s ease;
+
+  // Prevent user selection and right-click
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+
+  // Ensure it covers everything
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 50%, #f0f9ff 100%);
+    z-index: -1;
+  }
+
+  // Header notification bar
+  &::after {
+    content: '⚠️ You must complete identity verification to create Shared Room or Roommate listings';
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    padding: 12px 20px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 2px solid #fbbf24;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: block;
+
+    @include sm {
+      font-size: 12px;
+      padding: 10px 15px;
+    }
+  }
+
+  // Override form padding for fullscreen
+  .identity-verification-form {
+    padding: 80px 40px 40px; // Top padding for sticky notification
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    user-select: text; // Allow selection inside form
+
+    @include sm {
+      padding: 70px 20px 30px;
+    }
+  }
+}
+
+// Loading overlay while checking verification
+.verification-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 10001; // Above fullscreen wrapper
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+
+  .loading-content {
+    text-align: center;
+    padding: 2rem;
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f3f4f6;
+      border-top-color: $pinkred;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    p {
+      font-size: 16px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+}
+
+// Selected Type Info Badge
+.selected-type-info {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 2px solid #86efac;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  animation: slideIn 0.4s ease;
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .info-label {
+    font-size: 0.875rem;
+    color: #059669;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .selected-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    strong {
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+
+    svg {
+      font-size: 1.25rem;
+    }
+  }
+
+  @include sm {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+}
+
 // Loading animations
 @keyframes spin {
   0% { transform: rotate(0deg); }

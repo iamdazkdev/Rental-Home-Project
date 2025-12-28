@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import Navbar from '../../components/Navbar';
 import PaymentHistory from '../../components/PaymentHistory';
 import '../../styles/AdminManagement.scss';
 
@@ -267,11 +268,13 @@ const AdminManagement = () => {
   const hiddenItems = items.filter(item => !item.isActive);
 
   return (
-    <div className="admin-management">
-      <div className="admin-header">
-        <h1>📊 Manage Your Data</h1>
-        <p>Customize categories, property types, and facilities for your listings</p>
-      </div>
+    <>
+      <Navbar />
+      <div className="admin-management">
+        <div className="admin-header">
+          <h1>📊 Manage Your Data</h1>
+          <p>Customize categories, property types, and facilities for your listings</p>
+        </div>
 
       {/* Tabs */}
       <div className="tabs">
@@ -490,7 +493,8 @@ const AdminManagement = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

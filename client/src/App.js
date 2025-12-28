@@ -23,6 +23,8 @@ import PaymentReminderPage from "./pages/payment/PaymentReminderPage";
 import PaymentReminderResultPage from "./pages/payment/PaymentReminderResultPage";
 import AdminManagement from "./pages/admin/AdminManagement";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import VerificationManagement from "./pages/admin/VerificationManagement";
+import AdminRedirect from "./components/AdminRedirect";
 import { SocketProvider } from "./context/SocketContext";
 
 // Entire Place Rental Pages
@@ -31,13 +33,24 @@ import BookingReview from "./pages/entirePlace/BookingReview";
 import PaymentCallback from "./pages/entirePlace/PaymentCallback";
 import BookingConfirmation from "./pages/entirePlace/BookingConfirmation";
 
+// Room Rental Pages (Process 2)
+import RoomRentalApplicationPage from "./pages/roomRental/RoomRentalApplicationPage";
+import HostApplicationDashboard from "./pages/roomRental/HostApplicationDashboard";
+
 function App() {
   return (
     <div>
       <BrowserRouter>
         <SocketProvider>
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route
+              path="/"
+              element={
+                <AdminRedirect>
+                  <HomePage />
+                </AdminRedirect>
+              }
+            />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/create-listing" element={<CreateListingPage />} />
@@ -67,9 +80,14 @@ function App() {
           <Route path="/payment/callback" element={<PaymentCallback />} />
           <Route path="/booking/confirmation" element={<BookingConfirmation />} />
 
+          {/* Room Rental Routes (Process 2) */}
+          <Route path="/room-rental/apply/:listingId" element={<RoomRentalApplicationPage />} />
+          <Route path="/room-rental/applications" element={<HostApplicationDashboard />} />
+
           {/* Admin Routes */}
           <Route path="/admin/manage" element={<AdminManagement />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/verifications" element={<VerificationManagement />} />
         </Routes>
         </SocketProvider>
       </BrowserRouter>

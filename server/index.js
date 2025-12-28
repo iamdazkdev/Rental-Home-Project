@@ -61,6 +61,7 @@ app.use("/auth", authRoutes);
 app.use("/listing", listingRoutes);
 app.use("/booking", bookingRoutes);
 app.use("/entire-place-booking", entirePlaceBookingRoutes); // New route for Entire Place Rental
+app.use("/room-rental", require("./routes/roomRental")); // Room Rental (Process 2)
 app.use("/user", userRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/reviews", reviewRoutes);
@@ -73,6 +74,16 @@ app.use("/messages", messageRoutes);
 app.use("/payment", paymentRoutes);
 app.use("/payment-reminder", paymentReminderRoutes);
 app.use("/payment-history", require("./routes/paymentHistory"));
+
+// Identity verification route - IMPORTANT for Shared Room & Roommate
+try {
+  const identityVerificationRoutes = require("./routes/identityVerification");
+  app.use("/identity-verification", identityVerificationRoutes);
+  console.log("✅ Identity Verification route loaded successfully");
+} catch (error) {
+  console.error("❌ Failed to load Identity Verification route:", error.message);
+}
+
 app.use("/static-data", staticDataRoutes); // Static data API (categories, types, facilities)
 // Global templates (admin manages)
 app.use("/categories", require("./routes/categories"));

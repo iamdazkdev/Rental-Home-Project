@@ -302,6 +302,7 @@ router.post("/login", async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         profileImagePath: user.profileImagePath,
+        role: user.role || "user", // ✅ Include role field
       },
     });
   } catch (error) {
