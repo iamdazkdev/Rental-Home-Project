@@ -34,7 +34,12 @@ const searchRoutes = require("./routes/search.js");
 const hostReviewsRoutes = require("./routes/hostReviews.js");
 const messageRoutes = require("./routes/messages.js");
 const paymentRoutes = require("./routes/payment.js");
+const paymentReminderRoutes = require("./routes/paymentReminder.js");
 const staticDataRoutes = require("./routes/staticData.js");
+
+// Import services
+const { startPaymentReminderScheduler } = require("./services/paymentReminderService");
+
 // Middleware
 const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE;
 app.use(cors());
@@ -66,6 +71,7 @@ app.use("/search", searchRoutes);
 app.use("/host-reviews", hostReviewsRoutes);
 app.use("/messages", messageRoutes);
 app.use("/payment", paymentRoutes);
+app.use("/payment-reminder", paymentReminderRoutes);
 app.use("/payment-history", require("./routes/paymentHistory"));
 app.use("/static-data", staticDataRoutes); // Static data API (categories, types, facilities)
 // Global templates (admin manages)
@@ -175,6 +181,9 @@ mongoose
     server.listen(PORT, HOST, () => {
       console.log(`🚀 Server running on https://${HOST}:${PORT}`);
       console.log(`💬 Socket.io enabled for real-time chat`);
+
+      // Start payment reminder scheduler
+      startPaymentReminderScheduler();
     });
   })
   .catch((error) => {

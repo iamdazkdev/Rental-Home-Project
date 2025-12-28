@@ -173,17 +173,26 @@ const ReservationList = () => {
 
   const filteredReservations = reservations.filter((reservation) => {
     if (filter === "all") return true;
-    return reservation.status === filter;
+    return reservation.bookingStatus === filter;
   });
 
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case "pending":
         return "status-badge pending";
+      case "approved":
       case "accepted":
         return "status-badge accepted";
       case "rejected":
         return "status-badge rejected";
+      case "checked_in":
+        return "status-badge checked-in";
+      case "checked_out":
+        return "status-badge checked-out";
+      case "completed":
+        return "status-badge completed";
+      case "cancelled":
+        return "status-badge cancelled";
       default:
         return "status-badge";
     }
@@ -209,19 +218,19 @@ const ReservationList = () => {
             className={filter === "pending" ? "active" : ""}
             onClick={() => setFilter("pending")}
           >
-            Pending ({reservations.filter((r) => r.status === "pending").length})
+            Pending ({reservations.filter((r) => r.bookingStatus === "pending").length})
           </button>
           <button
-            className={filter === "accepted" ? "active" : ""}
-            onClick={() => setFilter("accepted")}
+            className={filter === "approved" ? "active" : ""}
+            onClick={() => setFilter("approved")}
           >
-            Accepted ({reservations.filter((r) => r.status === "accepted").length})
+            Accepted ({reservations.filter((r) => r.bookingStatus === "approved").length})
           </button>
           <button
             className={filter === "rejected" ? "active" : ""}
             onClick={() => setFilter("rejected")}
           >
-            Rejected ({reservations.filter((r) => r.status === "rejected").length})
+            Rejected ({reservations.filter((r) => r.bookingStatus === "rejected").length})
           </button>
         </div>
 
@@ -244,8 +253,8 @@ const ReservationList = () => {
                     }
                     alt={reservation.listingId?.title}
                   />
-                  <span className={getStatusBadgeClass(reservation.status)}>
-                    {reservation.status.toUpperCase()}
+                  <span className={getStatusBadgeClass(reservation.bookingStatus)}>
+                    {reservation.bookingStatus?.toUpperCase() || 'UNKNOWN'}
                   </span>
                 </div>
 
@@ -333,7 +342,7 @@ const ReservationList = () => {
                             </div>
                           </div>
 
-                          {reservation.remainingAmount > 0 && reservation.status === 'accepted' && (
+                          {reservation.remainingAmount > 0 && reservation.bookingStatus === 'approved' && (
                             <button
                               className="btn-record-payment"
                               onClick={(e) => {
@@ -359,7 +368,7 @@ const ReservationList = () => {
                               <p className="payment-method">Cash at check-in</p>
                               <p className="payment-note">Guest will pay upon arrival</p>
 
-                              {reservation.status === 'accepted' && reservation.remainingAmount > 0 && (
+                              {reservation.bookingStatus === 'approved' && reservation.remainingAmount > 0 && (
                                 <button
                                   className="btn-record-payment"
                                   onClick={(e) => {
@@ -445,14 +454,14 @@ const ReservationList = () => {
                     </div>
                   )}
 
-                  {reservation.rejectionReason && reservation.status === "rejected" && (
+                  {reservation.rejectionReason && reservation.bookingStatus === "rejected" && (
                     <div className="rejection-reason">
                       <strong>Rejection Reason:</strong> {reservation.rejectionReason}
                     </div>
                   )}
 
                   {/* Action Buttons */}
-                  {reservation.status === "pending" && (
+                  {reservation.bookingStatus === "pending" && (
                     <div className="action-buttons">
                       <button
                         className="btn-accept"
@@ -469,13 +478,13 @@ const ReservationList = () => {
                     </div>
                   )}
 
-                  {reservation.status === "accepted" && (
+                  {reservation.bookingStatus === "approved" && (
                     <div className="status-message accepted-message">
                       ✓ You accepted this booking
                     </div>
                   )}
 
-                  {reservation.status === "rejected" && (
+                  {reservation.bookingStatus === "rejected" && (
                     <div className="status-message rejected-message">
                       ✗ You rejected this booking
                     </div>

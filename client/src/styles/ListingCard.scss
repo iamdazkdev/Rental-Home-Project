@@ -194,6 +194,17 @@
         }
       }
 
+      &.payment-reminder-btn {
+        background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        color: white;
+        font-size: 11px;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+      }
+
       &.review-btn {
         background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
         color: white;

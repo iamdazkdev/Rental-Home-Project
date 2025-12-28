@@ -196,9 +196,26 @@ const TripList = () => {
   };
 
   const canCheckout = (booking) => {
-    // User có thể checkout bất kỳ lúc nào sau khi booking được accept
-    // Không cần chờ đến endDate
     return booking.bookingStatus === "approved" && !booking.isCheckedOut;
+  };
+
+  const handlePaymentReminder = (bookingId) => {
+    console.log(`💳 Navigating to payment reminder for booking ${bookingId}`);
+    window.location.href = `/payment-reminder/${bookingId}`;
+  };
+
+  const needsPaymentReminder = (booking) => {
+    // Show payment reminder button if:
+    // 1. Payment type is deposit
+    // 2. Payment status is partially_paid
+    // 3. Remaining amount > 0
+    // 4. NOT already confirmed payment method (vnpay or cash)
+    return (
+      booking.paymentType === "deposit" &&
+      booking.paymentStatus === "partially_paid" &&
+      booking.remainingAmount > 0 &&
+      !booking.confirmPaymentMethod // Hide if already confirmed payment method
+    );
   };
 
   const canExtend = (booking) => {
@@ -265,14 +282,16 @@ const TripList = () => {
                 startDate={trip.startDate}
                 endDate={trip.finalEndDate || trip.endDate}
                 totalPrice={trip.finalTotalPrice || trip.totalPrice}
-                booking={true}
-                isExtended={!!trip.finalEndDate}
+                booking={trip}
+                isExtended={!!trip.finalEndDate && trip.finalEndDate !== trip.endDate}
                 onCheckout={canCheckout(trip) ? () => handleCheckout(trip) : null}
                 onExtend={canExtend(trip) ? () => handleExtensionRequest(trip) : null}
                 onCancel={canCancel(trip) ? () => handleCancelBooking(trip) : null}
+                onPaymentReminder={needsPaymentReminder(trip) ? () => handlePaymentReminder(trip._id) : null}
                 paymentMethod={trip.paymentMethod}
                 depositAmount={trip.depositAmount}
                 paymentStatus={trip.paymentStatus}
+                remainingAmount={trip.remainingAmount}
               />
             </div>
           ))

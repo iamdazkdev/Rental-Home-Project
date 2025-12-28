@@ -295,7 +295,7 @@ const Navbar = () => {
                     onClick={() => setDropdownMenu(false)}
                   >
                     <Assessment sx={{ fontSize: 20 }} />
-                    <span>Hosting History</span>
+                    <span>Revenue Dashboard</span>
                   </Link>
                   <Link
                     to="/admin/manage"

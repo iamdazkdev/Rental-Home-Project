@@ -181,6 +181,30 @@ const BookingSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // Payment reminder tracking
+    reminderSent: {
+      type: Boolean,
+      default: false,
+    },
+    reminderSentAt: {
+      type: Date,
+      default: null,
+    },
+    // Cash payment confirmation (for pre-check-in)
+    cashPaymentConfirmed: {
+      type: Boolean,
+      default: false,
+    },
+    cashPaymentConfirmedAt: {
+      type: Date,
+      default: null,
+    },
+    // Confirmed payment method for remaining amount
+    confirmPaymentMethod: {
+      type: String,
+      enum: ["vnpay", "cash"],
+      default: null,
+    },
   },
   { timestamps: true }
 );

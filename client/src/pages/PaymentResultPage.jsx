@@ -118,9 +118,9 @@ const PaymentResultPage = () => {
             </div>
             <h1>Payment Successful!</h1>
             <p className="message">
-              {paymentStatus === 'partially_paid'
-                ? 'You have successfully paid the deposit! Please pay the remaining amount upon check-in.'
-                : 'Your booking has been confirmed and payment completed successfully.'}
+              {bookingDetails?.paymentType === 'deposit'
+                ? `You have successfully paid the deposit (${bookingDetails?.depositPercentage || 30}%)! Please pay the remaining amount at check-in.`
+                : 'Your booking has been confirmed and fully paid successfully.'}
             </p>
 
             {bookingDetails && (
@@ -138,22 +138,50 @@ const PaymentResultPage = () => {
                   <span className="label">Check-out:</span>
                   <span className="value">{formatDate(bookingDetails.endDate)}</span>
                 </div>
-                {bookingDetails.paymentMethod === 'vnpay_deposit' && (
+
+                {/* Show different payment info based on paymentMethod and paymentType */}
+                {bookingDetails.paymentMethod === 'vnpay' && bookingDetails.paymentType === 'deposit' ? (
                   <>
                     <div className="detail-item">
-                      <span className="label">Paid (Deposit {bookingDetails.depositPercentage}%):</span>
-                      <span className="value paid">{formatVND(bookingDetails.depositAmount)}</span>
+                      <span className="label">Paid via VNPay (Deposit {bookingDetails.depositPercentage || 30}%):</span>
+                      <span className="value paid">
+                        {formatVND(bookingDetails.depositAmount || (bookingDetails.finalTotalPrice || bookingDetails.totalPrice) * 0.3)}
+                      </span>
                     </div>
                     <div className="detail-item">
                       <span className="label">Remaining (Pay at check-in):</span>
-                      <span className="value pending">{formatVND(bookingDetails.totalPrice - bookingDetails.depositAmount)}</span>
+                      <span className="value pending">
+                        {formatVND(bookingDetails.remainingAmount || ((bookingDetails.finalTotalPrice || bookingDetails.totalPrice) - (bookingDetails.depositAmount || (bookingDetails.finalTotalPrice || bookingDetails.totalPrice) * 0.3)))}
+                      </span>
+                    </div>
+                    <div className="detail-item total">
+                      <span className="label">Total Booking Amount:</span>
+                      <span className="value">{formatVND(bookingDetails.finalTotalPrice || bookingDetails.totalPrice)}</span>
+                    </div>
+                  </>
+                ) : bookingDetails.paymentMethod === 'vnpay' && bookingDetails.paymentType === 'full' ? (
+                  <>
+                    <div className="detail-item">
+                      <span className="label">Paid via VNPay (100%):</span>
+                      <span className="value paid">{formatVND(bookingDetails.finalTotalPrice || bookingDetails.totalPrice)}</span>
+                    </div>
+                    <div className="detail-item total">
+                      <span className="label">Total Amount:</span>
+                      <span className="value">{formatVND(bookingDetails.finalTotalPrice || bookingDetails.totalPrice)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="detail-item">
+                      <span className="label">Payment Method:</span>
+                      <span className="value">Cash at Check-in</span>
+                    </div>
+                    <div className="detail-item total">
+                      <span className="label">Total Amount Due:</span>
+                      <span className="value pending">{formatVND(bookingDetails.finalTotalPrice || bookingDetails.totalPrice)}</span>
                     </div>
                   </>
                 )}
-                <div className="detail-item total">
-                  <span className="label">Total Amount:</span>
-                  <span className="value">{formatVND(bookingDetails.totalPrice)}</span>
-                </div>
               </div>
             )}
 

@@ -59,18 +59,36 @@ router.get("/user/:userId/history", async (req, res) => {
       },
     ]);
 
-    // Calculate total spent (only completed bookings)
+    // Calculate total spent - based on ACTUAL PAID AMOUNT
+    // Include:
+    // 1. Completed/checked_out bookings: full amount
+    // 2. Cancelled bookings: deposit amount if paid
+    // 3. Any booking where paidAmount > 0
     const totalSpent = await Booking.aggregate([
       {
         $match: {
           customerId: userId,
-          bookingStatus: { $in: ["approved", "completed", "checked_out"] }
+          bookingStatus: { $in: completedStatuses },
+          // Only count if actually paid something
+          $or: [
+            { paidAmount: { $gt: 0 } }, // Has paid amount
+            { paymentStatus: { $in: ["paid", "partially_paid"] } }, // Or payment confirmed
+          ]
         }
       },
       {
         $group: {
           _id: null,
-          total: { $sum: { $ifNull: ["$finalTotalPrice", "$totalPrice"] } },
+          // Sum actual paid amount (not finalTotalPrice)
+          total: {
+            $sum: {
+              $cond: [
+                { $gt: ["$paidAmount", 0] },
+                "$paidAmount", // Use paidAmount if > 0
+                { $ifNull: ["$finalTotalPrice", "$totalPrice"] } // Fallback to total
+              ]
+            }
+          },
         },
       },
     ]);
@@ -160,11 +178,19 @@ router.get("/host/:hostId/history", async (req, res) => {
     console.log(`✅ Fetched ${bookings.length} history bookings for host ${hostId}`);
 
     // Calculate total earnings
+    // Only count earnings from:
+    // 1. Bookings that are checked_out or completed
+    // 2. VNPay payments (already paid) OR Cash payments (only if checked_out/completed)
     const totalEarnings = await Booking.aggregate([
       {
         $match: {
           hostId,
-          status: { $in: ["accepted", "completed", "checked_out"] }
+          bookingStatus: { $in: ["checked_out", "completed"] },
+          $or: [
+            { paymentMethod: "vnpay", paymentStatus: "paid" },
+            { paymentMethod: "vnpay", paymentStatus: "partially_paid" },
+            { paymentMethod: "cash", bookingStatus: { $in: ["checked_out", "completed"] } }
+          ]
         }
       },
       {
@@ -176,11 +202,17 @@ router.get("/host/:hostId/history", async (req, res) => {
     ]);
 
     // Monthly earnings (last 12 months)
+    // Same logic: only count confirmed revenue
     const monthlyEarnings = await Booking.aggregate([
       {
         $match: {
           hostId,
-          status: { $in: ["accepted", "completed", "checked_out"] },
+          bookingStatus: { $in: ["checked_out", "completed"] },
+          $or: [
+            { paymentMethod: "vnpay", paymentStatus: "paid" },
+            { paymentMethod: "vnpay", paymentStatus: "partially_paid" },
+            { paymentMethod: "cash", bookingStatus: { $in: ["checked_out", "completed"] } }
+          ],
           createdAt: {
             $gte: new Date(new Date().setMonth(new Date().getMonth() - 12)),
           },

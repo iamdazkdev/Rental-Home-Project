@@ -128,7 +128,7 @@ const UserBookingHistory = () => {
             <div className="stat-card total-spent">
               <div className="stat-icon">💰</div>
               <div className="stat-content">
-                <h3>${statistics.totalSpent?.toFixed(2) || "0.00"}</h3>
+                <h3>{(statistics.totalSpent || 0).toLocaleString('vi-VN')} VND</h3>
                 <p>Total Spent</p>
               </div>
             </div>
@@ -242,8 +242,18 @@ const UserBookingHistory = () => {
                       </div>
                       <div className="info-item">
                         <span className="label">💰 Total:</span>
-                        <span className="value price">${(booking.finalTotalPrice || booking.totalPrice).toFixed(2)}</span>
+                        <span className="value price">
+                          {(booking.finalTotalPrice || booking.totalPrice).toLocaleString('vi-VN')} VND
+                        </span>
                       </div>
+                      {booking.paidAmount > 0 && booking.paidAmount !== (booking.finalTotalPrice || booking.totalPrice) && (
+                        <div className="info-item">
+                          <span className="label">✅ Paid:</span>
+                          <span className="value price paid">
+                            {booking.paidAmount.toLocaleString('vi-VN')} VND
+                          </span>
+                        </div>
+                      )}
                       <div className="info-item">
                         <span className="label">📝 Booked:</span>
                         <span className="value">{formatDate(booking.createdAt)}</span>

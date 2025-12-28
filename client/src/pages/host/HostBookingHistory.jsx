@@ -117,7 +117,7 @@ const HostBookingHistory = () => {
       labels,
       datasets: [
         {
-          label: "Monthly Earnings ($)",
+          label: "Monthly Revenue (VND)",
           data: earnings,
           borderColor: "rgb(75, 192, 192)",
           backgroundColor: "rgba(75, 192, 192, 0.2)",
@@ -147,8 +147,8 @@ const HostBookingHistory = () => {
       <Navbar />
       <div className="booking-history host-history">
         <div className="history-header">
-          <h1>💼 My Hosting History</h1>
-          <p>Track all your hosting activity and earnings</p>
+          <h1>💰 Revenue Dashboard</h1>
+          <p>Track your confirmed earnings and completed bookings</p>
         </div>
 
         {/* Statistics Cards */}
@@ -165,8 +165,9 @@ const HostBookingHistory = () => {
             <div className="stat-card total-earnings">
               <div className="stat-icon">💰</div>
               <div className="stat-content">
-                <h3>${statistics.totalEarnings?.toFixed(2) || "0.00"}</h3>
-                <p>Total Earnings</p>
+                <h3>{statistics.totalEarnings?.toLocaleString('vi-VN')} VND</h3>
+                <p>Confirmed Revenue</p>
+                <small>(Checked-out/Completed only)</small>
               </div>
             </div>
 
@@ -185,7 +186,7 @@ const HostBookingHistory = () => {
         {/* Earnings Chart */}
         {statistics?.monthlyEarnings?.length > 0 && (
           <div className="earnings-chart">
-            <h2>📈 Earnings Over Time</h2>
+            <h2>📈 Revenue Over Time</h2>
             <Line
               data={getChartData()}
               options={{
@@ -196,7 +197,7 @@ const HostBookingHistory = () => {
                   },
                   title: {
                     display: true,
-                    text: "Last 12 Months Earnings",
+                    text: "Last 12 Months Confirmed Revenue",
                   },
                 },
                 scales: {
@@ -204,7 +205,7 @@ const HostBookingHistory = () => {
                     beginAtZero: true,
                     ticks: {
                       callback: function (value) {
-                        return "$" + value;
+                        return value.toLocaleString('vi-VN') + " VND";
                       },
                     },
                   },

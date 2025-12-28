@@ -12,6 +12,7 @@
     "mongoose": "^8.19.2",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0",
+    "node-cron": "^3.0.3",
     "nodemailer": "^7.0.11",
     "querystring": "^0.2.1",
     "socket.io": "^4.8.3",

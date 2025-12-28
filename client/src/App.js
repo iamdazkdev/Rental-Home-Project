@@ -19,6 +19,8 @@ import EditProfilePage from "./pages/profile/EditProfilePage";
 import SearchPage from "./pages/search/SearchPage";
 import MessagesPage from "./pages/messages/MessagesPage";
 import PaymentResultPage from "./pages/PaymentResultPage";
+import PaymentReminderPage from "./pages/payment/PaymentReminderPage";
+import PaymentReminderResultPage from "./pages/payment/PaymentReminderResultPage";
 import AdminManagement from "./pages/admin/AdminManagement";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import { SocketProvider } from "./context/SocketContext";
@@ -56,6 +58,8 @@ function App() {
           <Route path="/profile/edit" element={<EditProfilePage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/payment/result" element={<PaymentResultPage />} />
+          <Route path="/payment-reminder/:bookingId" element={<PaymentReminderPage />} />
+          <Route path="/payment-reminder-result" element={<PaymentReminderResultPage />} />
 
           {/* Entire Place Rental Routes */}
           <Route path="/entire-place" element={<EntirePlaceSearch />} />

@@ -172,26 +172,31 @@ const BookingConfirmation = () => {
             </div>
 
             <div className="detail-row">
-              <span className="label">Total Amount:</span>
-              <span className="value">{formatPrice(booking.totalPrice)} VND</span>
+              <span className="label">Total Booking Amount:</span>
+              <span className="value">{formatPrice(booking.finalTotalPrice || booking.totalPrice)} VND</span>
             </div>
 
-            {booking.paymentStatus === 'paid' && (
+            {/* Show payment breakdown based on paymentMethod and paymentType */}
+            {booking.paymentMethod === 'vnpay' && booking.paymentType === 'full' && booking.paymentStatus === 'paid' && (
               <div className="detail-row">
-                <span className="label">Paid:</span>
-                <span className="value success">{formatPrice(booking.totalPrice)} VND</span>
+                <span className="label">Paid via VNPay (100%):</span>
+                <span className="value success">{formatPrice(booking.finalTotalPrice || booking.totalPrice)} VND</span>
               </div>
             )}
 
-            {booking.paymentStatus === 'partially_paid' && (
+            {booking.paymentMethod === 'vnpay' && booking.paymentType === 'deposit' && (
               <>
                 <div className="detail-row">
-                  <span className="label">Deposit Paid:</span>
-                  <span className="value success">{formatPrice(booking.depositAmount)} VND</span>
+                  <span className="label">Paid via VNPay (Deposit {booking.depositPercentage || 30}%):</span>
+                  <span className="value success">
+                    {formatPrice(booking.depositAmount || (booking.finalTotalPrice || booking.totalPrice) * 0.3)} VND
+                  </span>
                 </div>
                 <div className="detail-row">
-                  <span className="label">Remaining:</span>
-                  <span className="value warning">{formatPrice(booking.remainingAmount)} VND</span>
+                  <span className="label">Remaining (Pay at check-in):</span>
+                  <span className="value warning">
+                    {formatPrice(booking.remainingAmount || ((booking.finalTotalPrice || booking.totalPrice) - (booking.depositAmount || (booking.finalTotalPrice || booking.totalPrice) * 0.3)))} VND
+                  </span>
                 </div>
                 <p className="payment-note">
                   ⚠️ Pay remaining amount in cash at check-in
@@ -199,10 +204,10 @@ const BookingConfirmation = () => {
               </>
             )}
 
-            {booking.paymentStatus === 'unpaid' && (
+            {booking.paymentMethod === 'cash' && (
               <div className="detail-row">
                 <span className="label">Payment Due:</span>
-                <span className="value warning">At Check-in (Cash)</span>
+                <span className="value warning">At Check-in (Cash - 100%): {formatPrice(booking.finalTotalPrice || booking.totalPrice)} VND</span>
               </div>
             )}
           </div>

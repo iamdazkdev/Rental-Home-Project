@@ -29,9 +29,11 @@ const ListingCard = ({
   onReview,
   onExtend,
   onCancel,
+  onPaymentReminder,
   paymentMethod,
   depositAmount,
   paymentStatus,
+  remainingAmount,
 }) => {
   /* SLIDER FOR IMAGES */
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -262,18 +264,10 @@ const ListingCard = ({
         </>
       ) : (
         <>
-          {" "}
           <p>
             {startDate} - {endDate}
             {isExtended && (
               <span className="extended-badge"> Extended</span>
-            )}
-          </p>
-          <p>
-            <span>{formatVND(totalPrice)} VND</span>
-            &nbsp;total
-            {isExtended && (
-              <span className="updated-badge"> Updated</span>
             )}
           </p>
           {/* Payment Breakdown Card */}
@@ -293,6 +287,17 @@ const ListingCard = ({
               }}
             >
               🚫 Cancel Request
+            </button>
+          )}
+          {onPaymentReminder && remainingAmount > 0 && (
+            <button
+              className="action-btn payment-reminder-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPaymentReminder();
+              }}
+            >
+              💳 Complete Payment ({remainingAmount.toLocaleString('vi-VN')} VND)
             </button>
           )}
           {onCheckout && (

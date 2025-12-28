@@ -59,13 +59,13 @@ class VNPayService {
       locale = 'vn',
       ipAddr = '127.0.0.1',
       bankCode = '',
+      returnUrl, // ✅ Accept custom returnUrl
     } = params;
 
     // Create date
     const createDate = moment().format('YYYYMMDDHHmmss');
     const expireDate = moment().add(15, 'minutes').format('YYYYMMDDHHmmss');
 
-    // VNPay requires amount in smallest unit (xu - 1/100 VND)
     // So we need to multiply VND amount by 100
     // Example: 300 VND → 30000 (VNPay unit)
     const vnp_Amount = Math.round(amount * 100);
@@ -73,6 +73,7 @@ class VNPayService {
     console.log(`💰 VNPay Amount Conversion:`);
     console.log(`   Input: ${amount} VND`);
     console.log(`   VNPay: ${vnp_Amount} (${amount} * 100)`);
+    console.log(`🔗 Return URL: ${returnUrl || this.vnp_ReturnUrl}`);
 
     // Build VNPay params
     let vnp_Params = {
@@ -85,7 +86,7 @@ class VNPayService {
       vnp_OrderInfo: orderInfo,
       vnp_OrderType: orderType,
       vnp_Amount: vnp_Amount,
-      vnp_ReturnUrl: this.vnp_ReturnUrl,
+      vnp_ReturnUrl: returnUrl || this.vnp_ReturnUrl, // ✅ Use custom or default
       vnp_IpAddr: ipAddr,
       vnp_CreateDate: createDate,
       vnp_ExpireDate: expireDate,
