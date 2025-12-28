@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const Booking = require("../models/Booking");
+const PaymentHistory = require("../models/PaymentHistory");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
 const Listing = require("../models/Listing");
@@ -73,6 +74,13 @@ router.post("/create", async (req, res) => {
       status: "pending",
       finalEndDate: endDate,
       finalTotalPrice: totalPrice,
+      // Set payment fields for cash booking
+      paymentMethod: req.body.paymentMethod || "cash",
+      paymentStatus: "unpaid",
+      remainingAmount: totalPrice,
+      remainingDueDate: new Date(startDate), // Due at check-in
+      // Initialize empty payment history
+      paymentHistory: [],
     });
 
     const savedBooking = await newBooking.save();
@@ -545,6 +553,91 @@ router.get("/:bookingId", async (req, res) => {
     console.error("❌ Error fetching booking:", error);
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       message: "Failed to fetch booking",
+      error: error.message,
+    });
+  }
+});
+
+// RECORD REMAINING PAYMENT
+// For host to mark remaining payment as received
+router.post("/:bookingId/record-payment", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { amount, method, notes } = req.body;
+
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        message: "Booking not found",
+      });
+    }
+
+    // Validate amount
+    if (!amount || amount <= 0) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        message: "Invalid payment amount",
+      });
+    }
+
+    // Add payment to history
+    const paymentEntry = {
+      amount: amount,
+      method: method || "cash",
+      status: "paid",
+      transactionId: `MANUAL_${Date.now()}`,
+      type: "remaining",
+      paidAt: new Date(),
+      notes: notes || "Remaining payment received at check-in",
+    };
+
+    booking.paymentHistory.push(paymentEntry);
+
+    // Update remaining amount
+    const newRemainingAmount = Math.max(0, booking.remainingAmount - amount);
+    booking.remainingAmount = newRemainingAmount;
+
+    // Update payment status
+    if (newRemainingAmount === 0) {
+      booking.paymentStatus = "paid";
+    }
+
+    await booking.save();
+
+    console.log(`✅ Payment recorded for booking ${bookingId}: ${amount} VND via ${method}`);
+
+    // DUAL-WRITE: Save to standalone PaymentHistory collection
+    try {
+      const paymentHistoryDoc = new PaymentHistory({
+        bookingId: booking._id,
+        customerId: booking.customerId,
+        hostId: booking.hostId,
+        listingId: booking.listingId,
+        amount: amount,
+        method: method || "cash",
+        status: "paid",
+        transactionId: paymentEntry.transactionId,
+        type: "remaining",
+        paidAt: new Date(),
+        notes: notes || "Remaining payment received at check-in",
+        recordedBy: booking.hostId, // Host recorded this payment
+      });
+
+      await paymentHistoryDoc.save();
+      console.log(`✅ Payment history saved to standalone collection: ${paymentHistoryDoc._id}`);
+    } catch (historyError) {
+      console.error("⚠️ Failed to save to PaymentHistory collection (non-critical):", historyError);
+      // Don't fail the booking if history save fails
+    }
+
+    res.status(HTTP_STATUS.OK).json({
+      message: "Payment recorded successfully",
+      booking,
+    });
+  } catch (error) {
+    console.error("❌ Error recording payment:", error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Failed to record payment",
       error: error.message,
     });
   }

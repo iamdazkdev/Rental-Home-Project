@@ -48,8 +48,8 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
     },
     {
       'id': 'vnpay_deposit',
-      'name': 'Tiền cọc 50%',
-      'subtitle': 'Cọc 50% qua VNPay, phần còn lại trả sau',
+      'name': 'Tiền cọc 30%',
+      'subtitle': 'Cọc 30% qua VNPay, phần còn lại trả sau',
       'icon': Icons.account_balance_wallet,
       'color': Colors.orange,
     },
@@ -80,7 +80,7 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
       double depositAmount = 0;
 
       if (_selectedPaymentMethod == 'vnpay_deposit') {
-        depositPercentage = 50;
+        depositPercentage = 30;
         depositAmount = _paymentService.calculateDepositAmount(widget.totalPrice);
         paymentAmount = depositAmount;
       }
@@ -623,7 +623,7 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Tiền cọc (50%):', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Tiền cọc (30%):', style: TextStyle(fontWeight: FontWeight.w600)),
                   Text(
                     PriceFormatter.formatPrice(paymentAmount),
                     style: const TextStyle(
@@ -637,7 +637,7 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Còn lại:', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                  Text('Còn lại (trả khi nhận phòng):', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                   Text(
                     PriceFormatter.formatPrice(widget.totalPrice - paymentAmount),
                     style: TextStyle(color: Colors.grey[600], fontSize: 13),

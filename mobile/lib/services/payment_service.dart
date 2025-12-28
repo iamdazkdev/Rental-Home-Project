@@ -38,12 +38,12 @@ class PaymentService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         debugPrint('✅ Payment URL created successfully');
-        debugPrint('Booking ID: ${data['bookingId']}');
+        debugPrint('Temp Order ID: ${data['tempOrderId']}');
 
         return {
           'success': true,
           'paymentUrl': data['paymentUrl'],
-          'bookingId': data['bookingId'],
+          'bookingId': data['tempOrderId'], // Use tempOrderId as bookingId for now
         };
       } else {
         final error = json.decode(response.body);
@@ -78,7 +78,7 @@ class PaymentService {
   }
 
   double calculateDepositAmount(double totalAmount) {
-    return totalAmount * 0.5;
+    return totalAmount * 0.3;
   }
 }
 

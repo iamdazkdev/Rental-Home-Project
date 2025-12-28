@@ -8,6 +8,7 @@ import {useDispatch, useSelector} from "react-redux";
 // import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
 import {API_ENDPOINTS, HTTP_METHODS} from "../constants/api";
 import {setWishList} from "../redux/state";
+import PaymentBreakdownCard from "./PaymentBreakdownCard";
 
 const ListingCard = ({
   listingId,
@@ -28,6 +29,9 @@ const ListingCard = ({
   onReview,
   onExtend,
   onCancel,
+  paymentMethod,
+  depositAmount,
+  paymentStatus,
 }) => {
   /* SLIDER FOR IMAGES */
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -160,8 +164,6 @@ const ListingCard = ({
       console.error("❌ Error updating wishlist:", error);
     }
   }
-
-  // Format VND with Vietnamese thousand separator (dots)
   const formatVND = (amount) => {
     if (!amount && amount !== 0) return '0';
     const rounded = Math.round(amount);
@@ -182,13 +184,9 @@ const ListingCard = ({
             <div key={index} className="slide">
               <img
                 src={(() => {
-                  // console.log("ListingCard Image Debug:");
-                  // Check if it's already a full Cloudinary URL
                   if (photo?.startsWith("https://")) {
-                    // console.log("- Using Cloudinary URL directly:", photo);
                     return photo;
                   }
-                  // Legacy local path handling
                   const localPath = `${CONFIG.API_BASE_URL}/${
                     photo?.replace("public/", "") || ""
                   }`;
@@ -278,6 +276,8 @@ const ListingCard = ({
               <span className="updated-badge"> Updated</span>
             )}
           </p>
+          {/* Payment Breakdown Card */}
+          <PaymentBreakdownCard booking={booking} />
         </>
       )}
 

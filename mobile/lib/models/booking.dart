@@ -9,6 +9,13 @@ class Booking {
   final DateTime endDate;
   final double totalPrice;
   final String status; // pending, approved, rejected, cancelled, completed, checkedOut
+
+  // Payment fields
+  final String? paymentMethod; // vnpay_full, vnpay_deposit, cash
+  final String? paymentStatus; // paid, partially_paid, unpaid
+  final double? depositAmount;
+  final int? depositPercentage;
+
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -38,6 +45,10 @@ class Booking {
     required this.endDate,
     required this.totalPrice,
     required this.status,
+    this.paymentMethod,
+    this.paymentStatus,
+    this.depositAmount,
+    this.depositPercentage,
     this.createdAt,
     this.updatedAt,
     this.extensionDays,
@@ -176,6 +187,10 @@ class Booking {
       endDate: endDate,
       totalPrice: (json['totalPrice'] ?? 0).toDouble(),
       status: json['status'] ?? 'pending',
+      paymentMethod: json['paymentMethod'],
+      paymentStatus: json['paymentStatus'],
+      depositAmount: json['depositAmount']?.toDouble(),
+      depositPercentage: json['depositPercentage'],
       createdAt: parseDate(json['createdAt']),
       updatedAt: parseDate(json['updatedAt']),
       extensionDays: json['extensionDays'],
@@ -202,6 +217,10 @@ class Booking {
       'endDate': endDate.toIso8601String(),
       'totalPrice': totalPrice,
       'status': status,
+      'paymentMethod': paymentMethod,
+      'paymentStatus': paymentStatus,
+      'depositAmount': depositAmount,
+      'depositPercentage': depositPercentage,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       'extensionDays': extensionDays,
@@ -224,6 +243,10 @@ class Booking {
     DateTime? endDate,
     double? totalPrice,
     String? status,
+    String? paymentMethod,
+    String? paymentStatus,
+    double? depositAmount,
+    int? depositPercentage,
     DateTime? createdAt,
     DateTime? updatedAt,
     int? extensionDays,
@@ -247,6 +270,10 @@ class Booking {
       endDate: endDate ?? this.endDate,
       totalPrice: totalPrice ?? this.totalPrice,
       status: status ?? this.status,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      depositAmount: depositAmount ?? this.depositAmount,
+      depositPercentage: depositPercentage ?? this.depositPercentage,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       extensionDays: extensionDays ?? this.extensionDays,

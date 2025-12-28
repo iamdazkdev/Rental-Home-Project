@@ -219,4 +219,58 @@
       }
     }
   }
+
+  .payment-info {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+
+    &.deposit-info {
+      background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+      border: 1px solid #ff9800;
+
+      .deposit-paid {
+        margin-bottom: 6px;
+        color: #2e7d32;
+        font-weight: 600;
+
+        strong {
+          color: #1b5e20;
+        }
+      }
+
+      .remaining-payment {
+        color: #e65100;
+        font-weight: 600;
+
+        strong {
+          color: #bf360c;
+          font-size: 14px;
+        }
+
+        .payment-note {
+          font-size: 11px;
+          font-weight: 400;
+          font-style: italic;
+          color: #666;
+        }
+      }
+    }
+
+    &.cash-info {
+      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+      border: 1px solid #4caf50;
+
+      .cash-payment {
+        color: #2e7d32;
+        font-weight: 600;
+        margin: 0;
+
+        strong {
+          color: #1b5e20;
+        }
+      }
+    }
+  }
 }

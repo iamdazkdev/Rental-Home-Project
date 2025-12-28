@@ -1,11 +1,14 @@
 const router = require("express").Router();
 const Booking = require("../models/Booking");
+const PendingBooking = require("../models/PendingBooking");
+const PaymentHistory = require("../models/PaymentHistory");
 const { HTTP_STATUS } = require("../constants");
 const vnpayService = require("../services/vnpayService");
 
 /**
  * CREATE VNPAY PAYMENT URL
- * Creates a booking first, then generates payment URL
+ * Stores booking data in PendingBooking collection and generates payment URL
+ * Booking will be created only after successful payment
  */
 router.post("/create-payment-url", async (req, res) => {
   try {
@@ -31,8 +34,11 @@ router.post("/create-payment-url", async (req, res) => {
       });
     }
 
-    // Step 1: Create booking first
-    console.log("📤 Creating booking before payment...", {
+    // Generate a temporary order ID
+    const tempOrderId = `TEMP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    console.log("📦 Creating pending booking in database:", {
+      tempOrderId,
       customerId: bookingData.customerId,
       hostId: bookingData.hostId,
       listingId: bookingData.listingId,
@@ -40,40 +46,33 @@ router.post("/create-payment-url", async (req, res) => {
       totalPrice: bookingData.totalPrice,
     });
 
-    const newBooking = new Booking({
+    // Store pending booking in database
+    const pendingBooking = new PendingBooking({
+      tempOrderId,
       customerId: bookingData.customerId,
       hostId: bookingData.hostId,
       listingId: bookingData.listingId,
       startDate: bookingData.startDate,
       endDate: bookingData.endDate,
       totalPrice: bookingData.totalPrice,
-      finalTotalPrice: bookingData.totalPrice, // Set same as totalPrice initially
       paymentMethod: bookingData.paymentMethod,
       depositPercentage: bookingData.depositPercentage || 0,
       depositAmount: bookingData.depositAmount || 0,
-      paymentStatus: 'pending', // Pending until payment completes
-      status: 'pending',
+      paymentAmount: amount,
+      status: "pending_payment",
     });
 
-    const savedBooking = await newBooking.save();
-    console.log(`✅ Booking created with ID: ${savedBooking._id} (status: pending payment)`);
-
-    // Step 2: Populate booking for order info
-    const booking = await Booking.findById(savedBooking._id)
-      .populate("listingId", "title")
-      .populate("customerId", "firstName lastName email");
-
-    // Step 3: Generate payment URL
-    const orderId = booking._id.toString();
+    await pendingBooking.save();
+    console.log(`✅ Pending booking saved to database (expires in 30 minutes)`);
 
     // Determine order info based on payment type
     const isDeposit = bookingData.paymentMethod === 'vnpay_deposit';
     const orderInfo = isDeposit
-      ? `Dat coc ${bookingData.depositPercentage}% - ${booking.listingId?.title || 'Unknown'} - ${booking.customerId?.firstName} ${booking.customerId?.lastName}`
-      : `Thanh toan dat phong ${booking.listingId?.title || 'Unknown'} - ${booking.customerId?.firstName} ${booking.customerId?.lastName}`;
+      ? `Dat coc ${bookingData.depositPercentage}% - Booking ${tempOrderId}`
+      : `Thanh toan dat phong - Booking ${tempOrderId}`;
 
     const paymentParams = {
-      orderId,
+      orderId: tempOrderId,
       amount, // Amount is already in VND from client
       orderInfo,
       orderType: 'billpayment',
@@ -85,11 +84,12 @@ router.post("/create-payment-url", async (req, res) => {
     // Create payment URL
     const paymentUrl = vnpayService.createPaymentUrl(paymentParams);
 
-    console.log(`✅ VNPay payment URL created for booking ${orderId} (Amount: ${amount.toLocaleString()} VND)`);
+    console.log(`✅ VNPay payment URL created with temp order ${tempOrderId} (Amount: ${amount.toLocaleString()} VND)`);
+    console.log(`⏳ Booking will be created after successful payment`);
 
     res.status(HTTP_STATUS.OK).json({
       paymentUrl,
-      bookingId: orderId,
+      tempOrderId: tempOrderId,
       amount: amount,
     });
   } catch (error) {
@@ -104,7 +104,7 @@ router.post("/create-payment-url", async (req, res) => {
 /**
  * VNPAY RETURN URL
  * Handle redirect from VNPay after payment
- * NOTE: For demo purposes, always treats as successful
+ * Creates booking only on successful payment
  */
 router.get("/vnpay-return", async (req, res) => {
   try {
@@ -112,51 +112,155 @@ router.get("/vnpay-return", async (req, res) => {
 
     console.log("📥 VNPay return params received:", vnp_Params);
 
-    // For demo: Always treat as successful, regardless of actual VNPay response
-    console.log("🎭 DEMO MODE: Treating payment as successful");
+    // Extract temp order ID from params
+    const tempOrderId = vnp_Params.vnp_TxnRef || vnp_Params.orderId;
 
-    // Extract booking ID from params
-    const bookingId = vnp_Params.vnp_TxnRef || vnp_Params.orderId;
-
-    if (!bookingId) {
-      console.error("❌ No booking ID in VNPay return params");
+    if (!tempOrderId) {
+      console.error("❌ No order ID in VNPay return params");
       return res.redirect(
-        `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=error&message=Missing booking ID`
+        `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=error&message=Missing order ID`
       );
     }
 
-    // Get booking
-    const booking = await Booking.findById(bookingId);
-
-    if (!booking) {
-      console.error(`❌ Booking ${bookingId} not found after payment`);
-      return res.redirect(
-        `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=error&message=Booking not found`
-      );
-    }
-
-    // Determine payment status based on payment method
-    let paymentStatus = "paid";
-    if (booking.paymentMethod === "vnpay_deposit") {
-      paymentStatus = "partially_paid"; // Deposit paid, remaining to be paid on check-in
-    }
-
-    // For demo: Always update booking as successful
-    const transactionNo = vnp_Params.vnp_TransactionNo || `DEMO_${Date.now()}`;
-
-    await Booking.findByIdAndUpdate(bookingId, {
-      paymentStatus: paymentStatus,
-      status: 'accepted', // Auto-accept since paid (demo)
-      paymentIntentId: transactionNo,
-      paidAt: new Date(),
+    // Retrieve pending booking from database
+    const pendingBooking = await PendingBooking.findOne({
+      tempOrderId,
+      status: "pending_payment"
     });
 
-    console.log(`✅ [DEMO] Booking ${bookingId} confirmed with payment status: ${paymentStatus}`);
+    if (!pendingBooking) {
+      console.error(`❌ Pending booking not found or already processed: ${tempOrderId}`);
+      return res.redirect(
+        `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=error&message=Booking data not found or expired`
+      );
+    }
 
-    // Redirect to success page
-    return res.redirect(
-      `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=success&bookingId=${bookingId}&transactionNo=${transactionNo}&paymentStatus=${paymentStatus}`
-    );
+    // Verify payment signature (in production, verify the signature properly)
+    const verifyResult = vnpayService.verifyReturnUrl(vnp_Params);
+    const isPaymentSuccessful = verifyResult.isValid && vnpayService.isSuccessful(verifyResult.rspCode);
+
+    console.log(`💳 Payment verification: ${isPaymentSuccessful ? 'SUCCESS' : 'FAILED'}`);
+
+    if (isPaymentSuccessful) {
+      // Payment successful - create actual booking
+      console.log(`✅ Payment successful, creating booking now...`);
+
+      // Determine payment status based on payment method
+      let paymentStatus = "paid";
+      if (pendingBooking.paymentMethod === "vnpay_deposit") {
+        paymentStatus = "partially_paid";
+      }
+
+      const transactionNo = vnp_Params.vnp_TransactionNo || `DEMO_${Date.now()}`;
+
+      // Determine payment type for history
+      let paymentType = "full";
+      let remainingAmount = 0;
+      let remainingDueDate = null;
+
+      if (pendingBooking.paymentMethod === "vnpay_deposit") {
+        paymentType = "deposit";
+        remainingAmount = pendingBooking.totalPrice - pendingBooking.depositAmount;
+        remainingDueDate = new Date(pendingBooking.startDate); // Due at check-in
+      }
+
+      // Create payment history entry
+      const paymentHistoryEntry = {
+        amount: pendingBooking.paymentAmount,
+        method: "vnpay",
+        status: "paid",
+        transactionId: transactionNo,
+        type: paymentType,
+        paidAt: new Date(),
+        notes: paymentType === "deposit"
+          ? `Deposit payment (${pendingBooking.depositPercentage}%) via VNPay`
+          : "Full payment via VNPay",
+      };
+
+      // Create the actual booking
+      const newBooking = new Booking({
+        customerId: pendingBooking.customerId,
+        hostId: pendingBooking.hostId,
+        listingId: pendingBooking.listingId,
+        startDate: pendingBooking.startDate,
+        endDate: pendingBooking.endDate,
+        totalPrice: pendingBooking.totalPrice,
+        finalTotalPrice: pendingBooking.totalPrice,
+        paymentMethod: pendingBooking.paymentMethod,
+        depositPercentage: pendingBooking.depositPercentage || 0,
+        depositAmount: pendingBooking.depositAmount || 0,
+        paymentStatus: paymentStatus,
+        status: 'pending', // Pending host approval
+        paymentIntentId: transactionNo,
+        paidAt: new Date(),
+        // Add payment history
+        paymentHistory: [paymentHistoryEntry],
+        remainingAmount: remainingAmount,
+        remainingDueDate: remainingDueDate,
+      });
+
+      const savedBooking = await newBooking.save();
+      const bookingId = savedBooking._id.toString();
+
+      console.log(`✅ Booking ${bookingId} created with payment status: ${paymentStatus}`);
+
+      // DUAL-WRITE: Save to standalone PaymentHistory collection
+      try {
+        const paymentHistoryDoc = new PaymentHistory({
+          bookingId: savedBooking._id,
+          customerId: pendingBooking.customerId,
+          hostId: pendingBooking.hostId,
+          listingId: pendingBooking.listingId,
+          amount: pendingBooking.paymentAmount,
+          method: "vnpay",
+          status: "paid",
+          transactionId: transactionNo,
+          type: paymentType,
+          paidAt: new Date(),
+          notes: paymentType === "deposit"
+            ? `Deposit payment (${pendingBooking.depositPercentage}%) via VNPay`
+            : "Full payment via VNPay",
+          vnpayData: {
+            vnp_TransactionNo: vnp_Params.vnp_TransactionNo,
+            vnp_BankCode: vnp_Params.vnp_BankCode,
+            vnp_CardType: vnp_Params.vnp_CardType,
+            vnp_OrderInfo: vnp_Params.vnp_OrderInfo,
+            vnp_PayDate: vnp_Params.vnp_PayDate,
+          }
+        });
+
+        await paymentHistoryDoc.save();
+        console.log(`✅ Payment history saved to standalone collection: ${paymentHistoryDoc._id}`);
+      } catch (historyError) {
+        console.error("⚠️ Failed to save to PaymentHistory collection (non-critical):", historyError);
+        // Don't fail the booking if history save fails
+      }
+
+      // Update pending booking status to converted
+      await PendingBooking.findByIdAndUpdate(pendingBooking._id, {
+        status: "converted",
+      });
+
+      console.log(`✅ Pending booking ${tempOrderId} marked as converted`);
+
+      // Redirect to success page
+      return res.redirect(
+        `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=success&bookingId=${bookingId}&transactionNo=${transactionNo}&paymentStatus=${paymentStatus}`
+      );
+    } else {
+      // Payment failed
+      console.log(`❌ Payment failed or cancelled for temp order ${tempOrderId}`);
+
+      // Update pending booking status to expired
+      await PendingBooking.findByIdAndUpdate(pendingBooking._id, {
+        status: "expired",
+      });
+
+      // Redirect to failure page
+      return res.redirect(
+        `${process.env.CLIENT_URL || 'http://localhost:3000'}/payment/result?status=failed&message=Payment failed or cancelled`
+      );
+    }
 
   } catch (error) {
     console.error("❌ Error handling VNPay return:", error);
@@ -169,6 +273,7 @@ router.get("/vnpay-return", async (req, res) => {
 /**
  * VNPAY IPN (Instant Payment Notification)
  * Handle server-to-server notification from VNPay
+ * Creates booking on successful payment
  */
 router.post("/vnpay-ipn", async (req, res) => {
   try {
@@ -187,62 +292,67 @@ router.post("/vnpay-ipn", async (req, res) => {
       });
     }
 
-    const bookingId = verifyResult.orderId;
-    const booking = await Booking.findById(bookingId);
+    const tempOrderId = verifyResult.orderId;
 
-    if (!booking) {
-      console.error(`❌ Booking not found: ${bookingId}`);
+    // Retrieve pending booking from database
+    const pendingBooking = await PendingBooking.findOne({
+      tempOrderId,
+      status: "pending_payment"
+    });
+
+    if (!pendingBooking) {
+      console.error(`❌ Pending booking not found or already processed: ${tempOrderId}`);
       return res.status(HTTP_STATUS.OK).json({
         RspCode: "01",
         Message: "Order not found",
       });
     }
 
-    // Check if already confirmed
-    if (booking.paymentStatus === "paid") {
-      console.log(`⚠️ Booking ${bookingId} already confirmed`);
-      return res.status(HTTP_STATUS.OK).json({
-        RspCode: "02",
-        Message: "Order already confirmed",
-      });
-    }
-
-    // Check amount
-    if (booking.finalTotalPrice !== verifyResult.amount) {
-      console.error(`❌ Invalid amount for booking ${bookingId}`);
-      return res.status(HTTP_STATUS.OK).json({
-        RspCode: "04",
-        Message: "Invalid amount",
-      });
-    }
-
-    // Update booking if payment successful
+    // Create booking if payment successful
     if (vnpayService.isSuccessful(verifyResult.rspCode)) {
       // Determine payment status based on payment method
       let paymentStatus = "paid";
-      if (booking.paymentMethod === "vnpay_deposit") {
+      if (pendingBooking.paymentMethod === "vnpay_deposit") {
         paymentStatus = "partially_paid";
       }
 
-      await Booking.findByIdAndUpdate(bookingId, {
+      const newBooking = new Booking({
+        customerId: pendingBooking.customerId,
+        hostId: pendingBooking.hostId,
+        listingId: pendingBooking.listingId,
+        startDate: pendingBooking.startDate,
+        endDate: pendingBooking.endDate,
+        totalPrice: pendingBooking.totalPrice,
+        finalTotalPrice: pendingBooking.totalPrice,
+        paymentMethod: pendingBooking.paymentMethod,
+        depositPercentage: pendingBooking.depositPercentage || 0,
+        depositAmount: pendingBooking.depositAmount || 0,
         paymentStatus: paymentStatus,
-        status: 'accepted', // Auto-accept since paid
+        status: 'pending', // Pending host approval
         paymentIntentId: verifyResult.transactionNo,
         paidAt: new Date(),
       });
 
-      console.log(`✅ Booking ${bookingId} confirmed via IPN with status: ${paymentStatus}`);
+      const savedBooking = await newBooking.save();
+
+      console.log(`✅ Booking ${savedBooking._id} created via IPN with status: ${paymentStatus}`);
+
+      // Update pending booking status to converted
+      await PendingBooking.findByIdAndUpdate(pendingBooking._id, {
+        status: "converted",
+      });
 
       return res.status(HTTP_STATUS.OK).json({
         RspCode: "00",
         Message: "Confirm Success",
       });
     } else {
-      console.log(`❌ Payment failed for booking ${bookingId} via IPN`);
+      console.log(`❌ Payment failed for temp order ${tempOrderId} via IPN`);
 
-      // Delete the booking if payment failed
-      await Booking.findByIdAndDelete(bookingId);
-      console.log(`🗑️ Booking ${bookingId} deleted via IPN due to payment failure`);
+      // Update pending booking status to expired
+      await PendingBooking.findByIdAndUpdate(pendingBooking._id, {
+        status: "expired",
+      });
 
       return res.status(HTTP_STATUS.OK).json({
         RspCode: "00",
@@ -328,6 +438,68 @@ router.post("/query-transaction", async (req, res) => {
     console.error("❌ Error querying transaction:", error);
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
       message: "Failed to query transaction",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * CLEANUP EXPIRED PENDING BOOKINGS
+ * Manual cleanup endpoint (MongoDB TTL should handle this automatically)
+ */
+router.post("/cleanup-expired", async (req, res) => {
+  try {
+    const result = await PendingBooking.deleteMany({
+      status: "pending_payment",
+      expiresAt: { $lt: new Date() }
+    });
+
+    console.log(`🧹 Cleaned up ${result.deletedCount} expired pending bookings`);
+
+    res.status(HTTP_STATUS.OK).json({
+      message: "Cleanup successful",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("❌ Error cleaning up expired bookings:", error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Failed to cleanup expired bookings",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * GET PENDING BOOKING STATUS
+ * Check if a pending booking still exists and is valid
+ */
+router.get("/pending/:tempOrderId", async (req, res) => {
+  try {
+    const { tempOrderId } = req.params;
+
+    const pendingBooking = await PendingBooking.findOne({ tempOrderId })
+      .populate("listingId", "title")
+      .populate("customerId", "firstName lastName");
+
+    if (!pendingBooking) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        message: "Pending booking not found or expired",
+      });
+    }
+
+    res.status(HTTP_STATUS.OK).json({
+      tempOrderId: pendingBooking.tempOrderId,
+      status: pendingBooking.status,
+      paymentAmount: pendingBooking.paymentAmount,
+      paymentMethod: pendingBooking.paymentMethod,
+      expiresAt: pendingBooking.expiresAt,
+      listing: pendingBooking.listingId,
+      customer: pendingBooking.customerId,
+    });
+  } catch (error) {
+    console.error("❌ Error getting pending booking:", error);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      message: "Failed to get pending booking",
       error: error.message,
     });
   }

@@ -19,6 +19,8 @@ import EditProfilePage from "./pages/profile/EditProfilePage";
 import SearchPage from "./pages/search/SearchPage";
 import MessagesPage from "./pages/messages/MessagesPage";
 import PaymentResultPage from "./pages/PaymentResultPage";
+import AdminManagement from "./pages/admin/AdminManagement";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import { SocketProvider } from "./context/SocketContext";
 
 function App() {
@@ -48,6 +50,8 @@ function App() {
           <Route path="/profile/edit" element={<EditProfilePage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/payment/result" element={<PaymentResultPage />} />
+          <Route path="/admin/manage" element={<AdminManagement />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
         </SocketProvider>
       </BrowserRouter>

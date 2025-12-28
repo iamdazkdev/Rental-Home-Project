@@ -103,6 +103,51 @@ const BookingSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // Payment History - Track all payment transactions
+    paymentHistory: [
+      {
+        amount: {
+          type: Number,
+          required: true,
+        },
+        method: {
+          type: String,
+          enum: ["vnpay", "cash", "bank_transfer"],
+          required: true,
+        },
+        status: {
+          type: String,
+          enum: ["pending", "paid", "failed", "refunded"],
+          default: "paid",
+        },
+        transactionId: {
+          type: String,
+          default: null,
+        },
+        type: {
+          type: String,
+          enum: ["deposit", "partial", "full", "remaining"],
+          required: true,
+        },
+        paidAt: {
+          type: Date,
+          default: Date.now,
+        },
+        notes: {
+          type: String,
+          default: "",
+        },
+      },
+    ],
+    // Remaining payment tracking
+    remainingAmount: {
+      type: Number,
+      default: 0,
+    },
+    remainingDueDate: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

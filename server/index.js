@@ -62,6 +62,17 @@ app.use("/search", searchRoutes);
 app.use("/host-reviews", hostReviewsRoutes);
 app.use("/messages", messageRoutes);
 app.use("/payment", paymentRoutes);
+app.use("/payment-history", require("./routes/paymentHistory"));
+// Global templates (admin manages)
+app.use("/categories", require("./routes/categories"));
+app.use("/property-types", require("./routes/propertyTypes"));
+app.use("/facilities", require("./routes/facilities"));
+// User-specific data (each user manages their own)
+app.use("/user-categories", require("./routes/userCategories"));
+app.use("/user-property-types", require("./routes/userPropertyTypes"));
+app.use("/user-facilities", require("./routes/userFacilities"));
+// Admin routes
+app.use("/admin", require("./routes/admin"));
 
 // Global error handler - must be after all routes
 app.use((err, req, res, next) => {

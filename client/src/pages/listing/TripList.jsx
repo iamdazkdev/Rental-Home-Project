@@ -265,6 +265,9 @@ const TripList = () => {
                 onCheckout={canCheckout(trip) ? () => handleCheckout(trip) : null}
                 onExtend={canExtend(trip) ? () => handleExtensionRequest(trip) : null}
                 onCancel={canCancel(trip) ? () => handleCancelBooking(trip) : null}
+                paymentMethod={trip.paymentMethod}
+                depositAmount={trip.depositAmount}
+                paymentStatus={trip.paymentStatus}
               />
             </div>
           ))

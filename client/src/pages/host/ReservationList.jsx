@@ -5,6 +5,8 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Loader from "../../components/Loader";
 import RejectBookingModal from "../../components/RejectBookingModal";
+import RecordPaymentModal from "../../components/RecordPaymentModal";
+import PaymentHistory from "../../components/PaymentHistory";
 import "../../styles/ReservationList.scss";
 
 const ReservationList = () => {
@@ -12,7 +14,9 @@ const ReservationList = () => {
   const [reservations, setReservations] = useState([]);
   const [filter, setFilter] = useState("all"); // all, pending, accepted, rejected
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [recordPaymentModalOpen, setRecordPaymentModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [expandedHistory, setExpandedHistory] = useState({}); // Track which bookings show payment history
   const user = useSelector((state) => state.user);
   const userId = user?._id || user?.id;
 
@@ -141,6 +145,25 @@ const ReservationList = () => {
     }
   };
 
+  const handleRecordPayment = (booking) => {
+    setSelectedBooking(booking);
+    setRecordPaymentModalOpen(true);
+  };
+
+  const handlePaymentRecorded = async (updatedBooking) => {
+    console.log('✅ Payment recorded, refreshing reservations...');
+    await getReservations();
+    setRecordPaymentModalOpen(false);
+    setSelectedBooking(null);
+  };
+
+  const togglePaymentHistory = (bookingId) => {
+    setExpandedHistory(prev => ({
+      ...prev,
+      [bookingId]: !prev[bookingId]
+    }));
+  };
+
   useEffect(() => {
     if (userId) {
       getReservations();
@@ -264,12 +287,128 @@ const ReservationList = () => {
                       )}
                     </p>
                     <p>
-                      <strong>Total:</strong> $
-                      {(reservation.finalTotalPrice || reservation.totalPrice).toFixed(2)}
+                      <strong>Total:</strong>{" "}
+                      {(reservation.finalTotalPrice || reservation.totalPrice).toLocaleString('vi-VN')} VND
                       {reservation.finalTotalPrice && (
                         <span className="updated-price"> (Updated)</span>
                       )}
                     </p>
+
+                    {/* Payment Information */}
+                    <div className="payment-section">
+                      <h4>💰 Payment Information</h4>
+
+                      {/* Full Payment */}
+                      {reservation.paymentMethod === 'vnpay_full' && reservation.paymentStatus === 'paid' && (
+                        <div className="payment-card full-payment">
+                          <p className="payment-status">✅ PAID IN FULL</p>
+                          <p className="payment-amount">
+                            {(reservation.finalTotalPrice || reservation.totalPrice).toLocaleString('vi-VN')} VND
+                          </p>
+                          <p className="payment-method">via VNPay</p>
+                          <p className="payment-note">No collection needed at check-in</p>
+                        </div>
+                      )}
+
+                      {/* Deposit Payment */}
+                      {reservation.paymentMethod === 'vnpay_deposit' && reservation.paymentStatus === 'partially_paid' && (
+                        <div className="payment-card deposit-payment">
+                          <div className="payment-breakdown">
+                            <div className="paid-section">
+                              <p className="section-label">✅ Deposit Received (30%)</p>
+                              <p className="section-amount">
+                                {reservation.depositAmount?.toLocaleString('vi-VN')} VND
+                              </p>
+                              <p className="section-method">via VNPay</p>
+                            </div>
+
+                            <div className="remaining-section">
+                              <p className="section-label">⚠️ To Collect at Check-in (70%)</p>
+                              <p className="section-amount highlight">
+                                {(reservation.remainingAmount ||
+                                  ((reservation.finalTotalPrice || reservation.totalPrice) - (reservation.depositAmount || 0))
+                                ).toLocaleString('vi-VN')} VND
+                              </p>
+                              <p className="section-method">Cash / Bank Transfer</p>
+                            </div>
+                          </div>
+
+                          {reservation.remainingAmount > 0 && reservation.status === 'accepted' && (
+                            <button
+                              className="btn-record-payment"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRecordPayment(reservation);
+                              }}
+                            >
+                              💵 Mark as Paid
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Cash Payment */}
+                      {reservation.paymentMethod === 'cash' && (
+                        <div className="payment-card cash-payment">
+                          {reservation.paymentStatus === 'unpaid' ? (
+                            <>
+                              <p className="payment-status">⚠️ UNPAID</p>
+                              <p className="payment-amount">
+                                {(reservation.remainingAmount || reservation.finalTotalPrice || reservation.totalPrice).toLocaleString('vi-VN')} VND
+                              </p>
+                              <p className="payment-method">Cash at check-in</p>
+                              <p className="payment-note">Guest will pay upon arrival</p>
+
+                              {reservation.status === 'accepted' && reservation.remainingAmount > 0 && (
+                                <button
+                                  className="btn-record-payment"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRecordPayment(reservation);
+                                  }}
+                                >
+                                  💵 Mark as Paid
+                                </button>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <p className="payment-status">✅ PAID</p>
+                              <p className="payment-amount">
+                                {(reservation.finalTotalPrice || reservation.totalPrice).toLocaleString('vi-VN')} VND
+                              </p>
+                              <p className="payment-method">Paid in Cash</p>
+                              <p className="payment-note success">Payment received ✅</p>
+                            </>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Payment History */}
+                      {reservation.paymentHistory && reservation.paymentHistory.length > 0 && (
+                        <div className="payment-history-toggle">
+                          <button
+                            className="btn-toggle-history"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              togglePaymentHistory(reservation._id);
+                            }}
+                          >
+                            {expandedHistory[reservation._id] ? '▼' : '▶'}
+                            Payment History ({reservation.paymentHistory.length})
+                          </button>
+
+                          {expandedHistory[reservation._id] && (
+                            <PaymentHistory
+                              paymentHistory={reservation.paymentHistory}
+                              totalAmount={reservation.finalTotalPrice || reservation.totalPrice}
+                              remainingAmount={reservation.remainingAmount || 0}
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
+
                     <p className="booking-date">
                       Requested: {new Date(reservation.createdAt).toLocaleDateString()}
                     </p>
@@ -426,6 +565,13 @@ const ReservationList = () => {
           booking={selectedBooking}
           onClose={() => setRejectModalOpen(false)}
           onConfirm={handleRejectConfirm}
+        />
+      )}
+      {recordPaymentModalOpen && (
+        <RecordPaymentModal
+          booking={selectedBooking}
+          onClose={() => setRecordPaymentModalOpen(false)}
+          onSuccess={handlePaymentRecorded}
         />
       )}
     </>

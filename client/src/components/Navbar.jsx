@@ -297,6 +297,25 @@ const Navbar = () => {
                     <Assessment sx={{ fontSize: 20 }} />
                     <span>Hosting History</span>
                   </Link>
+                  <Link
+                    to="/admin/manage"
+                    className="menu_item"
+                    onClick={() => setDropdownMenu(false)}
+                  >
+                    <Settings sx={{ fontSize: 20 }} />
+                    <span>📊 Manage Data</span>
+                  </Link>
+
+                  {user.role === 'admin' && (
+                    <Link
+                      to="/admin/dashboard"
+                      className="menu_item admin-only"
+                      onClick={() => setDropdownMenu(false)}
+                    >
+                      <Settings sx={{ fontSize: 20 }} />
+                      <span>🔐 Admin Dashboard</span>
+                    </Link>
+                  )}
 
                   <div className="menu_divider"></div>
 

@@ -307,6 +307,16 @@
             transform: translateX(4px);
           }
 
+          &.admin-only {
+            background: linear-gradient(135deg, rgba(255, 56, 90, 0.1) 0%, rgba(255, 107, 157, 0.1) 100%);
+            border-left: 3px solid #FF385A;
+            font-weight: 600;
+
+            &:hover {
+              background: linear-gradient(135deg, rgba(255, 56, 90, 0.2) 0%, rgba(255, 107, 157, 0.2) 100%);
+            }
+          }
+
           &.logout_btn {
             color: #ff4757;
             

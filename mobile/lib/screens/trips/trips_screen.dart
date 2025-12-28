@@ -313,6 +313,98 @@ class _BookingCard extends StatelessWidget {
                   ],
                 ),
 
+                // Payment Info for Deposit Bookings
+                if (booking.paymentMethod == 'vnpay_deposit' &&
+                    booking.paymentStatus == 'partially_paid') ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Payment Info',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Deposit Paid (30%):',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            Text(
+                              PriceFormatter.formatPriceInteger(booking.depositAmount ?? 0),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Remaining (at check-in):',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            Text(
+                              PriceFormatter.formatPriceInteger(
+                                booking.totalPrice - (booking.depositAmount ?? 0)
+                              ),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Cash Payment Info
+                if (booking.paymentMethod == 'cash') ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.money, size: 16, color: Colors.green),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Payment: Cash at check-in',
+                          style: TextStyle(fontSize: 12, color: Colors.green),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 // Action Buttons
                 const SizedBox(height: 12),
                 _buildActionButtons(context),

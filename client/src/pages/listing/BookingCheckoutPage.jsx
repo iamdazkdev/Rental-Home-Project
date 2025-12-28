@@ -47,8 +47,8 @@ const BookingCheckoutPage = () => {
       let depositPercentage = 0;
 
       if (paymentMethod === 'vnpay_deposit') {
-        depositPercentage = 50; // 50% deposit
-        paymentAmount = bookingData.totalPrice * 0.5;
+        depositPercentage = 30; // 30% deposit
+        paymentAmount = bookingData.totalPrice * 0.3;
       }
 
       // Handle cash payment - create booking immediately
@@ -112,7 +112,7 @@ const BookingCheckoutPage = () => {
       }
 
       const paymentResult = await paymentResponse.json();
-      console.log("✅ Booking created with ID:", paymentResult.bookingId);
+      console.log("✅ Temp order created:", paymentResult.tempOrderId);
       console.log("✅ VNPay payment URL generated");
 
       // Step 4: Redirect to VNPay
@@ -228,12 +228,12 @@ const BookingCheckoutPage = () => {
               {paymentMethod === 'vnpay_deposit' && (
                 <div className="payment-breakdown">
                   <div className="detail-row deposit">
-                    <span className="label">Deposit 50%:</span>
-                    <span className="value">{formatVND(totalPrice * 0.5)} VND</span>
+                    <span className="label">Deposit 30%:</span>
+                    <span className="value">{formatVND(totalPrice * 0.3)} VND</span>
                   </div>
                   <div className="detail-row remaining">
                     <span className="label">Remaining (Pay at check-in):</span>
-                    <span className="value">{formatVND(totalPrice * 0.5)} VND</span>
+                    <span className="value">{formatVND(totalPrice * 0.7)} VND</span>
                   </div>
                 </div>
               )}
@@ -283,7 +283,7 @@ const BookingCheckoutPage = () => {
                   </div>
                 </div>
 
-                {/* VNPay Deposit 50% */}
+                {/* VNPay Deposit 30% */}
                 <div
                   className={`payment-option ${paymentMethod === 'vnpay_deposit' ? 'active' : ''}`}
                   onClick={() => setPaymentMethod('vnpay_deposit')}
@@ -293,19 +293,19 @@ const BookingCheckoutPage = () => {
                       {paymentMethod === 'vnpay_deposit' && <div className="radio-dot" />}
                     </div>
                     <div className="option-title">
-                      <h3>🏦 Pay 50% Deposit via VNPay</h3>
-                      <p className="option-subtitle">Pay 50% now, 50% remaining at check-in</p>
+                      <h3>🏦 Pay 30% Deposit via VNPay</h3>
+                      <p className="option-subtitle">Pay 30% now, 70% remaining at check-in</p>
                     </div>
                   </div>
                   <div className="option-details">
                     <div className="amount-breakdown">
                       <div className="breakdown-row">
-                        <span>Deposit (50%):</span>
-                        <span className="highlight">{formatVND(totalPrice * 0.5)} VND</span>
+                        <span>Deposit (30%):</span>
+                        <span className="highlight">{formatVND(totalPrice * 0.3)} VND</span>
                       </div>
                       <div className="breakdown-row">
                         <span>Pay at check-in:</span>
-                        <span>{formatVND(totalPrice * 0.5)} VND</span>
+                        <span>{formatVND(totalPrice * 0.7)} VND</span>
                       </div>
                     </div>
                     <div className="benefits">
@@ -359,7 +359,7 @@ const BookingCheckoutPage = () => {
                   </p>
                   {paymentMethod === 'vnpay_deposit' && (
                     <div className="deposit-notice">
-                      <p>💡 You will pay <strong>{formatVND(totalPrice * 0.5)} VND</strong> (50% of total value)</p>
+                      <p>💡 You will pay <strong>{formatVND(totalPrice * 0.3)} VND</strong> (30% of total value)</p>
                       <p>The remaining amount will be paid at check-in</p>
                     </div>
                   )}
@@ -398,7 +398,7 @@ const BookingCheckoutPage = () => {
               >
                 {submitting ? 'Processing...' :
                   paymentMethod === 'cash' ? 'Confirm Booking' :
-                  paymentMethod === 'vnpay_deposit' ? 'Pay Deposit (50%)' :
+                  paymentMethod === 'vnpay_deposit' ? 'Pay Deposit (30%)' :
                   'Proceed to Payment'}
               </button>
             </div>
