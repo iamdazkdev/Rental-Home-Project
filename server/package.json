@@ -24,6 +24,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "migrate": "node scripts/migrateStaticData.js",
+    "migrate:booking-status": "node scripts/migrateBookingStatus.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

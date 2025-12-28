@@ -100,8 +100,8 @@ const PaymentCallback = () => {
             <div className="booking-status-info">
               <div className="status-item">
                 <strong>Booking Status:</strong>
-                <span className={`status-badge ${booking.bookingStatus || booking.status}`}>
-                  {(booking.bookingStatus || booking.status || 'pending').toUpperCase()}
+                <span className={`status-badge ${booking.bookingStatus}`}>
+                  {(booking.bookingStatus || 'pending').toUpperCase()}
                 </span>
               </div>
               <div className="status-item">

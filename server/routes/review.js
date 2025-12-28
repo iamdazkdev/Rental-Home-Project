@@ -58,7 +58,7 @@ router.post("/", async (req, res) => {
     }
 
     // Check if booking is eligible for review (checked out or completed)
-    if (!booking.isCheckedOut && booking.status !== "completed") {
+    if (!booking.isCheckedOut && booking.bookingStatus !== "completed") {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
         message: "Can only review after checkout or booking completion",
       });

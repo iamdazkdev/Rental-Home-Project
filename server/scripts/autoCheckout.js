@@ -10,9 +10,9 @@ const autoCheckoutExpiredBookings = async () => {
     const now = new Date();
     const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD format
 
-    // Find accepted bookings that have ended and not yet checked out
+    // Find approved/checked_in bookings that have ended and not yet checked out
     const expiredBookings = await Booking.find({
-      status: "accepted",
+      bookingStatus: { $in: ["approved", "checked_in"] },
       isCheckedOut: false,
       $or: [
         { finalEndDate: { $lt: currentDate } },
@@ -25,9 +25,9 @@ const autoCheckoutExpiredBookings = async () => {
     for (const booking of expiredBookings) {
       try {
         // Update booking status
-        booking.status = "checked_out";
+        booking.bookingStatus = "checked_out";
         booking.isCheckedOut = true;
-        booking.checkedOutAt = now;
+        booking.checkOutAt = now;
         await booking.save();
 
         // Create notification for customer

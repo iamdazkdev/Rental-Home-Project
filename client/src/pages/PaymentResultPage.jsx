@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { API_ENDPOINTS, HTTP_METHODS } from '../constants/api';
 import Loader from '../components/Loader';
 import '../styles/PaymentResult.scss';
@@ -7,6 +8,9 @@ import '../styles/PaymentResult.scss';
 const PaymentResultPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.user);
+  const userId = user?._id || user?.id;
+
   const [status] = useState(searchParams.get('status'));
   const [bookingId] = useState(searchParams.get('bookingId'));
   const [transactionNo] = useState(searchParams.get('transactionNo'));
@@ -45,7 +49,12 @@ const PaymentResultPage = () => {
   }, [status, bookingId, fetchBookingDetails]);
 
   const handleNavigateToTrips = () => {
-    navigate('/trips');
+    if (userId) {
+      navigate(`/${userId}/trips`);
+    } else {
+      console.error('User ID not found, cannot navigate to trips');
+      navigate('/'); // Fallback to home if no userId
+    }
   };
 
   const handleNavigateToHome = () => {

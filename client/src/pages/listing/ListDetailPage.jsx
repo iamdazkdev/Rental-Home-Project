@@ -12,6 +12,7 @@ import { DateRange } from "react-date-range";
 import { enUS } from "date-fns/locale";
 import Navbar from "../../components/Navbar";
 import { useSelector } from "react-redux";
+import { formatVND } from "../../utils/priceFormatter";
 
 const ListingDetails = () => {
   const [loading, setLoading] = useState(true);
@@ -92,11 +93,11 @@ const ListingDetails = () => {
       if (response.ok) {
         const bookings = await response.json();
 
-        // Find active booking for this listing (pending or accepted, not checked out)
+        // Find active booking for this listing (pending/approved/checked_in, not checked out)
         const existingBooking = bookings.find(
           (booking) =>
             (booking.listingId?._id === listingId || booking.listingId?.id === listingId) &&
-            (booking.status === "pending" || booking.status === "accepted") &&
+            (booking.bookingStatus === "pending" || booking.bookingStatus === "approved" || booking.bookingStatus === "checked_in") &&
             !booking.isCheckedOut
         );
 
@@ -429,9 +430,10 @@ const ListingDetails = () => {
               <div className="booking-details">
                 <p>
                   <strong>Status:</strong>{" "}
-                  <span className={`status-badge status-${userBooking?.status}`}>
-                    {userBooking?.status === "pending" && "⏳ Pending Approval"}
-                    {userBooking?.status === "accepted" && "✓ Confirmed"}
+                  <span className={`status-badge status-${userBooking?.bookingStatus}`}>
+                    {userBooking?.bookingStatus === "pending" && "⏳ Pending Approval"}
+                    {userBooking?.bookingStatus === "approved" && "✓ Confirmed"}
+                    {userBooking?.bookingStatus === "checked_in" && "🏠 Checked In"}
                   </span>
                 </p>
                 <p>
@@ -441,7 +443,7 @@ const ListingDetails = () => {
                   <strong>Check-out:</strong> {userBooking?.finalEndDate || userBooking?.endDate}
                 </p>
                 <p>
-                  <strong>Total:</strong> ${(userBooking?.finalTotalPrice || userBooking?.totalPrice)?.toFixed(2)}
+                  <strong>Total:</strong> {formatVND(userBooking?.finalTotalPrice || userBooking?.totalPrice)}
                 </p>
               </div>
 
@@ -459,14 +461,14 @@ const ListingDetails = () => {
               <DateRange ranges={dateRange} onChange={handleSelect} locale={enUS} />
               {dayCount > 1 ? (
                 <h2>
-                  ${listing.price} x {dayCount} nights
+                  {formatVND(listing.price, false)} x {dayCount} nights
                 </h2>
               ) : (
                 <h2>
-                  ${listing.price} x {dayCount} night
+                  {formatVND(listing.price, false)} x {dayCount} night
                 </h2>
               )}
-              <h2>Total price: ${listing.price * dayCount}</h2>
+              <h2>Total price: {formatVND(listing.price * dayCount)}</h2>
               <p>Start Date: {dateRange[0].startDate.toDateString()}</p>
               <p>End Date: {dateRange[0].endDate.toDateString()}</p>
 

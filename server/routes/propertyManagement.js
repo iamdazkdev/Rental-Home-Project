@@ -25,7 +25,7 @@ router.get("/:userId/properties", async (req, res) => {
       properties.map(async (property) => {
         const activeBooking = await Booking.findOne({
           listingId: property._id,
-          status: { $in: ["pending", "accepted"] },
+          bookingStatus: { $in: ["pending", "approved", "checked_in"] },
           isCheckedOut: false,
         });
 
@@ -126,7 +126,7 @@ router.delete("/:listingId/delete", async (req, res) => {
     // Check for active bookings
     const activeBooking = await Booking.findOne({
       listingId,
-      status: { $in: ["pending", "accepted"] },
+      bookingStatus: { $in: ["pending", "approved", "checked_in"] },
       isCheckedOut: false,
     });
 
@@ -166,7 +166,7 @@ router.get("/:listingId/availability", async (req, res) => {
 
     const activeBooking = await Booking.findOne({
       listingId,
-      status: { $in: ["pending", "accepted"] },
+      bookingStatus: { $in: ["pending", "approved", "checked_in"] },
       isCheckedOut: false,
     })
       .populate("customerId", "firstName lastName email")

@@ -21,12 +21,7 @@ class BookingService {
       // Find overlapping bookings (v2.0 - use bookingStatus)
       const conflicts = await Booking.find({
         listingId,
-        $or: [
-          // v2.0 field
-          { bookingStatus: { $in: ['pending', 'approved', 'checked_in'] } },
-          // Backward compatibility
-          { status: { $in: ['pending', 'approved', 'accepted', 'checked_in'] } }
-        ],
+        bookingStatus: { $in: ['pending', 'approved', 'checked_in'] },
         $and: [
           {
             $or: [
@@ -48,7 +43,7 @@ class BookingService {
             start: b.startDate,
             end: b.endDate,
             bookingId: b._id,
-            status: b.bookingStatus || b.status
+            status: b.bookingStatus
           }))
         };
       }
@@ -182,6 +177,17 @@ class BookingService {
         paidAmountValue = bookingIntent.depositAmount;
       }
 
+      // Determine booking status
+      // If full payment via VNPay → auto-approve (no host approval needed)
+      let bookingStatus = 'pending';
+      let approvedAt = null;
+
+      if (bookingIntent.paymentType === 'full') {
+        bookingStatus = 'approved'; // ✅ Auto-approved for full VNPay payment
+        approvedAt = new Date();
+        console.log(`🎉 Auto-approving booking (Full payment via VNPay)`);
+      }
+
       // Create actual Booking (v2.0)
       const booking = new Booking({
         customerId: bookingIntent.customerId,
@@ -192,7 +198,7 @@ class BookingService {
         totalPrice: bookingIntent.totalPrice,
 
         // v2.0 fields
-        bookingStatus: 'pending', // Waiting for host approval
+        bookingStatus: bookingStatus, // ✅ "approved" for full payment, "pending" for deposit
         paymentStatus,
         paymentMethod: 'vnpay',
         paymentType: bookingIntent.paymentType,
@@ -205,9 +211,7 @@ class BookingService {
         paymentIntentId: tempOrderId,
         transactionId,
         paidAt: new Date(),
-
-        // Backward compatibility
-        status: 'pending',
+        approvedAt: approvedAt, // ✅ Set approval timestamp for auto-approved bookings
 
         paymentHistory: [{
           amount: paidAmount,
@@ -296,6 +300,17 @@ class BookingService {
       // Map payment method to valid enum value
       const paymentMethod = pendingBooking.paymentMethod === 'cash' ? 'cash' : 'vnpay';
 
+      // Determine booking status
+      // If full payment via VNPay → auto-approve (no host approval needed)
+      let bookingStatus = 'pending';
+      let approvedAt = null;
+
+      if (paymentType === 'full' && paymentMethod === 'vnpay') {
+        bookingStatus = 'approved'; // ✅ Auto-approved for full VNPay payment
+        approvedAt = new Date();
+        console.log(`🎉 Auto-approving booking (Full payment via VNPay)`);
+      }
+
       // Create actual booking
       const booking = new Booking({
         customerId: pendingBooking.customerId,
@@ -307,12 +322,13 @@ class BookingService {
         paymentMethod: paymentMethod, // ✅ FIXED: Use mapped value
         paymentType: paymentType, // ✅ FIXED: Add required field
         paymentStatus,
+        bookingStatus: bookingStatus, // ✅ "approved" for full VNPay, "pending" otherwise
         depositAmount,
         depositPercentage: pendingBooking.depositPercentage,
         remainingAmount,
         paymentIntentId: transactionId,
         paidAt: new Date(),
-        status: 'pending', // Waiting for host approval
+        approvedAt: approvedAt, // ✅ Set approval timestamp for auto-approved bookings
         paymentHistory: [{
           amount: paidAmount,
           method: paymentMethod, // ✅ Use mapped value
@@ -389,10 +405,7 @@ class BookingService {
         paymentType: 'cash',
 
         remainingAmount: totalPrice,
-        paidAmount: 0,
-
-        // Backward compatibility
-        status: 'pending'
+        paidAmount: 0
       });
 
       await booking.save();
@@ -431,14 +444,12 @@ class BookingService {
       }
 
       // Check bookingStatus (v2.0)
-      const currentStatus = booking.bookingStatus || booking.status;
-      if (currentStatus !== 'pending') {
+      if (booking.bookingStatus !== 'pending') {
         throw new Error('Booking is not in pending status');
       }
 
       // Update to approved (v2.0)
       booking.bookingStatus = 'approved';
-      booking.status = 'approved'; // Backward compatibility
       booking.approvedAt = new Date();
 
       await booking.save();
@@ -480,14 +491,12 @@ class BookingService {
         throw new Error('Unauthorized');
       }
 
-      const currentStatus = booking.bookingStatus || booking.status;
-      if (currentStatus !== 'pending') {
+      if (booking.bookingStatus !== 'pending') {
         throw new Error('Booking is not in pending status');
       }
 
       // Update to rejected (v2.0)
       booking.bookingStatus = 'rejected';
-      booking.status = 'rejected'; // Backward compatibility
       booking.rejectionReason = reason;
 
       await booking.save();
@@ -524,11 +533,11 @@ class BookingService {
         throw new Error('Unauthorized');
       }
 
-      if (!['pending', 'approved'].includes(booking.status)) {
+      if (!['pending', 'approved'].includes(booking.bookingStatus)) {
         throw new Error('Cannot cancel booking in current status');
       }
 
-      booking.status = 'cancelled';
+      booking.bookingStatus = 'cancelled';
       booking.cancellationReason = reason;
       await booking.save();
 
@@ -564,16 +573,16 @@ class BookingService {
         throw new Error('Unauthorized');
       }
 
-      if (booking.status !== 'approved') {
+      if (booking.bookingStatus !== 'approved') {
         throw new Error('Booking must be approved first');
       }
 
-      booking.status = 'checked_in';
-      booking.checkedInAt = new Date();
+      booking.bookingStatus = 'checked_in';
+      booking.checkInAt = new Date();
       await booking.save();
 
       // If VNPay full payment, release to host now
-      if (booking.paymentMethod === 'vnpay_full' && booking.paymentStatus === 'paid') {
+      if (booking.paymentMethod === 'vnpay' && booking.paymentType === 'full' && booking.paymentStatus === 'paid') {
         await this.releasePaymentToHost(booking);
       }
 
@@ -602,12 +611,12 @@ class BookingService {
         throw new Error('Unauthorized');
       }
 
-      if (booking.status !== 'checked_in') {
+      if (booking.bookingStatus !== 'checked_in') {
         throw new Error('Must be checked in first');
       }
 
-      booking.status = 'checked_out';
-      booking.checkedOutAt = new Date();
+      booking.bookingStatus = 'checked_out';
+      booking.checkOutAt = new Date();
       booking.isCheckedOut = true;
       await booking.save();
 
@@ -636,16 +645,16 @@ class BookingService {
         throw new Error('Unauthorized');
       }
 
-      if (booking.status !== 'checked_out') {
+      if (booking.bookingStatus !== 'checked_out') {
         throw new Error('Guest must check out first');
       }
 
       if (hasDamage) {
-        booking.status = 'dispute';
+        booking.bookingStatus = 'dispute';
         booking.damageReport = damageReport;
         // Initiate dispute process
       } else {
-        booking.status = 'completed';
+        booking.bookingStatus = 'completed';
       }
 
       await booking.save();

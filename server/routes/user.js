@@ -66,7 +66,7 @@ router.patch("/:userId/profile", uploadUserProfile.single("profileImage"), async
   }
 });
 
-// GET TRIP LIST
+// GET TRIP LIST (Active bookings only)
 router.get("/:userId/trips", async (req, res) => {
   try {
     const { userId } = req.params;
@@ -80,9 +80,15 @@ router.get("/:userId/trips", async (req, res) => {
       });
     }
 
-    const trips = await Booking.find({ customerId: userId }).populate(
-      "customerId hostId listingId"
-    );
+    // Only fetch ACTIVE bookings (exclude completed/cancelled/rejected/expired/checked_out)
+    const activeStatuses = ["pending", "approved", "checked_in"];
+
+    const trips = await Booking.find({
+      customerId: userId,
+      bookingStatus: { $in: activeStatuses }
+    }).populate("customerId hostId listingId");
+
+    console.log(`✅ Fetched ${trips.length} active trips for user ${userId}`);
     res.status(HTTP_STATUS.ACCEPTED).json(trips);
   } catch (err) {
     console.log("❌ ERROR: Fail to get trips", err);

@@ -81,7 +81,7 @@ router.get("/", async (req, res) => {
       listings.map(async (listing) => {
         const activeBooking = await Booking.findOne({
           listingId: listing._id,
-          status: { $in: ["pending", "accepted"] },
+          bookingStatus: { $in: ["pending", "approved", "checked_in"] },
           isCheckedOut: false,
         });
         return activeBooking ? null : listing;

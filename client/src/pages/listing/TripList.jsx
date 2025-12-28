@@ -198,16 +198,20 @@ const TripList = () => {
   const canCheckout = (booking) => {
     // User có thể checkout bất kỳ lúc nào sau khi booking được accept
     // Không cần chờ đến endDate
-    return booking.status === "accepted" && !booking.isCheckedOut;
+    return booking.bookingStatus === "approved" && !booking.isCheckedOut;
   };
 
   const canExtend = (booking) => {
-    return booking.status === "accepted" && !booking.isCheckedOut;
+    return booking.bookingStatus === "approved" && !booking.isCheckedOut;
   };
 
   const canCancel = (booking) => {
     // Guest can only cancel pending bookings
-    return booking.status === "pending";
+    // BUT cannot cancel if already paid full amount (paymentType = 'full')
+    if (booking.paymentType === "full") {
+      return false; // ❌ Cannot cancel - already paid 100%
+    }
+    return booking.bookingStatus === "pending";
   };
 
   useEffect(() => {
@@ -239,14 +243,15 @@ const TripList = () => {
         ) : (
           tripList?.map((trip) => (
             <div key={trip._id} className="trip-item">
-              {trip.status && (
-                <div className={`booking-status status-${trip.status}`}>
-                  {trip.status === "pending" && "⏳ Pending"}
-                  {trip.status === "accepted" && "✓ Accepted"}
-                  {trip.status === "rejected" && "✗ Rejected"}
-                  {trip.status === "cancelled" && "🚫 Cancelled"}
-                  {trip.status === "checked_out" && "✅ Checked Out"}
-                  {trip.status === "completed" && "✅ Completed"}
+              {trip.bookingStatus && (
+                <div className={`booking-status status-${trip.bookingStatus}`}>
+                  {trip.bookingStatus === "pending" && "⏳ Pending"}
+                  {trip.bookingStatus === "approved" && "✓ Approved"}
+                  {trip.bookingStatus === "checked_in" && "🏠 Checked In"}
+                  {trip.bookingStatus === "rejected" && "✗ Rejected"}
+                  {trip.bookingStatus === "cancelled" && "🚫 Cancelled"}
+                  {trip.bookingStatus === "checked_out" && "✅ Checked Out"}
+                  {trip.bookingStatus === "completed" && "✅ Completed"}
                 </div>
               )}
               <ListingCard

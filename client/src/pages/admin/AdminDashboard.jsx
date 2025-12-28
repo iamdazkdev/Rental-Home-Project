@@ -317,7 +317,7 @@ const AdminDashboard = () => {
                     <tr key={booking._id}>
                       <td>{booking.customerId ? `${booking.customerId.firstName} ${booking.customerId.lastName}` : 'N/A'}</td>
                       <td>{booking.listingId?.title || 'N/A'}</td>
-                      <td><span className={`status-badge ${booking.status}`}>{booking.status}</span></td>
+                      <td><span className={`status-badge ${booking.bookingStatus}`}>{booking.bookingStatus}</span></td>
                       <td>{new Date(booking.createdAt).toLocaleDateString()}</td>
                     </tr>
                   ))}

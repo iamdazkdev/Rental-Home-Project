@@ -55,7 +55,7 @@ const BookingConfirmation = () => {
   };
 
   const getBookingStatusLabel = () => {
-    const status = booking.bookingStatus || booking.status || 'pending';
+    const status = booking.bookingStatus || 'pending';
 
     switch (status) {
       case 'pending':
@@ -115,7 +115,7 @@ const BookingConfirmation = () => {
             {/* v2.0: Show both statuses separately */}
             <div className="detail-row">
               <span className="label">Booking Status:</span>
-              <span className={`value status-badge ${booking.bookingStatus || booking.status}`}>
+              <span className={`value status-badge ${booking.bookingStatus}`}>
                 {getBookingStatusLabel()}
               </span>
             </div>

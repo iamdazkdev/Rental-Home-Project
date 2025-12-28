@@ -29,23 +29,15 @@ const BookingSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    // BOOKING STATUS (v2.0) - Lifecycle of the booking
     bookingStatus: {
       type: String,
       enum: ["draft", "pending", "approved", "checked_in", "checked_out", "completed", "cancelled", "rejected", "expired"],
       default: "pending",
     },
-    // PAYMENT STATUS (v2.0) - Financial state (separate from booking)
     paymentStatus: {
       type: String,
       enum: ["unpaid", "partially_paid", "paid", "refunded"],
       default: "unpaid",
-    },
-    // DEPRECATED: Keep for backward compatibility, will be removed
-    status: {
-      type: String,
-      enum: ["pending", "accepted", "rejected", "cancelled", "checked_out", "completed"],
-      default: "pending",
     },
     rejectionReason: {
       type: String,

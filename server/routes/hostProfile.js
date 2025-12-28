@@ -44,7 +44,7 @@ router.get("/:hostId", async (req, res) => {
     // Get total bookings hosted
     const totalBookings = await Booking.countDocuments({
       hostId,
-      status: { $in: ["accepted", "completed", "checked_out"] },
+      bookingStatus: { $in: ["approved", "completed", "checked_out"] },
     });
 
     // Get host reviews from bookings
@@ -68,14 +68,14 @@ router.get("/:hostId", async (req, res) => {
     // Get total reviews count
     const totalReviews = reviewsWithHostRating.length;
 
-    // Calculate response rate (accepted / total requests)
+    // Calculate response rate (approved / total requests)
     const totalRequests = await Booking.countDocuments({
       hostId,
-      status: { $in: ["pending", "accepted", "rejected"] },
+      bookingStatus: { $in: ["pending", "approved", "rejected"] },
     });
     const acceptedRequests = await Booking.countDocuments({
       hostId,
-      status: "accepted",
+      bookingStatus: "approved",
     });
     const responseRate =
       totalRequests > 0 ? (acceptedRequests / totalRequests) * 100 : 0;
@@ -88,7 +88,7 @@ router.get("/:hostId", async (req, res) => {
       listings.map(async (listing) => {
         const activeBooking = await Booking.findOne({
           listingId: listing._id,
-          status: { $in: ["pending", "accepted"] },
+          bookingStatus: { $in: ["pending", "approved", "checked_in"] },
           isCheckedOut: false,
         });
 

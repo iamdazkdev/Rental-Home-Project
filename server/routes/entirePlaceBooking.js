@@ -157,7 +157,7 @@ router.get('/user/:userId', authenticateToken, async (req, res) => {
 
     if (status) {
       const statuses = status.split(',');
-      query.status = { $in: statuses };
+      query.bookingStatus = { $in: statuses };
     }
 
     const bookings = await Booking.find(query)
@@ -367,7 +367,7 @@ router.post('/:id/extend', authenticateToken, async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    if (booking.status !== 'checked_in') {
+    if (booking.bookingStatus !== 'checked_in') {
       return res.status(400).json({ message: 'Can only extend active bookings' });
     }
 

@@ -52,9 +52,9 @@ router.get("/stats/:adminId", isAdmin, async (req, res) => {
 
     // Total bookings
     const totalBookings = await Booking.countDocuments();
-    const pendingBookings = await Booking.countDocuments({ status: "pending" });
-    const approvedBookings = await Booking.countDocuments({ status: "approved" });
-    const completedBookings = await Booking.countDocuments({ status: "completed" });
+    const pendingBookings = await Booking.countDocuments({ bookingStatus: "pending" });
+    const approvedBookings = await Booking.countDocuments({ bookingStatus: "approved" });
+    const completedBookings = await Booking.countDocuments({ bookingStatus: "completed" });
 
     // Revenue statistics
     const payments = await PaymentHistory.find({ status: "paid" });

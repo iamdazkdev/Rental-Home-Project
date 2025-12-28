@@ -77,11 +77,13 @@ const HostBookingHistory = () => {
   const getStatusBadge = (status) => {
     const statusMap = {
       pending: { label: "⏳ Pending", class: "pending" },
-      accepted: { label: "✓ Confirmed", class: "accepted" },
+      approved: { label: "✓ Approved", class: "approved" },
+      checked_in: { label: "🏠 Checked In", class: "checked-in" },
       rejected: { label: "✗ Rejected", class: "rejected" },
       cancelled: { label: "🚫 Cancelled", class: "cancelled" },
-      checked_out: { label: "🏁 Completed", class: "completed" },
-      completed: { label: "🏁 Completed", class: "completed" },
+      checked_out: { label: "🏁 Checked Out", class: "checked-out" },
+      completed: { label: "✅ Completed", class: "completed" },
+      expired: { label: "⏰ Expired", class: "expired" },
     };
 
     return statusMap[status] || { label: status, class: "default" };
@@ -219,10 +221,13 @@ const HostBookingHistory = () => {
             <select value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="all">All</option>
               <option value="pending">Pending</option>
-              <option value="accepted">Confirmed</option>
+              <option value="approved">Approved</option>
+              <option value="checked_in">Checked In</option>
               <option value="rejected">Rejected</option>
               <option value="cancelled">Cancelled</option>
-              <option value="checked_out">Completed</option>
+              <option value="checked_out">Checked Out</option>
+              <option value="completed">Completed</option>
+              <option value="expired">Expired</option>
             </select>
           </div>
 
@@ -280,8 +285,8 @@ const HostBookingHistory = () => {
                       }
                       alt={booking.listingId?.title}
                     />
-                    <div className={`status-badge ${getStatusBadge(booking.status).class}`}>
-                      {getStatusBadge(booking.status).label}
+                    <div className={`status-badge ${getStatusBadge(booking.bookingStatus).class}`}>
+                      {getStatusBadge(booking.bookingStatus).label}
                     </div>
                   </div>
 
@@ -345,7 +350,7 @@ const HostBookingHistory = () => {
                         View Listing
                       </button>
 
-                      {booking.status === "pending" && (
+                      {booking.bookingStatus === "pending" && (
                         <button
                           className="manage-btn"
                           onClick={() => navigate(`/${hostId}/reservations`)}

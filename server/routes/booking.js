@@ -47,7 +47,7 @@ router.post("/create", async (req, res) => {
     const existingBooking = await Booking.findOne({
       customerId,
       listingId,
-      status: { $in: ["pending", "accepted"] },
+      bookingStatus: { $in: ["pending", "approved", "checked_in"] },
       isCheckedOut: false,
     });
 
@@ -75,7 +75,7 @@ router.post("/create", async (req, res) => {
       startDate,
       endDate,
       totalPrice,
-      status: "pending",
+      bookingStatus: "pending",
       finalEndDate: endDate,
       finalTotalPrice: totalPrice,
       // Set payment fields for cash booking
@@ -148,14 +148,15 @@ router.patch("/:bookingId/accept", async (req, res) => {
       });
     }
 
-    if (booking.status !== "pending") {
+    if (booking.bookingStatus !== "pending") {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
-        message: `Cannot accept booking with status: ${booking.status}`,
+        message: `Cannot accept booking with status: ${booking.bookingStatus}`,
       });
     }
 
     // Update booking status
-    booking.status = "accepted";
+    booking.bookingStatus = "approved";
+    booking.approvedAt = new Date();
     await booking.save();
 
     // Create notification for customer
@@ -198,14 +199,14 @@ router.patch("/:bookingId/reject", async (req, res) => {
       });
     }
 
-    if (booking.status !== "pending") {
+    if (booking.bookingStatus !== "pending") {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
-        message: `Cannot reject booking with status: ${booking.status}`,
+        message: `Cannot reject booking with status: ${booking.bookingStatus}`,
       });
     }
 
     // Update booking status
-    booking.status = "rejected";
+    booking.bookingStatus = "rejected";
     booking.rejectionReason = reason || "No reason provided";
     await booking.save();
 
@@ -248,16 +249,17 @@ router.patch("/:bookingId/checkout", async (req, res) => {
       });
     }
 
-    if (booking.status !== "accepted") {
+    if (booking.bookingStatus !== "approved" && booking.bookingStatus !== "checked_in") {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
-        message: `Cannot checkout booking with status: ${booking.status}`,
+        message: `Cannot checkout booking with status: ${booking.bookingStatus}`,
       });
     }
 
     // Update booking status
-    booking.status = "checked_out";
+    booking.bookingStatus = "checked_out";
     booking.isCheckedOut = true;
     booking.checkedOutAt = new Date();
+    booking.checkOutAt = new Date();
     await booking.save();
 
     // Create notification for customer
@@ -304,9 +306,9 @@ router.post("/:bookingId/extension", async (req, res) => {
       });
     }
 
-    if (booking.status !== "accepted") {
+    if (booking.bookingStatus !== "approved" && booking.bookingStatus !== "checked_in") {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
-        message: `Cannot request extension for booking with status: ${booking.status}`,
+        message: `Cannot request extension for booking with status: ${booking.bookingStatus}`,
       });
     }
 
@@ -503,14 +505,14 @@ router.patch("/:bookingId/cancel", async (req, res) => {
     }
 
     // Only allow cancellation of pending bookings
-    if (booking.status !== "pending") {
+    if (booking.bookingStatus !== "pending") {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
-        message: `Cannot cancel booking with status: ${booking.status}. Only pending bookings can be cancelled.`,
+        message: `Cannot cancel booking with status: ${booking.bookingStatus}. Only pending bookings can be cancelled.`,
       });
     }
 
     // Update booking status to cancelled
-    booking.status = "cancelled";
+    booking.bookingStatus = "cancelled";
     await booking.save();
 
     // Create notification for host

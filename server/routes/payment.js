@@ -172,6 +172,19 @@ router.get("/vnpay-return", async (req, res) => {
         paymentType = "cash";
       }
 
+      // Determine booking status
+      // If full payment via VNPay → auto-approve (no host approval needed)
+      let bookingStatus = "pending";
+      let legacyStatus = "pending";
+      let approvedAt = null;
+
+      if (paymentType === "full" && paymentMethod === "vnpay") {
+        bookingStatus = "approved"; // ✅ Auto-approved for full VNPay payment
+        legacyStatus = "accepted";  // For backward compatibility
+        approvedAt = new Date();
+        console.log(`🎉 Auto-approving booking (Full payment via VNPay)`);
+      }
+
       // Create payment history entry
       const paymentHistoryEntry = {
         amount: pendingBooking.paymentAmount,
@@ -184,7 +197,7 @@ router.get("/vnpay-return", async (req, res) => {
           ? `Deposit payment (${pendingBooking.depositPercentage}%) via VNPay`
           : paymentType === "cash"
           ? "Cash payment on arrival"
-          : "Full payment via VNPay",
+          : "Full payment via VNPay - Auto-approved",
       };
 
       // Create the actual booking
@@ -201,7 +214,9 @@ router.get("/vnpay-return", async (req, res) => {
         depositPercentage: pendingBooking.depositPercentage || 0,
         depositAmount: pendingBooking.depositAmount || 0,
         paymentStatus: paymentStatus,
-        status: 'pending', // Pending host approval
+        bookingStatus: bookingStatus, // ✅ "approved" for full VNPay, "pending" otherwise
+        status: legacyStatus, // ✅ "accepted" for full VNPay, "pending" otherwise (backward compatibility)
+        approvedAt: approvedAt, // ✅ Set approval timestamp for auto-approved bookings
         paymentIntentId: transactionNo,
         paidAt: new Date(),
         // Add payment history
@@ -213,7 +228,7 @@ router.get("/vnpay-return", async (req, res) => {
       const savedBooking = await newBooking.save();
       const bookingId = savedBooking._id.toString();
 
-      console.log(`✅ Booking ${bookingId} created with payment status: ${paymentStatus}`);
+      console.log(`✅ Booking ${bookingId} created with payment status: ${paymentStatus}, booking status: ${bookingStatus}`);
 
       // DUAL-WRITE: Save to standalone PaymentHistory collection
       try {
@@ -346,6 +361,19 @@ router.post("/vnpay-ipn", async (req, res) => {
         paymentType = "cash";
       }
 
+      // Determine booking status
+      // If full payment via VNPay → auto-approve (no host approval needed)
+      let bookingStatus = "pending";
+      let legacyStatus = "pending";
+      let approvedAt = null;
+
+      if (paymentType === "full" && paymentMethod === "vnpay") {
+        bookingStatus = "approved"; // ✅ Auto-approved for full VNPay payment
+        legacyStatus = "accepted";  // For backward compatibility
+        approvedAt = new Date();
+        console.log(`🎉 Auto-approving booking via IPN (Full payment via VNPay)`);
+      }
+
       const newBooking = new Booking({
         customerId: pendingBooking.customerId,
         hostId: pendingBooking.hostId,
@@ -359,7 +387,9 @@ router.post("/vnpay-ipn", async (req, res) => {
         depositPercentage: pendingBooking.depositPercentage || 0,
         depositAmount: pendingBooking.depositAmount || 0,
         paymentStatus: paymentStatus,
-        status: 'pending', // Pending host approval
+        bookingStatus: bookingStatus, // ✅ "approved" for full VNPay, "pending" otherwise
+        status: legacyStatus, // ✅ "accepted" for full VNPay, "pending" otherwise
+        approvedAt: approvedAt, // ✅ Set approval timestamp for auto-approved bookings
         paymentIntentId: verifyResult.transactionNo,
         paidAt: new Date(),
         remainingAmount: remainingAmount,
@@ -368,7 +398,7 @@ router.post("/vnpay-ipn", async (req, res) => {
 
       const savedBooking = await newBooking.save();
 
-      console.log(`✅ Booking ${savedBooking._id} created via IPN with status: ${paymentStatus}`);
+      console.log(`✅ Booking ${savedBooking._id} created via IPN with payment status: ${paymentStatus}, booking status: ${bookingStatus}`);
 
       // Update pending booking status to converted
       await PendingBooking.findByIdAndUpdate(pendingBooking._id, {
