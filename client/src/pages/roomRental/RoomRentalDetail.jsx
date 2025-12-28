@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Loader from "../../components/Loader";
+import RequestResultModal from "../../components/RequestResultModal";
 import "../../styles/RoomRentalDetail.scss";
 
 const RoomRentalDetail = () => {
@@ -22,6 +23,11 @@ const RoomRentalDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [identityStatus, setIdentityStatus] = useState(null);
+
+  // Result Modal State
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultType, setResultType] = useState(""); // success or error
+  const [resultMessage, setResultMessage] = useState("");
 
   const checkIdentityVerification = useCallback(async () => {
     if (!user) return;
@@ -117,19 +123,37 @@ const RoomRentalDetail = () => {
       console.log("📥 Response from server:", data);
 
       if (data.success) {
-        alert("✅ Rental request submitted successfully! The host will review your request.");
+        // Close request modal
         setShowRequestModal(false);
-        navigate("/room-rental/my-requests");
+
+        // Show success result modal
+        setResultType("success");
+        setResultMessage(
+          "Your rental request has been submitted successfully! The host will review your application and get back to you soon."
+        );
+        setShowResultModal(true);
       } else {
         console.error("❌ Request failed:", data);
-        setError(data.message || "Failed to submit request");
-        if (data.errors) {
-          setError(data.errors.join(", "));
-        }
+
+        // Show error result modal
+        setShowRequestModal(false);
+        setResultType("error");
+        setResultMessage(
+          data.message ||
+          (data.errors ? data.errors.join(", ") : "Failed to submit request. Please try again later.")
+        );
+        setShowResultModal(true);
       }
     } catch (error) {
       console.error("Error submitting request:", error);
-      setError("Failed to submit request. Please try again.");
+
+      // Show error result modal
+      setShowRequestModal(false);
+      setResultType("error");
+      setResultMessage(
+        "An unexpected error occurred while submitting your request. Please check your connection and try again."
+      );
+      setShowResultModal(true);
     } finally {
       setSubmitting(false);
     }
@@ -240,11 +264,34 @@ const RoomRentalDetail = () => {
           {/* Sidebar */}
           <div className="room-sidebar">
             <div className="request-card">
-              <h3>Interested in this room?</h3>
-              <p>Submit a rental request to the host</p>
+              {/* Availability Status Badge */}
+              {room.roomAvailabilityStatus === 'RENTED' && (
+                <div className="status-badge rented">
+                  🔒 Currently Rented
+                </div>
+              )}
+              {room.roomAvailabilityStatus === 'AVAILABLE' && (
+                <div className="status-badge available">
+                  ✅ Available Now
+                </div>
+              )}
 
-              <button className="request-btn" onClick={handleRequestClick}>
-                📩 Request to Rent
+              <h3>Interested in this room?</h3>
+
+              {room.roomAvailabilityStatus === 'RENTED' ? (
+                <p className="rented-message">
+                  This room is currently rented and not available for new requests.
+                </p>
+              ) : (
+                <p>Submit a rental request to the host</p>
+              )}
+
+              <button
+                className="request-btn"
+                onClick={handleRequestClick}
+                disabled={room.roomAvailabilityStatus === 'RENTED'}
+              >
+                {room.roomAvailabilityStatus === 'RENTED' ? '🔒 Not Available' : '📩 Request to Rent'}
               </button>
 
               <div className="info-list">
@@ -481,6 +528,24 @@ const RoomRentalDetail = () => {
               )}
             </div>
           </div>
+        )}
+
+        {/* Request Result Modal */}
+        {showResultModal && (
+          <RequestResultModal
+            type={resultType}
+            message={resultMessage}
+            onClose={() => {
+              setShowResultModal(false);
+              if (resultType === "success") {
+                navigate("/room-rental/my-requests");
+              }
+            }}
+            onViewRequests={() => {
+              setShowResultModal(false);
+              navigate("/room-rental/my-requests");
+            }}
+          />
         )}
       </div>
       <Footer />

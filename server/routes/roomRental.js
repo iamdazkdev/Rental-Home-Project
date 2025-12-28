@@ -375,6 +375,24 @@ router.put("/requests/:requestId/cancel", async (req, res) => {
     request.status = "CANCELLED";
     await request.save();
 
+    // Update room availability back to AVAILABLE if needed
+    const Listing = require("../models/Listing");
+    const room = await Listing.findById(request.roomId);
+    if (room && room.roomAvailabilityStatus === 'RENTED') {
+      // Only reset if there are no other approved/active requests
+      const otherActiveRequests = await RentalRequest.countDocuments({
+        roomId: request.roomId,
+        _id: { $ne: request._id },
+        status: { $in: ['APPROVED', 'REQUESTED'] }
+      });
+
+      if (otherActiveRequests === 0) {
+        room.roomAvailabilityStatus = 'AVAILABLE';
+        await room.save();
+        console.log('🏠 Room availability reset to AVAILABLE after cancellation');
+      }
+    }
+
     // Notify host
     await createNotification(
       request.hostId,
@@ -445,6 +463,13 @@ router.put("/requests/:requestId/approve", async (req, res) => {
     request.status = "APPROVED";
     request.reviewedAt = new Date();
     await request.save();
+
+    // Update room availability status
+    await Listing.findByIdAndUpdate(request.roomId._id, {
+      roomAvailabilityStatus: "PENDING_APPROVAL",
+    });
+
+    console.log("🏠 Room availability updated to PENDING_APPROVAL");
 
     // Generate rental agreement
     const agreement = await RentalAgreement.create({
@@ -530,6 +555,24 @@ router.put("/requests/:requestId/reject", async (req, res) => {
     request.rejectionReason = rejectionReason || "No reason provided";
     request.reviewedAt = new Date();
     await request.save();
+
+    // Update room availability back to AVAILABLE if needed
+    const Listing = require("../models/Listing");
+    const room = await Listing.findById(request.roomId);
+    if (room && room.roomAvailabilityStatus === 'RENTED') {
+      // Only reset if there are no other approved/active requests
+      const otherActiveRequests = await RentalRequest.countDocuments({
+        roomId: request.roomId,
+        _id: { $ne: request._id },
+        status: { $in: ['APPROVED', 'REQUESTED'] }
+      });
+
+      if (otherActiveRequests === 0) {
+        room.roomAvailabilityStatus = 'AVAILABLE';
+        await room.save();
+        console.log('🏠 Room availability reset to AVAILABLE after rejection');
+      }
+    }
 
     // Create notification for tenant
     await createNotification(
@@ -746,6 +789,13 @@ router.put("/agreements/:agreementId/accept/tenant", async (req, res) => {
       agreement.startDate = new Date();
       await agreement.save();
 
+      // Update room availability status to RENTED
+      await Listing.findByIdAndUpdate(agreement.roomId, {
+        roomAvailabilityStatus: "RENTED",
+      });
+
+      console.log("🏠 Room availability updated to RENTED");
+
       // Create rental status
       await RentalStatus.create({
         agreementId: agreement._id,
@@ -819,6 +869,13 @@ router.put("/agreements/:agreementId/accept/host", async (req, res) => {
       agreement.status = "ACTIVE";
       agreement.startDate = new Date();
       await agreement.save();
+
+      // Update room availability status to RENTED
+      await Listing.findByIdAndUpdate(agreement.roomId, {
+        roomAvailabilityStatus: "RENTED",
+      });
+
+      console.log("🏠 Room availability updated to RENTED");
 
       // Create rental status
       await RentalStatus.create({

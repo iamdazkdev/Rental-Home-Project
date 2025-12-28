@@ -17,7 +17,14 @@ const AdminDashboard = () => {
 
   // Check admin role
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
+    if (!user) {
+      // User logged out or session expired, silently redirect
+      navigate('/');
+      return;
+    }
+
+    if (user.role !== 'admin') {
+      // User is logged in but not admin
       alert('Access denied. Admin only.');
       navigate('/');
     }
@@ -195,8 +202,13 @@ const AdminDashboard = () => {
     }
   }, [activeSection, user, fetchStats, fetchUsers, fetchListings]);
 
-  if (!user || user.role !== 'admin') {
-    return null;
+  // Early return if not admin (prevent flash of content)
+  if (!user) {
+    return null; // User logged out or loading
+  }
+
+  if (user.role !== 'admin') {
+    return null; // Not authorized
   }
 
   const formatCurrency = (amount) => {

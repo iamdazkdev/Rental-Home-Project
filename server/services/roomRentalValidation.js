@@ -6,13 +6,41 @@ const User = require("../models/User");
  * Check if room is available for rental
  */
 const isRoomAvailable = async (roomId) => {
-  // Check if there's an active or pending rental for this room
+  // 1. Check if there's an active or pending rental lifecycle
   const activeRental = await RentalStatus.findOne({
     roomId,
     status: { $in: ["PENDING_MOVE_IN", "ACTIVE"] },
   });
 
-  return !activeRental;
+  if (activeRental) {
+    console.log("❌ Room unavailable - Active rental exists:", activeRental.status);
+    return false;
+  }
+
+  // 2. Check if there's an approved request (waiting for agreement)
+  const approvedRequest = await RentalRequest.findOne({
+    roomId,
+    status: "APPROVED",
+  });
+
+  if (approvedRequest) {
+    console.log("❌ Room unavailable - Approved request exists (pending agreement)");
+    return false;
+  }
+
+  // 3. Check if there's an active agreement
+  const activeAgreement = await RentalAgreement.findOne({
+    roomId,
+    status: { $in: ["DRAFT", "ACTIVE"] },
+  });
+
+  if (activeAgreement) {
+    console.log("❌ Room unavailable - Active agreement exists:", activeAgreement.status);
+    return false;
+  }
+
+  console.log("✅ Room is available for rental");
+  return true;
 };
 
 /**
@@ -61,6 +89,21 @@ const validateRentalRequest = async (data) => {
   console.log("🏠 Room availability check:", available);
   if (!available) {
     errors.push("This room is not available for rental");
+  }
+
+  // Check if tenant already has a pending or approved request for this room
+  const existingRequest = await RentalRequest.findOne({
+    roomId: data.roomId,
+    tenantId: data.tenantId,
+    status: { $in: ["REQUESTED", "APPROVED"] },
+  });
+
+  if (existingRequest) {
+    console.log("❌ Duplicate request detected:", {
+      requestId: existingRequest._id,
+      status: existingRequest.status,
+    });
+    errors.push("You already have a pending request for this room");
   }
 
   // Check if tenant has verified identity

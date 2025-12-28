@@ -119,6 +119,11 @@ const ListingSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    roomAvailabilityStatus: {
+      type: String,
+      enum: ["AVAILABLE", "PENDING_APPROVAL", "RENTED", "UNAVAILABLE"],
+      default: "AVAILABLE",
+    },
     cancellationPolicy: {
       type: String,
       enum: ['flexible', 'moderate', 'strict'],

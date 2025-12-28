@@ -25,7 +25,14 @@ const VerificationManagement = () => {
 
   // Check admin access
   useEffect(() => {
-    if (!user || user.email !== "admin@gmail.com") {
+    if (!user) {
+      // User logged out, silently redirect
+      navigate("/");
+      return;
+    }
+
+    if (user.email !== "admin@gmail.com") {
+      // User is not admin
       navigate("/");
     }
   }, [user, navigate]);

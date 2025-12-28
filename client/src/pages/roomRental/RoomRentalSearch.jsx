@@ -134,7 +134,7 @@ const RoomRentalSearch = () => {
               {rooms.map((room) => (
                 <div
                   key={room._id}
-                  className="room-card"
+                  className={`room-card ${room.roomAvailabilityStatus === 'RENTED' ? 'rented' : ''}`}
                   onClick={() => handleRoomClick(room._id)}
                 >
                   <div className="room-image">
@@ -145,6 +145,16 @@ const RoomRentalSearch = () => {
                       }
                       alt={room.title}
                     />
+                    {room.roomAvailabilityStatus === 'RENTED' && (
+                      <div className="availability-badge rented">
+                        🔒 Rented
+                      </div>
+                    )}
+                    {room.roomAvailabilityStatus === 'AVAILABLE' && (
+                      <div className="availability-badge available">
+                        ✅ Available
+                      </div>
+                    )}
                   </div>
 
                   <div className="room-info">

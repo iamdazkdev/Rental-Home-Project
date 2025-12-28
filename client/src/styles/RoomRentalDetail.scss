@@ -197,6 +197,26 @@
         border-radius: 15px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 
+        .status-badge {
+          display: inline-block;
+          padding: 10px 20px;
+          border-radius: 25px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          margin-bottom: 20px;
+          text-align: center;
+
+          &.available {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+          }
+
+          &.rented {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+          }
+        }
+
         h3 {
           font-size: 1.4rem;
           margin-bottom: 10px;
@@ -206,6 +226,15 @@
         p {
           color: #666;
           margin-bottom: 20px;
+
+          &.rented-message {
+            color: #dc3545;
+            font-weight: 500;
+            padding: 12px;
+            background: #ffe6e6;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+          }
         }
 
         .request-btn {
@@ -221,10 +250,21 @@
           transition: all 0.3s;
           margin-bottom: 25px;
 
-          &:hover {
+          &:hover:not(:disabled) {
             background: #e0204e;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(255, 56, 92, 0.3);
+          }
+
+          &:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+
+            &:hover {
+              transform: none;
+              box-shadow: none;
+            }
           }
         }
 

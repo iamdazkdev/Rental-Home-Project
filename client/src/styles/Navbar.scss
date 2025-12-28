@@ -354,6 +354,90 @@
           }
         }
       }
+
+      // Collapsible menu sections
+      .menu_section_collapsible {
+        padding: 8px 0;
+
+        .menu_section_header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 20px;
+          text-decoration: none;
+          color: $blue;
+          font-weight: 600;
+          font-size: 1rem;
+          transition: all 0.2s ease;
+          cursor: pointer;
+          background: rgba(248, 57, 90, 0.03);
+          border-left: 3px solid transparent;
+
+          &:hover {
+            background: rgba(248, 57, 90, 0.1);
+            border-left-color: $pinkred;
+            color: $pinkred;
+          }
+
+          .expand_icon {
+            margin-left: auto;
+            font-size: 12px;
+            color: $darkgrey;
+            transition: transform 0.3s ease;
+          }
+        }
+
+        .menu_subsection {
+          background: rgba(0, 0, 0, 0.02);
+          padding: 8px 0;
+          animation: slideDownSubsection 0.3s ease;
+
+          .menu_subgroup_title {
+            padding: 8px 20px 4px 48px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: $darkgrey;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 8px;
+          }
+
+          .menu_subgroup_divider {
+            height: 1px;
+            background: rgba(189, 185, 185, 0.15);
+            margin: 8px 20px 8px 48px;
+          }
+
+          .menu_subitem {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px 10px 48px;
+            text-decoration: none;
+            color: $blue;
+            font-weight: 400;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            border-left: 2px solid transparent;
+
+            svg {
+              opacity: 0.7;
+            }
+
+            &:hover {
+              background: rgba(248, 57, 90, 0.08);
+              color: $pinkred;
+              border-left-color: $pinkred;
+              padding-left: 50px;
+
+              svg {
+                opacity: 1;
+                transform: scale(1.1);
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -366,6 +450,19 @@
   }
   to {
     opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDownSubsection {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
     transform: translateY(0);
   }
 }

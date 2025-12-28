@@ -287,6 +287,13 @@ router.put("/move-out/:statusId/confirm", async (req, res) => {
       await agreement.save();
     }
 
+    // Update room availability status back to AVAILABLE
+    const Listing = require("../models/Listing");
+    await Listing.findByIdAndUpdate(rentalStatus.roomId, {
+      roomAvailabilityStatus: "AVAILABLE",
+    });
+
+    console.log("🏠 Room availability updated to AVAILABLE");
     console.log("✅ Rental completed and terminated");
 
     // Notify tenant
