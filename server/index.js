@@ -40,6 +40,7 @@ const staticDataRoutes = require("./routes/staticData.js");
 // Import services
 const { startPaymentReminderScheduler } = require("./services/paymentReminderService");
 const { startMonthlyRentScheduler } = require("./services/monthlyRentScheduler");
+const { startLockCleanupJob } = require("./services/lockCleanupService");
 const { upload } = require("./services/cloudinaryService");
 
 // Middleware
@@ -105,6 +106,8 @@ app.use("/messages", messageRoutes);
 app.use("/payment", paymentRoutes);
 app.use("/payment-reminder", paymentReminderRoutes);
 app.use("/payment-history", require("./routes/paymentHistory"));
+app.use("/booking-intent", require("./routes/bookingIntent")); // Booking Intent for concurrent booking
+app.use("/concurrent-booking", require("./routes/concurrentBooking")); // Concurrent Booking Handling
 
 // Identity verification route - IMPORTANT for Shared Room & Roommate
 try {
@@ -239,6 +242,9 @@ mongoose
 
       // Start monthly rent scheduler (for Room Rental)
       startMonthlyRentScheduler();
+
+      // Start booking lock cleanup job (for Concurrent Booking Handling)
+      startLockCleanupJob();
     });
   })
   .catch((error) => {

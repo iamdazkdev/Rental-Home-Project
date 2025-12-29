@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CreditCard, Wallet, Banknote, CheckCircle, AlertCircle } from 'lucide-react';
+import { CreditCard, Wallet, Banknote, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import ListingLockedMessage from '../../components/ListingLockedMessage';
+import { checkListingAvailability } from '../../utils/concurrentBookingService';
 import '../../styles/BookingReview.scss';
 
 const BookingReview = () => {
@@ -8,15 +10,88 @@ const BookingReview = () => {
   const navigate = useNavigate();
   const { listing, checkIn, checkOut, guests, pricing } = location.state || {};
 
-
   const [paymentMethod, setPaymentMethod] = useState('vnpay_full');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Concurrent booking states
+  const [isListingLocked, setIsListingLocked] = useState(false);
+  const [checkingAvailability, setCheckingAvailability] = useState(true);
+  const [lockTimeRemaining, setLockTimeRemaining] = useState(0);
+
+  // Check listing availability on mount
+  useEffect(() => {
+    const checkAvailability = async () => {
+      if (!listing?._id || !checkIn || !checkOut) return;
+
+      try {
+        setCheckingAvailability(true);
+        const result = await checkListingAvailability(listing._id, checkIn, checkOut);
+
+        if (!result.available && result.reason === 'LISTING_TEMPORARILY_RESERVED') {
+          setIsListingLocked(true);
+        } else {
+          setIsListingLocked(false);
+        }
+      } catch (err) {
+        console.error('Error checking availability:', err);
+      } finally {
+        setCheckingAvailability(false);
+      }
+    };
+
+    checkAvailability();
+  }, [listing?._id, checkIn, checkOut]);
+
+  // Handle retry checking availability
+  const handleRetryAvailability = async () => {
+    if (!listing?._id || !checkIn || !checkOut) return;
+
+    try {
+      setCheckingAvailability(true);
+      const result = await checkListingAvailability(listing._id, checkIn, checkOut);
+
+      if (result.available) {
+        setIsListingLocked(false);
+      }
+    } catch (err) {
+      console.error('Error retrying availability check:', err);
+    } finally {
+      setCheckingAvailability(false);
+    }
+  };
+
   if (!listing || !pricing) {
     navigate('/');
     return null;
+  }
+
+  // Show locked message if listing is reserved by another user
+  if (isListingLocked) {
+    return (
+      <div className="booking-review">
+        <ListingLockedMessage
+          onRetry={handleRetryAvailability}
+          onGoBack={() => navigate(-1)}
+          checkingAvailability={checkingAvailability}
+        />
+      </div>
+    );
+  }
+
+  // Show loading state while checking availability
+  if (checkingAvailability) {
+    return (
+      <div className="booking-review">
+        <div className="review-container">
+          <div className="loading-availability">
+            <Clock size={32} className="spinning" />
+            <p>Checking availability...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const formatPrice = (price) => {
@@ -35,6 +110,19 @@ const BookingReview = () => {
     try {
       setLoading(true);
       setError('');
+
+      // First, check availability again before proceeding
+      const availabilityCheck = await checkListingAvailability(listing._id, checkIn, checkOut);
+      if (!availabilityCheck.available) {
+        if (availabilityCheck.reason === 'LISTING_TEMPORARILY_RESERVED') {
+          setIsListingLocked(true);
+          setError('');
+          return;
+        } else {
+          setError('This listing is no longer available for the selected dates.');
+          return;
+        }
+      }
 
       if (paymentMethod === 'cash') {
         // Create cash booking directly (v2.0)

@@ -260,6 +260,41 @@
       }
     }
   }
+
+  .loading-availability {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    background: white;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+    svg {
+      color: #ff385c;
+      margin-bottom: 16px;
+    }
+
+    p {
+      font-size: 16px;
+      color: #666;
+    }
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 968px) {
