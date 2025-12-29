@@ -9,6 +9,7 @@ import '../../utils/date_formatter.dart';
 import '../../utils/price_formatter.dart';
 import '../checkout/checkout_screen.dart';
 import '../../widgets/cancel_booking_bottom_sheet.dart';
+import '../../widgets/booking_status_widgets.dart';
 
 class TripsScreen extends StatefulWidget {
   const TripsScreen({super.key});
@@ -62,13 +63,17 @@ class _TripsScreenState extends State<TripsScreen> with SingleTickerProviderStat
   List<Booking> get _upcomingTrips {
     final now = DateTime.now();
     return _trips.where((trip) {
+      // Use effectiveStatus which prefers bookingStatus over status
+      final status = trip.effectiveStatus.toLowerCase();
+
       // Show pending, approved, and accepted bookings that haven't ended yet
-      final isActiveFutureBooking = (trip.status == 'pending' ||
-                                      trip.status == 'approved' ||
-                                      trip.status == 'accepted') &&
+      final isActiveFutureBooking = (status == 'pending' ||
+                                      status == 'approved' ||
+                                      status == 'accepted' ||
+                                      status == 'checked_in') &&
                                      trip.endDate.isAfter(now);
 
-      debugPrint('  Upcoming check: ${trip.status}, ends ${trip.endDate}, now $now, include: $isActiveFutureBooking');
+      debugPrint('  Upcoming check: $status, ends ${trip.endDate}, now $now, include: $isActiveFutureBooking');
       return isActiveFutureBooking;
     }).toList();
   }
@@ -76,14 +81,19 @@ class _TripsScreenState extends State<TripsScreen> with SingleTickerProviderStat
   List<Booking> get _pastTrips {
     final now = DateTime.now();
     return _trips.where((trip) {
-      // Show completed, checked out, rejected, or past bookings
-      final isPastBooking = trip.status == 'completed' ||
-                           trip.status == 'checked_out' ||  // Backend uses checked_out with underscore
-                           trip.status == 'rejected' ||
+      // Use effectiveStatus which prefers bookingStatus over status
+      final status = trip.effectiveStatus.toLowerCase();
+
+      // Show completed, checked out, rejected, cancelled, or past bookings
+      final isPastBooking = status == 'completed' ||
+                           status == 'checked_out' ||
+                           status == 'rejected' ||
+                           status == 'cancelled' ||
+                           status == 'expired' ||
                            trip.endDate.isBefore(now) ||
                            trip.endDate.isAtSameMomentAs(now);
 
-      debugPrint('  Past check: ${trip.status}, ends ${trip.endDate}, now $now, include: $isPastBooking');
+      debugPrint('  Past check: $status, ends ${trip.endDate}, now $now, include: $isPastBooking');
       return isPastBooking;
     }).toList();
   }

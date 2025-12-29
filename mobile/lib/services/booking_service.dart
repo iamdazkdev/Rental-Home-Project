@@ -16,9 +16,11 @@ class BookingService {
     required DateTime startDate,
     required DateTime endDate,
     required double totalPrice,
-    String? paymentMethod,
+    String? paymentMethod, // vnpay, cash
+    String? paymentType, // full, deposit, cash
     int? depositPercentage,
     double? depositAmount,
+    double? remainingAmount,
   }) async {
     try {
       final token = await _storageService.getToken();
@@ -31,7 +33,7 @@ class BookingService {
 
       debugPrint('🔍 Create booking URL: $uri');
       debugPrint('📦 Booking data: listingId=$listingId, start=$startDate, end=$endDate');
-      debugPrint('💳 Payment method: $paymentMethod');
+      debugPrint('💳 Payment: method=$paymentMethod, type=$paymentType');
 
       // Format dates to match web format: "Wed Dec 24 2025"
       // This matches JavaScript's Date.toDateString()
@@ -63,15 +65,21 @@ class BookingService {
         'totalPrice': totalPrice,
       };
 
-      // Add payment fields if provided
+      // Add payment fields (v2.0)
       if (paymentMethod != null) {
         bookingData['paymentMethod'] = paymentMethod;
+      }
+      if (paymentType != null) {
+        bookingData['paymentType'] = paymentType;
       }
       if (depositPercentage != null) {
         bookingData['depositPercentage'] = depositPercentage;
       }
       if (depositAmount != null) {
         bookingData['depositAmount'] = depositAmount;
+      }
+      if (remainingAmount != null) {
+        bookingData['remainingAmount'] = remainingAmount;
       }
 
       final response = await http.post(

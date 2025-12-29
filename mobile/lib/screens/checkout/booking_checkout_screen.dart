@@ -5,6 +5,7 @@ import '../../config/app_theme.dart';
 import '../../models/listing.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/booking_service.dart';
+import '../../services/booking_intent_service.dart';
 import '../../services/payment_service.dart';
 import '../../utils/date_formatter.dart';
 import '../../utils/price_formatter.dart';
@@ -32,10 +33,13 @@ class BookingCheckoutScreen extends StatefulWidget {
 
 class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
   final BookingService _bookingService = BookingService();
+  final BookingIntentService _bookingIntentService = BookingIntentService();
   final PaymentService _paymentService = PaymentService();
 
   String _selectedPaymentMethod = 'vnpay_full'; // vnpay_full, vnpay_deposit, cash
   bool _isSubmitting = false;
+  bool _isCheckingAvailability = false;
+  String? _availabilityError;
 
   // Payment method options
   final List<Map<String, dynamic>> _paymentMethods = [
@@ -71,18 +75,49 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
       return;
     }
 
-    setState(() => _isSubmitting = true);
+    setState(() {
+      _isSubmitting = true;
+      _availabilityError = null;
+    });
 
     try {
+      // Step 1: Check availability first (concurrent booking protection)
+      debugPrint('🔍 Checking listing availability...');
+
+      final availabilityResult = await _bookingIntentService.checkAvailability(
+        listingId: widget.listing.id,
+        startDate: widget.startDate,
+        endDate: widget.endDate,
+        userId: user.id,
+      );
+
+      if (!availabilityResult['available'] && availabilityResult['lockedBy'] != user.id) {
+        setState(() {
+          _isSubmitting = false;
+          _availabilityError = availabilityResult['message'] ??
+            'This listing is currently being booked by another user. Please try again later.';
+        });
+        _showLockedDialog(availabilityResult['lockedUntil']);
+        return;
+      }
+
       // Calculate amounts
       double paymentAmount = widget.totalPrice;
       int depositPercentage = 0;
       double depositAmount = 0;
+      double remainingAmount = 0;
+      String paymentType = 'full';
+      String paymentMethod = 'vnpay';
 
       if (_selectedPaymentMethod == 'vnpay_deposit') {
         depositPercentage = 30;
         depositAmount = _paymentService.calculateDepositAmount(widget.totalPrice);
         paymentAmount = depositAmount;
+        remainingAmount = widget.totalPrice - depositAmount;
+        paymentType = 'deposit';
+      } else if (_selectedPaymentMethod == 'cash') {
+        paymentMethod = 'cash';
+        paymentType = 'cash';
       }
 
       // Prepare booking data
@@ -93,12 +128,15 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
         'startDate': widget.startDate.toIso8601String(),
         'endDate': widget.endDate.toIso8601String(),
         'totalPrice': widget.totalPrice,
-        'paymentMethod': _selectedPaymentMethod,
+        'paymentMethod': paymentMethod,
+        'paymentType': paymentType,
         'depositPercentage': depositPercentage,
         'depositAmount': depositAmount,
+        'remainingAmount': remainingAmount,
       };
 
       debugPrint('📝 Booking data prepared: $_selectedPaymentMethod');
+      debugPrint('💳 Payment: method=$paymentMethod, type=$paymentType');
 
       // Handle cash payment - create booking immediately
       if (_selectedPaymentMethod == 'cash') {
@@ -112,6 +150,7 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
           endDate: widget.endDate,
           totalPrice: widget.totalPrice,
           paymentMethod: 'cash',
+          paymentType: 'cash',
         );
 
         setState(() => _isSubmitting = false);
@@ -120,26 +159,56 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
 
         if (result['success']) {
           _showSuccessDialog(
-            'Đặt phòng thành công!',
-            'Vui lòng thanh toán tiền mặt khi nhận phòng.',
+            'Booking Request Sent!',
+            'Your booking request has been sent. Please pay in cash at check-in.',
           );
         } else {
-          _showErrorDialog(result['message'] ?? 'Đặt phòng thất bại');
+          _showErrorDialog(result['message'] ?? 'Booking failed');
         }
         return;
       }
 
-      // Handle VNPay payments
+      // Handle VNPay payments - Create BookingIntent first
+      debugPrint('🔒 Creating booking intent...');
+
+      final intentResult = await _bookingIntentService.createBookingIntent(
+        customerId: user.id,
+        hostId: widget.listing.creator,
+        listingId: widget.listing.id,
+        startDate: widget.startDate,
+        endDate: widget.endDate,
+        totalPrice: widget.totalPrice,
+        paymentMethod: paymentMethod,
+        paymentType: paymentType,
+        depositAmount: depositAmount,
+        depositPercentage: depositPercentage,
+      );
+
+      if (!intentResult['success']) {
+        setState(() => _isSubmitting = false);
+
+        if (intentResult['locked'] == true) {
+          _showLockedDialog(intentResult['lockedUntil']);
+        } else {
+          _showErrorDialog(intentResult['message'] ?? 'Failed to lock listing');
+        }
+        return;
+      }
+
+      final intentId = intentResult['intentId'];
+      debugPrint('✅ Booking intent created: $intentId');
+
+      // Now create VNPay payment
       debugPrint('💳 Creating VNPay payment...');
 
       final ipAddr = await _paymentService.getClientIP();
 
-      debugPrint('💰 Payment amount: ${paymentAmount.toStringAsFixed(0)} VND (no conversion)');
+      debugPrint('💰 Payment amount: ${paymentAmount.toStringAsFixed(0)} VND');
 
       // Create payment URL
       final paymentResult = await _paymentService.createPaymentUrl(
         bookingData: bookingData,
-        amount: paymentAmount, // Send VND amount directly (no conversion)
+        amount: paymentAmount,
         ipAddr: ipAddr,
       );
 
@@ -151,7 +220,7 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
         final paymentUrl = paymentResult['paymentUrl'];
         final bookingId = paymentResult['bookingId'];
 
-        debugPrint('✅ Booking created with ID: $bookingId');
+        debugPrint('✅ Payment URL created');
         debugPrint('🔄 Opening VNPay payment page...');
 
         // Open VNPay payment page
@@ -164,20 +233,74 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
 
           // For demo: Show dialog to manually confirm payment
           if (mounted) {
-            _showPaymentConfirmDialog(bookingId);
+            _showPaymentConfirmDialog(bookingId, intentId);
           }
         } else {
-          _showErrorDialog('Không thể mở trang thanh toán');
+          // Cancel the intent since we couldn't open payment
+          await _bookingIntentService.cancelIntent(intentId);
+          _showErrorDialog('Cannot open payment page');
         }
       } else {
-        _showErrorDialog(paymentResult['message'] ?? 'Tạo thanh toán thất bại');
+        // Cancel the intent since payment creation failed
+        if (intentId != null) {
+          await _bookingIntentService.cancelIntent(intentId);
+        }
+        _showErrorDialog(paymentResult['message'] ?? 'Payment creation failed');
       }
 
     } catch (e) {
       setState(() => _isSubmitting = false);
       debugPrint('❌ Error during checkout: $e');
-      _showErrorDialog('Đã xảy ra lỗi: ${e.toString()}');
+      _showErrorDialog('An error occurred: ${e.toString()}');
     }
+  }
+
+  void _showLockedDialog(String? lockedUntil) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.lock_outline, color: AppTheme.warningColor, size: 28),
+            SizedBox(width: 12),
+            Text('Listing Unavailable'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'This listing is currently being booked by another user.',
+            ),
+            if (lockedUntil != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Please try again in a few minutes.',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // Go back to listing
+            },
+            child: const Text('Go Back'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Retry
+              _handleConfirmPayment();
+            },
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSuccessDialog(String title, String message) {
@@ -256,40 +379,46 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
   //   );
   // }
 
-  void _showPaymentConfirmDialog(String bookingId) {
+  void _showPaymentConfirmDialog(String bookingId, String? intentId) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text('🎭 Demo Mode'),
         content: const Text(
-          'Bạn đã mở trang thanh toán VNPay.\n\n'
-          'Vì đây là chế độ demo, hãy xác nhận để hoàn tất đặt phòng '
-          '(không cần thanh toán thật).',
+          'You have opened the VNPay payment page.\n\n'
+          'Since this is demo mode, confirm to complete the booking '
+          '(no actual payment required).',
         ),
         actions: [
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop(); // Close dialog
+
+              // Cancel the booking intent
+              if (intentId != null) {
+                await _bookingIntentService.cancelIntent(intentId);
+              }
+
               Navigator.of(context).pop(); // Go back to listing
             },
-            child: const Text('Huỷ'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.of(context).pop(); // Close dialog
 
               // For demo: Treat as successful payment
-              await _handleDemoPaymentSuccess(bookingId);
+              await _handleDemoPaymentSuccess(bookingId, intentId);
             },
-            child: const Text('Xác nhận thanh toán'),
+            child: const Text('Confirm Payment'),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _handleDemoPaymentSuccess(String bookingId) async {
+  Future<void> _handleDemoPaymentSuccess(String bookingId, String? intentId) async {
     // Show loading
     showDialog(
       context: context,
@@ -299,27 +428,62 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
       ),
     );
 
-    // Simulate processing
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      // Confirm payment via BookingIntent if available
+      if (intentId != null) {
+        debugPrint('💳 Confirming payment via BookingIntent: $intentId');
 
-    if (!mounted) return;
+        final confirmResult = await _bookingIntentService.confirmPayment(
+          intentId: intentId,
+          transactionId: 'DEMO_${DateTime.now().millisecondsSinceEpoch}',
+        );
 
-    // Close loading
-    Navigator.of(context).pop();
+        if (!mounted) return;
+        Navigator.of(context).pop(); // Close loading
 
-    // Navigate to payment result screen
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => PaymentResultScreen(
-          status: 'success',
-          bookingId: bookingId,
-          transactionNo: 'DEMO_${DateTime.now().millisecondsSinceEpoch}',
-          paymentStatus: _selectedPaymentMethod == 'vnpay_deposit'
-              ? 'partially_paid'
-              : 'paid',
-        ),
-      ),
-    );
+        if (confirmResult['success']) {
+          // Navigate to payment result screen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => PaymentResultScreen(
+                status: 'success',
+                bookingId: confirmResult['bookingId'] ?? bookingId,
+                transactionNo: 'DEMO_${DateTime.now().millisecondsSinceEpoch}',
+                paymentStatus: _selectedPaymentMethod == 'vnpay_deposit'
+                    ? 'partially_paid'
+                    : 'paid',
+              ),
+            ),
+          );
+        } else {
+          _showErrorDialog(confirmResult['message'] ?? 'Payment confirmation failed');
+        }
+      } else {
+        // Fallback: Simulate processing
+        await Future.delayed(const Duration(seconds: 1));
+
+        if (!mounted) return;
+        Navigator.of(context).pop(); // Close loading
+
+        // Navigate to payment result screen
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => PaymentResultScreen(
+              status: 'success',
+              bookingId: bookingId,
+              transactionNo: 'DEMO_${DateTime.now().millisecondsSinceEpoch}',
+              paymentStatus: _selectedPaymentMethod == 'vnpay_deposit'
+                  ? 'partially_paid'
+                  : 'paid',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Close loading
+      _showErrorDialog('An error occurred: ${e.toString()}');
+    }
   }
 
   double _getPaymentAmount() {

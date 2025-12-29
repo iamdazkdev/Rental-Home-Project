@@ -1,5 +1,118 @@
 import 'package:flutter/foundation.dart';
 
+/// Booking Status enum matching backend states
+enum BookingStatus {
+  draft('draft'),
+  pending('pending'),
+  approved('approved'),
+  checkedIn('checked_in'),
+  checkedOut('checked_out'),
+  completed('completed'),
+  cancelled('cancelled'),
+  rejected('rejected'),
+  expired('expired');
+
+  final String value;
+  const BookingStatus(this.value);
+
+  static BookingStatus fromString(String status) {
+    switch (status.toLowerCase()) {
+      case 'draft':
+        return BookingStatus.draft;
+      case 'pending':
+        return BookingStatus.pending;
+      case 'approved':
+      case 'accepted':
+        return BookingStatus.approved;
+      case 'checked_in':
+      case 'checkedin':
+        return BookingStatus.checkedIn;
+      case 'checked_out':
+      case 'checkedout':
+        return BookingStatus.checkedOut;
+      case 'completed':
+        return BookingStatus.completed;
+      case 'cancelled':
+        return BookingStatus.cancelled;
+      case 'rejected':
+        return BookingStatus.rejected;
+      case 'expired':
+        return BookingStatus.expired;
+      default:
+        return BookingStatus.pending;
+    }
+  }
+}
+
+/// Payment Status enum matching backend states
+enum PaymentStatus {
+  unpaid('unpaid'),
+  partiallyPaid('partially_paid'),
+  paid('paid'),
+  refunded('refunded');
+
+  final String value;
+  const PaymentStatus(this.value);
+
+  static PaymentStatus fromString(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'unpaid':
+        return PaymentStatus.unpaid;
+      case 'partially_paid':
+        return PaymentStatus.partiallyPaid;
+      case 'paid':
+        return PaymentStatus.paid;
+      case 'refunded':
+        return PaymentStatus.refunded;
+      default:
+        return PaymentStatus.unpaid;
+    }
+  }
+}
+
+/// Payment Method enum
+enum PaymentMethod {
+  vnpay('vnpay'),
+  cash('cash');
+
+  final String value;
+  const PaymentMethod(this.value);
+
+  static PaymentMethod fromString(String? method) {
+    switch (method?.toLowerCase()) {
+      case 'vnpay':
+        return PaymentMethod.vnpay;
+      case 'cash':
+        return PaymentMethod.cash;
+      default:
+        return PaymentMethod.cash;
+    }
+  }
+}
+
+/// Payment Type enum
+enum PaymentType {
+  full('full'),
+  deposit('deposit'),
+  cash('cash');
+
+  final String value;
+  const PaymentType(this.value);
+
+  static PaymentType fromString(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'full':
+        return PaymentType.full;
+      case 'deposit':
+        return PaymentType.deposit;
+      case 'cash':
+        return PaymentType.cash;
+      default:
+        return PaymentType.cash;
+    }
+  }
+}
+
 class Booking {
   final String id;
   final String customerId;
@@ -8,13 +121,21 @@ class Booking {
   final DateTime startDate;
   final DateTime endDate;
   final double totalPrice;
-  final String status; // pending, approved, rejected, cancelled, completed, checkedOut
 
-  // Payment fields
-  final String? paymentMethod; // vnpay_full, vnpay_deposit, cash
+  // Use bookingStatus as primary (v2.0), fallback to status
+  final String bookingStatus;
+  final String status; // Legacy field for backward compatibility
+
+  // Payment fields (v2.0)
+  final String? paymentMethod; // vnpay, cash
+  final String? paymentType; // full, deposit, cash
   final String? paymentStatus; // paid, partially_paid, unpaid
   final double? depositAmount;
   final int? depositPercentage;
+  final double? remainingAmount;
+  final double? paidAmount;
+  final double? finalTotalPrice;
+  final String? finalEndDate;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -45,10 +166,16 @@ class Booking {
     required this.endDate,
     required this.totalPrice,
     required this.status,
+    String? bookingStatus,
     this.paymentMethod,
+    this.paymentType,
     this.paymentStatus,
     this.depositAmount,
     this.depositPercentage,
+    this.remainingAmount,
+    this.paidAmount,
+    this.finalTotalPrice,
+    this.finalEndDate,
     this.createdAt,
     this.updatedAt,
     this.extensionDays,
@@ -62,22 +189,60 @@ class Booking {
     this.customer,
     this.host,
     this.listing,
-  });
+  }) : bookingStatus = bookingStatus ?? status;
 
   int get numberOfNights {
     final effectiveEndDate = newEndDate ?? endDate;
     return effectiveEndDate.difference(startDate).inDays;
   }
 
-  bool get isPending => status == 'pending';
-  bool get isApproved => status == 'approved' || status == 'accepted';  // Handle both
-  bool get isRejected => status == 'rejected';
-  bool get isCancelled => status == 'cancelled';
-  bool get isCompleted => status == 'completed';
-  bool get isCheckedOut => status == 'checkedOut' || status == 'checked_out';  // Handle both formats
+  /// Get the effective status (prefer bookingStatus over status)
+  String get effectiveStatus => bookingStatus.isNotEmpty ? bookingStatus : status;
 
+  /// Get as BookingStatus enum
+  BookingStatus get statusEnum => BookingStatus.fromString(effectiveStatus);
+
+  /// Get as PaymentStatus enum
+  PaymentStatus get paymentStatusEnum => PaymentStatus.fromString(paymentStatus);
+
+  /// Get as PaymentMethod enum
+  PaymentMethod get paymentMethodEnum => PaymentMethod.fromString(paymentMethod);
+
+  /// Get as PaymentType enum
+  PaymentType get paymentTypeEnum => PaymentType.fromString(paymentType);
+
+  // Status checks using bookingStatus (v2.0)
+  bool get isDraft => effectiveStatus == 'draft';
+  bool get isPending => effectiveStatus == 'pending';
+  bool get isApproved => effectiveStatus == 'approved' || effectiveStatus == 'accepted';
+  bool get isCheckedIn => effectiveStatus == 'checked_in';
+  bool get isCheckedOut => effectiveStatus == 'checked_out' || effectiveStatus == 'checkedOut';
+  bool get isCompleted => effectiveStatus == 'completed';
+  bool get isCancelled => effectiveStatus == 'cancelled';
+  bool get isRejected => effectiveStatus == 'rejected';
+  bool get isExpired => effectiveStatus == 'expired';
+
+  // Payment status checks
+  bool get isUnpaid => paymentStatus == null || paymentStatus == 'unpaid';
+  bool get isPartiallyPaid => paymentStatus == 'partially_paid';
+  bool get isPaid => paymentStatus == 'paid';
+  bool get isRefunded => paymentStatus == 'refunded';
+
+  // Payment type checks
+  bool get isFullPayment => paymentType == 'full';
+  bool get isDepositPayment => paymentType == 'deposit';
+  bool get isCashPayment => paymentType == 'cash' || paymentMethod == 'cash';
+
+  // Computed amount helpers
+  double get effectiveTotalPrice => finalTotalPrice ?? totalPrice;
+  double get effectiveRemainingAmount => remainingAmount ?? (totalPrice - (paidAmount ?? 0));
+  bool get hasRemainingPayment => isDepositPayment && effectiveRemainingAmount > 0;
+
+  // Action availability checks
   bool get canCheckout => isApproved && DateTime.now().isAfter(startDate);
   bool get canExtend => isApproved && !isCompleted && !isCheckedOut;
+  bool get canCancel => isPending || (isApproved && DateTime.now().isBefore(startDate));
+  bool get canPayRemaining => isDepositPayment && isPartiallyPaid && !isPaid;
   bool get canReview => isCheckedOut && homeReview == null;
 
   // Guest info helpers
@@ -186,11 +351,17 @@ class Booking {
       startDate: startDate,
       endDate: endDate,
       totalPrice: (json['totalPrice'] ?? 0).toDouble(),
-      status: json['status'] ?? 'pending',
+      status: json['status'] ?? json['bookingStatus'] ?? 'pending',
+      bookingStatus: json['bookingStatus'] ?? json['status'] ?? 'pending',
       paymentMethod: json['paymentMethod'],
+      paymentType: json['paymentType'],
       paymentStatus: json['paymentStatus'],
       depositAmount: json['depositAmount']?.toDouble(),
       depositPercentage: json['depositPercentage'],
+      remainingAmount: json['remainingAmount']?.toDouble(),
+      paidAmount: json['paidAmount']?.toDouble(),
+      finalTotalPrice: json['finalTotalPrice']?.toDouble(),
+      finalEndDate: json['finalEndDate'],
       createdAt: parseDate(json['createdAt']),
       updatedAt: parseDate(json['updatedAt']),
       extensionDays: json['extensionDays'],
@@ -217,10 +388,16 @@ class Booking {
       'endDate': endDate.toIso8601String(),
       'totalPrice': totalPrice,
       'status': status,
+      'bookingStatus': bookingStatus,
       'paymentMethod': paymentMethod,
+      'paymentType': paymentType,
       'paymentStatus': paymentStatus,
       'depositAmount': depositAmount,
       'depositPercentage': depositPercentage,
+      'remainingAmount': remainingAmount,
+      'paidAmount': paidAmount,
+      'finalTotalPrice': finalTotalPrice,
+      'finalEndDate': finalEndDate,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       'extensionDays': extensionDays,
