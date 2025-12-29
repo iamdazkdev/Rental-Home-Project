@@ -463,7 +463,7 @@ const CreateListingPage = () => {
 
   // Determine if this is a Room Rental (monthly-based) vs Entire Place Rental (nightly-based)
   const isRoomRental = type === "Room(s)"; // Shared living, monthly rent
-  const isEntirePlaceRental = type === "An Entire Place"; // Full property, nightly booking
+  const isEntirePlaceRental = type === "An entire place"; // Full property, nightly booking
   const isRoommateMatching = type === "A Shared Room"; // Roommate finding (future feature)
 
   const handleSubmit = async (e) => {
