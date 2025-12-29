@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { FileText, Calendar, DollarSign, AlertCircle, CheckCircle } from 'lucide-react';
+import { FileText, Calendar, DollarSign, AlertCircle, CheckCircle, X, CheckCircle2, Shield } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import Loader from '../../components/Loader';
@@ -11,6 +11,9 @@ const MyAgreements = () => {
   const [loading, setLoading] = useState(true);
   const [selectedAgreement, setSelectedAgreement] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [agreementToAccept, setAgreementToAccept] = useState(null);
+  const [acceptLoading, setAcceptLoading] = useState(false);
   const user = useSelector((state) => state.user);
 
   useEffect(() => {
@@ -47,12 +50,18 @@ const MyAgreements = () => {
     setShowModal(true);
   };
 
-  const handleAcceptAgreement = async (agreementId) => {
-    if (!window.confirm('Do you accept this rental agreement?')) return;
+  const openConfirmModal = (agreement) => {
+    setAgreementToAccept(agreement);
+    setShowConfirmModal(true);
+  };
+
+  const handleAcceptAgreement = async () => {
+    if (!agreementToAccept) return;
 
     try {
+      setAcceptLoading(true);
       const response = await fetch(
-        `http://localhost:3001/room-rental/agreements/${agreementId}/accept/tenant`,
+        `http://localhost:3001/room-rental/agreements/${agreementToAccept._id}/accept/tenant`,
         {
           method: 'PUT',
           headers: {
@@ -63,12 +72,15 @@ const MyAgreements = () => {
 
       if (!response.ok) throw new Error('Failed to accept agreement');
 
-      alert('Agreement accepted successfully!');
+      setShowConfirmModal(false);
       setShowModal(false);
+      setAgreementToAccept(null);
       fetchAgreements();
     } catch (error) {
       console.error('❌ Error accepting agreement:', error);
       alert('Failed to accept agreement');
+    } finally {
+      setAcceptLoading(false);
     }
   };
 
@@ -177,7 +189,7 @@ const MyAgreements = () => {
                 {agreement.status === 'DRAFT' && !agreement.agreedByTenantAt && (
                   <button
                     className="accept-btn"
-                    onClick={() => handleAcceptAgreement(agreement._id)}
+                    onClick={() => openConfirmModal(agreement)}
                   >
                     Accept Agreement
                   </button>
@@ -254,13 +266,88 @@ const MyAgreements = () => {
               {selectedAgreement.status === 'DRAFT' && !selectedAgreement.agreedByTenantAt && (
                 <button
                   className="accept-modal-btn"
-                  onClick={() => handleAcceptAgreement(selectedAgreement._id)}
+                  onClick={() => openConfirmModal(selectedAgreement)}
                 >
                   Accept Agreement
                 </button>
               )}
               <button className="close-modal-btn" onClick={() => setShowModal(false)}>
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Beautiful Confirmation Modal */}
+      {showConfirmModal && agreementToAccept && (
+        <div className="confirm-overlay" onClick={() => !acceptLoading && setShowConfirmModal(false)}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="confirm-close"
+              onClick={() => !acceptLoading && setShowConfirmModal(false)}
+              disabled={acceptLoading}
+            >
+              <X size={24} />
+            </button>
+
+            <div className="confirm-icon">
+              <Shield size={48} />
+            </div>
+
+            <h2>Accept Rental Agreement</h2>
+            <p className="confirm-description">
+              You are about to digitally sign and accept the rental agreement for:
+            </p>
+
+            <div className="confirm-details">
+              <div className="detail-row">
+                <span className="detail-label">Property</span>
+                <span className="detail-value">{agreementToAccept.roomId?.title || 'Room'}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Monthly Rent</span>
+                <span className="detail-value">{formatCurrency(agreementToAccept.rentAmount)} VND</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Deposit</span>
+                <span className="detail-value">{formatCurrency(agreementToAccept.depositAmount)} VND</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Notice Period</span>
+                <span className="detail-value">{agreementToAccept.noticePeriod} days</span>
+              </div>
+            </div>
+
+            <div className="confirm-warning">
+              <AlertCircle size={18} />
+              <span>By accepting, you agree to all terms and conditions in this agreement. This action cannot be undone.</span>
+            </div>
+
+            <div className="confirm-actions">
+              <button
+                className="cancel-btn"
+                onClick={() => setShowConfirmModal(false)}
+                disabled={acceptLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className="accept-confirm-btn"
+                onClick={handleAcceptAgreement}
+                disabled={acceptLoading}
+              >
+                {acceptLoading ? (
+                  <>
+                    <span className="spinner"></span>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={20} />
+                    Yes, Accept Agreement
+                  </>
+                )}
               </button>
             </div>
           </div>
