@@ -263,7 +263,7 @@ const RoommatePostForm = () => {
             size: photo.size
           });
 
-          const uploadResponse = await fetch("http://localhost:3001/listing/upload", {
+          const uploadResponse = await fetch("http://localhost:3001/upload", {
             method: "POST",
             body: photoFormData,
           });
