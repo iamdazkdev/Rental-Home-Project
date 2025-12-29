@@ -12,18 +12,55 @@ const {
   isRoomAvailable,
 } = require("../services/roomRentalValidation");
 
-// Helper: Create notification
-const createNotification = async (userId, type, message, link) => {
+// Helper: Create notification for Room Rental
+const createNotification = async (userId, type, message, link, rentalRequestId = null) => {
   try {
-    await Notification.create({
+    // Validate notification type for Room Rental
+    const validRentalTypes = [
+      "rental_request",
+      "rental_accepted",
+      "rental_approved",
+      "rental_rejected",
+      "rental_cancelled",
+      "rental_agreement_created",
+      "rental_agreement_signed",
+      "rental_agreement_confirmed",
+      "rental_agreement_active",
+      "rental_agreement_tenant_accepted",
+      "rental_move_in",
+      "rental_move_in_confirmed",
+      "rental_move_out",
+      "rental_payment_due",
+      "rental_payment_received",
+      "rental_payment_confirmed",
+      "rental_terminated",
+      "rental_termination_request",
+      "system_notification"
+    ];
+
+    if (!validRentalTypes.includes(type)) {
+      console.warn(`⚠️ Invalid notification type for Room Rental: ${type}`);
+      return;
+    }
+
+    const notificationData = {
       userId,
       type,
       message,
-      link,
-    });
-    console.log(`✅ Notification created for user ${userId}`);
+      link: link || "",
+    };
+
+    // Add rentalRequestId if provided (for Room Rental notifications)
+    if (rentalRequestId) {
+      notificationData.rentalRequestId = rentalRequestId;
+    }
+
+    const notification = await Notification.create(notificationData);
+    console.log(`✅ Notification created for user ${userId}, type: ${type}, id: ${notification._id}`);
   } catch (error) {
-    console.error("Error creating notification:", error);
+    console.error("❌ Error creating Room Rental notification:", error.message);
+    // Log more details for debugging
+    console.error("Notification data attempted:", { userId, type, message, link, rentalRequestId });
   }
 };
 
@@ -219,6 +256,218 @@ router.get("/search", async (req, res) => {
 });
 
 /**
+ * GET /room-rental/host/:hostId/rooms
+ * Get all rooms listed by a host (for room management)
+ */
+router.get("/host/:hostId/rooms", async (req, res) => {
+  try {
+    const { hostId } = req.params;
+
+    const rooms = await Listing.find({
+      creator: hostId,
+      type: { $in: ["A Room", "Room(s)", "Room"] }
+    })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: rooms.length,
+      rooms,
+    });
+  } catch (error) {
+    console.error("Error fetching host rooms:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch rooms",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * PATCH /room-rental/rooms/:roomId/toggle-visibility
+ * Toggle room visibility (active/inactive)
+ */
+router.patch("/rooms/:roomId/toggle-visibility", async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const { isActive } = req.body;
+
+    const room = await Listing.findByIdAndUpdate(
+      roomId,
+      { isActive },
+      { new: true }
+    );
+
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Room not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Room ${isActive ? 'activated' : 'deactivated'} successfully`,
+      room,
+    });
+  } catch (error) {
+    console.error("Error toggling room visibility:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update room visibility",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * DELETE /room-rental/rooms/:roomId
+ * Delete a room listing
+ */
+router.delete("/rooms/:roomId", async (req, res) => {
+  try {
+    const { roomId } = req.params;
+
+    // Check if room has any active rentals or requests
+    const activeRequests = await RentalRequest.countDocuments({
+      roomId,
+      status: { $in: ["REQUESTED", "APPROVED"] }
+    });
+
+    if (activeRequests > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete room with active rental requests",
+      });
+    }
+
+    const room = await Listing.findByIdAndDelete(roomId);
+
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Room not found",
+      });
+    }
+
+    // Remove from host's property list
+    await User.findByIdAndUpdate(room.creator, {
+      $pull: { propertyList: roomId }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Room deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting room:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete room",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * PUT /room-rental/rooms/:roomId
+ * Update a room listing
+ */
+router.put("/rooms/:roomId", upload.array("roomPhotos"), async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const {
+      title,
+      description,
+      category,
+      streetAddress,
+      city,
+      province,
+      country,
+      monthlyRent,
+      depositAmount,
+      roomSize,
+      guestCount,
+      bedroomCount,
+      bedCount,
+      bathroomCount,
+      amenities,
+      isActive,
+      existingPhotos
+    } = req.body;
+
+    console.log("📝 Updating room:", roomId);
+
+    // Find the room
+    const room = await Listing.findById(roomId);
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: "Room not found",
+      });
+    }
+
+    // Parse JSON fields
+    const parsedAmenities = typeof amenities === "string" ? JSON.parse(amenities) : amenities;
+    const parsedExistingPhotos = typeof existingPhotos === "string" ? JSON.parse(existingPhotos) : existingPhotos;
+
+    // Handle photos
+    let listingPhotoPaths = parsedExistingPhotos || [];
+
+    // Add new uploaded photos
+    if (req.files && req.files.length > 0) {
+      const newPhotoPaths = req.files.map((file) => file.path);
+      listingPhotoPaths = [...listingPhotoPaths, ...newPhotoPaths];
+    }
+
+    // Update room data
+    const updateData = {
+      title: title || room.title,
+      description: description || room.description,
+      category: category || room.category,
+      streetAddress: streetAddress || room.streetAddress,
+      city: city || room.city,
+      province: province || room.province,
+      country: country || room.country,
+      monthlyRent: monthlyRent ? parseFloat(monthlyRent) : room.monthlyRent,
+      price: monthlyRent ? Math.round(parseFloat(monthlyRent) / 30 * 100) / 100 : room.price,
+      depositAmount: depositAmount ? parseFloat(depositAmount) : room.depositAmount,
+      roomArea: roomSize ? parseFloat(roomSize) : room.roomArea,
+      guestCount: guestCount ? parseInt(guestCount) : room.guestCount,
+      bedroomCount: bedroomCount ? parseInt(bedroomCount) : room.bedroomCount,
+      bedCount: bedCount ? parseInt(bedCount) : room.bedCount,
+      bathroomCount: bathroomCount ? parseInt(bathroomCount) : room.bathroomCount,
+      amenities: parsedAmenities || room.amenities,
+      listingPhotoPaths,
+      isActive: isActive !== undefined ? isActive === 'true' || isActive === true : room.isActive,
+      updatedAt: new Date()
+    };
+
+    const updatedRoom = await Listing.findByIdAndUpdate(
+      roomId,
+      updateData,
+      { new: true }
+    );
+
+    console.log("✅ Room updated:", roomId);
+
+    res.status(200).json({
+      success: true,
+      message: "Room updated successfully",
+      room: updatedRoom,
+    });
+  } catch (error) {
+    console.error("Error updating room:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update room",
+      error: error.message,
+    });
+  }
+});
+
+/**
  * POST /room-rental/request
  * Submit rental request
  */
@@ -274,7 +523,8 @@ router.post("/request", async (req, res) => {
       hostId,
       "rental_request",
       `New rental request from ${req.body.tenantName || "a tenant"} for your room`,
-      `/room-rental/requests/${rentalRequest._id}`
+      `/room-rental/requests/${rentalRequest._id}`,
+      rentalRequest._id
     );
 
     res.status(201).json({
@@ -396,9 +646,10 @@ router.put("/requests/:requestId/cancel", async (req, res) => {
     // Notify host
     await createNotification(
       request.hostId,
-      "rental_request_cancelled",
+      "rental_cancelled",
       "A tenant has cancelled their rental request",
-      `/room-rental/host/requests`
+      `/room-rental/host/requests`,
+      request._id
     );
 
     console.log(`✅ Rental request ${requestId} cancelled`);
@@ -499,7 +750,8 @@ router.put("/requests/:requestId/approve", async (req, res) => {
       request.tenantId,
       "rental_approved",
       `Your rental request has been approved! Please review the agreement.`,
-      `/room-rental/agreements/${agreement._id}`
+      `/room-rental/agreements/${agreement._id}`,
+      request._id
     );
 
     res.status(200).json({
@@ -579,7 +831,8 @@ router.put("/requests/:requestId/reject", async (req, res) => {
       request.tenantId,
       "rental_rejected",
       `Your rental request has been rejected.`,
-      `/room-rental/requests/${request._id}`
+      `/room-rental/requests/${request._id}`,
+      request._id
     );
 
     res.status(200).json({
@@ -703,7 +956,8 @@ router.put("/agreements/:agreementId/host-confirm", async (req, res) => {
       agreement.tenantId._id,
       "rental_agreement_confirmed",
       `Host has confirmed the rental agreement for ${agreement.roomId.title}. You can now proceed with payment.`,
-      `/room-rental/my-payments`
+      `/room-rental/my-payments`,
+      agreement.rentalRequestId || null
     );
 
     console.log(`✅ Agreement ${agreementId} confirmed by host`);
@@ -810,17 +1064,19 @@ router.put("/agreements/:agreementId/accept/tenant", async (req, res) => {
       // Notify host
       await createNotification(
         agreement.hostId,
-        "agreement_active",
+        "rental_agreement_active",
         `Rental agreement is now active. Waiting for move-in confirmation.`,
-        `/room-rental/agreements/${agreement._id}`
+        `/room-rental/agreements/${agreement._id}`,
+        agreement.rentalRequestId || null
       );
     } else {
       // Notify host that tenant has accepted
       await createNotification(
         agreement.hostId,
-        "agreement_tenant_accepted",
+        "rental_agreement_tenant_accepted",
         `Tenant has accepted the rental agreement. Please review and accept.`,
-        `/room-rental/agreements/${agreement._id}`
+        `/room-rental/agreements/${agreement._id}`,
+        agreement.rentalRequestId || null
       );
     }
 
@@ -891,17 +1147,19 @@ router.put("/agreements/:agreementId/accept/host", async (req, res) => {
       // Notify tenant
       await createNotification(
         agreement.tenantId,
-        "agreement_active",
+        "rental_agreement_active",
         `Rental agreement is now active. You can proceed with payment.`,
-        `/room-rental/agreements/${agreement._id}`
+        `/room-rental/agreements/${agreement._id}`,
+        agreement.rentalRequestId || null
       );
     } else {
       // Notify tenant that host has accepted
       await createNotification(
         agreement.tenantId,
-        "agreement_host_accepted",
+        "rental_agreement_confirmed",
         `Host has confirmed the rental agreement. Please review and accept.`,
-        `/room-rental/agreements/${agreement._id}`
+        `/room-rental/agreements/${agreement._id}`,
+        agreement.rentalRequestId || null
       );
     }
 

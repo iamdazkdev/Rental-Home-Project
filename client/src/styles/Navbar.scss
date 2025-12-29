@@ -199,16 +199,38 @@
       right: 0;
       top: 60px;
       width: 280px;
+      max-height: calc(100vh - 100px);
       border-radius: 20px;
       border: 1px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
       z-index: 9999;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
       animation: slideDown 0.3s ease-out;
+
+      // Custom scrollbar styling
+      &::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: rgba(189, 185, 185, 0.1);
+        border-radius: 0 20px 20px 0;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(248, 57, 90, 0.3);
+        border-radius: 10px;
+
+        &:hover {
+          background: rgba(248, 57, 90, 0.5);
+        }
+      }
 
       @include sm {
         right: -20px;
         width: 260px;
+        max-height: calc(100vh - 80px);
       }
 
       .menu_header {

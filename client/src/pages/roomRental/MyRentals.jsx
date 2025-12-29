@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Home, Calendar, DollarSign, AlertTriangle, LogOut, CheckCircle } from 'lucide-react';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import Loader from '../../components/Loader';
 import '../../styles/MyRentals.scss';
 
@@ -117,7 +119,9 @@ const MyRentals = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="my-rentals">
+    <>
+      <Navbar />
+      <div className="my-rentals">
       <div className="rentals-header">
         <Home size={36} />
         <h1>My Active Rentals</h1>
@@ -305,6 +309,8 @@ const MyRentals = () => {
         </div>
       )}
     </div>
+    <Footer />
+    </>
   );
 };
 

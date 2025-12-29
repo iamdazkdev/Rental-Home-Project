@@ -41,6 +41,7 @@ import RoomRentalSearch from "./pages/roomRental/RoomRentalSearch";
 import RoomRentalDetail from "./pages/roomRental/RoomRentalDetail";
 import RoomRentalApplicationPage from "./pages/roomRental/RoomRentalApplicationPage";
 import HostApplicationDashboard from "./pages/roomRental/HostApplicationDashboard";
+import TenantApplications from "./pages/roomRental/TenantApplications";
 import MyRentalRequests from "./pages/roomRental/MyRentalRequests";
 import MyAgreements from "./pages/roomRental/MyAgreements";
 import MyRentals from "./pages/roomRental/MyRentals";
@@ -49,6 +50,15 @@ import HostRequests from "./pages/roomRental/HostRequests";
 import HostAgreements from "./pages/roomRental/HostAgreements";
 import HostRentals from "./pages/roomRental/HostRentals";
 import HostPayments from "./pages/roomRental/HostPayments";
+import MyRooms from "./pages/roomRental/MyRooms";
+import EditRoom from "./pages/roomRental/EditRoom";
+
+// Roommate Matching Pages (Process 3 - NO PAYMENT, NO BOOKING)
+import RoommateSearch from "./pages/roommate/RoommateSearch";
+import RoommatePostForm from "./pages/roommate/RoommatePostForm";
+import RoommatePostDetail from "./pages/roommate/RoommatePostDetail";
+import MyRoommateRequests from "./pages/roommate/MyRoommateRequests";
+import MyRoommatePosts from "./pages/roommate/MyRoommatePosts";
 
 function App() {
   return (
@@ -101,6 +111,7 @@ function App() {
           <Route path="/room-rental/:roomId" element={<RoomRentalDetail />} />
           <Route path="/room-rental/apply/:listingId" element={<RoomRentalApplicationPage />} />
           <Route path="/room-rental/applications" element={<HostApplicationDashboard />} />
+          <Route path="/room-rental/my-applications" element={<TenantApplications />} />
 
           {/* Room Rental - Tenant Pages */}
           <Route path="/room-rental/my-requests" element={<MyRentalRequests />} />
@@ -109,10 +120,20 @@ function App() {
           <Route path="/room-rental/my-payments" element={<MyPayments />} />
 
           {/* Room Rental - Host Pages */}
+          <Route path="/room-rental/my-rooms" element={<MyRooms />} />
+          <Route path="/room-rental/edit/:roomId" element={<EditRoom />} />
           <Route path="/room-rental/host/requests" element={<HostRequests />} />
           <Route path="/room-rental/host/agreements" element={<HostAgreements />} />
           <Route path="/room-rental/host/rentals" element={<HostRentals />} />
           <Route path="/room-rental/host/payments" element={<HostPayments />} />
+
+          {/* Roommate Matching Routes (Process 3 - NO PAYMENT, NO BOOKING) */}
+          <Route path="/roommate/search" element={<RoommateSearch />} />
+          <Route path="/roommate/create" element={<RoommatePostForm />} />
+          <Route path="/roommate/edit/:postId" element={<RoommatePostForm />} />
+          <Route path="/roommate/posts/:postId" element={<RoommatePostDetail />} />
+          <Route path="/roommate/my-posts" element={<MyRoommatePosts />} />
+          <Route path="/roommate/my-requests" element={<MyRoommateRequests />} />
 
           {/* Admin Routes */}
           <Route path="/admin/manage" element={<AdminManagement />} />

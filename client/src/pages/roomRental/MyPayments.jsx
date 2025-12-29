@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { DollarSign, Calendar, CreditCard, Banknote, CheckCircle, Clock, XCircle } from 'lucide-react';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import Loader from '../../components/Loader';
 import '../../styles/MyPayments.scss';
 
@@ -109,7 +111,9 @@ const MyPayments = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="my-payments">
+    <>
+      <Navbar />
+      <div className="my-payments">
       <div className="payments-header">
         <DollarSign size={36} />
         <h1>My Payments</h1>
@@ -278,7 +282,9 @@ const MyPayments = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+      <Footer />
+    </>
   );
 };
 

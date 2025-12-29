@@ -1,0 +1,318 @@
+@import './variables.scss';
+
+.tenant-applications-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  min-height: calc(100vh - 200px);
+
+  .page-header {
+    margin-bottom: 30px;
+    text-align: center;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: #6b7280;
+      font-size: 1rem;
+    }
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 30px;
+    justify-content: center;
+
+    .filter-btn {
+      padding: 8px 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      background: white;
+      color: #6b7280;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        border-color: #f43f5e;
+        color: #f43f5e;
+      }
+
+      &.active {
+        background: #f43f5e;
+        color: white;
+        border-color: #f43f5e;
+      }
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+
+    h3 {
+      font-size: 1.25rem;
+      color: #1f2937;
+      margin: 20px 0 10px;
+    }
+
+    p {
+      color: #6b7280;
+      margin-bottom: 20px;
+    }
+
+    .btn-primary {
+      background: #f43f5e;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #e11d48;
+      }
+    }
+  }
+
+  .applications-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 24px;
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .application-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 20px;
+      border-bottom: 1px solid #f3f4f6;
+
+      .property-info {
+        display: flex;
+        gap: 12px;
+
+        .property-image {
+          width: 60px;
+          height: 60px;
+          border-radius: 8px;
+          object-fit: cover;
+        }
+
+        h3 {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #1f2937;
+          margin-bottom: 4px;
+        }
+
+        .property-location {
+          color: #6b7280;
+          font-size: 0.875rem;
+        }
+      }
+
+      .status-badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+    }
+
+    .application-timeline {
+      padding: 20px;
+
+      .timeline-item {
+        display: flex;
+        gap: 12px;
+        padding-bottom: 16px;
+        position: relative;
+
+        &:not(:last-child)::before {
+          content: '';
+          position: absolute;
+          left: 11px;
+          top: 28px;
+          bottom: 0;
+          width: 2px;
+          background: #e5e7eb;
+        }
+
+        &.completed {
+          .timeline-icon {
+            background: #10b981;
+            color: white;
+          }
+
+          &::before {
+            background: #10b981;
+          }
+        }
+
+        &.pending {
+          .timeline-icon {
+            background: #f59e0b;
+            color: white;
+          }
+        }
+
+        .timeline-icon {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #e5e7eb;
+          color: #6b7280;
+          flex-shrink: 0;
+        }
+
+        .timeline-content {
+          h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+          }
+
+          p {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin: 2px 0;
+          }
+
+          .interview-location {
+            color: #3b82f6;
+          }
+        }
+      }
+    }
+
+    .offer-actions {
+      display: flex;
+      gap: 12px;
+      padding: 0 20px 20px;
+
+      button {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-accept {
+        background: #10b981;
+        color: white;
+        border: none;
+
+        &:hover {
+          background: #059669;
+        }
+      }
+
+      .btn-reject {
+        background: white;
+        color: #ef4444;
+        border: 1px solid #ef4444;
+
+        &:hover {
+          background: #fef2f2;
+        }
+      }
+    }
+
+    .rejection-notice {
+      display: flex;
+      gap: 12px;
+      padding: 16px 20px;
+      background: #fef2f2;
+      border-top: 1px solid #fecaca;
+
+      h4 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #ef4444;
+        margin-bottom: 4px;
+      }
+
+      p {
+        font-size: 0.8rem;
+        color: #7f1d1d;
+      }
+    }
+
+    .success-notice {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 20px;
+      background: #ecfdf5;
+      border-top: 1px solid #a7f3d0;
+      color: #065f46;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+  }
+}
+
+.tenant-applications-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+
+  .loader {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #e5e7eb;
+    border-top-color: #f43f5e;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  p {
+    margin-top: 16px;
+    color: #6b7280;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+

@@ -30,7 +30,7 @@ const Navbar = () => {
   const [expandedSections, setExpandedSections] = useState({
     entirePlace: false,
     roomRental: false,
-    hosting: false,
+    roommate: false,
   });
   const dropdownRef = useRef(null);
   const user = useSelector((state) => state.user);
@@ -299,6 +299,7 @@ const Navbar = () => {
 
                         {expandedSections.entirePlace && (
                           <div className="menu_subsection">
+                            <div className="menu_subgroup_title">Guest</div>
                             <Link
                               to={`/${user._id || user.id}/trips`}
                               className="menu_item menu_subitem"
@@ -314,6 +315,33 @@ const Navbar = () => {
                             >
                               <History sx={{ fontSize: 18 }} />
                               <span>Booking History</span>
+                            </Link>
+
+                            <div className="menu_subgroup_divider"></div>
+                            <div className="menu_subgroup_title">Host</div>
+                            <Link
+                              to="/properties"
+                              className="menu_item menu_subitem"
+                              onClick={() => setDropdownMenu(false)}
+                            >
+                              <Home sx={{ fontSize: 18 }} />
+                              <span>Properties</span>
+                            </Link>
+                            <Link
+                              to="/reservations"
+                              className="menu_item menu_subitem"
+                              onClick={() => setDropdownMenu(false)}
+                            >
+                              <EventNote sx={{ fontSize: 18 }} />
+                              <span>Booking Requests</span>
+                            </Link>
+                            <Link
+                              to="/hosting-history"
+                              className="menu_item menu_subitem"
+                              onClick={() => setDropdownMenu(false)}
+                            >
+                              <Assessment sx={{ fontSize: 18 }} />
+                              <span>Revenue</span>
                             </Link>
                           </div>
                         )}
@@ -334,6 +362,7 @@ const Navbar = () => {
 
                         {expandedSections.roomRental && (
                           <div className="menu_subsection">
+                            <div className="menu_subgroup_title">Tenant</div>
                             <Link
                               to="/room-rental"
                               className="menu_item menu_subitem"
@@ -374,53 +403,17 @@ const Navbar = () => {
                               <Assessment sx={{ fontSize: 18 }} />
                               <span>Payments</span>
                             </Link>
-                          </div>
-                        )}
-                      </div>
 
-                      <div className="menu_divider"></div>
-
-                      {/* Hosting Section - Collapsible */}
-                      <div className="menu_section_collapsible">
-                        <div
-                          className="menu_item menu_section_header"
-                          onClick={() => toggleSection('hosting')}
-                        >
-                          <Assessment sx={{ fontSize: 20 }} />
-                          <span>🏢 Hosting</span>
-                          <span className="expand_icon">{expandedSections.hosting ? '▼' : '▶'}</span>
-                        </div>
-
-                        {expandedSections.hosting && (
-                          <div className="menu_subsection">
-                            <div className="menu_subgroup_title">Entire Place</div>
+                            <div className="menu_subgroup_divider"></div>
+                            <div className="menu_subgroup_title">Host</div>
                             <Link
-                              to="/properties"
+                              to="/room-rental/my-rooms"
                               className="menu_item menu_subitem"
                               onClick={() => setDropdownMenu(false)}
                             >
                               <Home sx={{ fontSize: 18 }} />
-                              <span>Properties</span>
+                              <span>My Rooms</span>
                             </Link>
-                            <Link
-                              to="/reservations"
-                              className="menu_item menu_subitem"
-                              onClick={() => setDropdownMenu(false)}
-                            >
-                              <EventNote sx={{ fontSize: 18 }} />
-                              <span>Booking Requests</span>
-                            </Link>
-                            <Link
-                              to="/hosting-history"
-                              className="menu_item menu_subitem"
-                              onClick={() => setDropdownMenu(false)}
-                            >
-                              <Assessment sx={{ fontSize: 18 }} />
-                              <span>Revenue</span>
-                            </Link>
-
-                            <div className="menu_subgroup_divider"></div>
-                            <div className="menu_subgroup_title">Room Rental</div>
                             <Link
                               to="/room-rental/host/requests"
                               className="menu_item menu_subitem"
@@ -452,6 +445,49 @@ const Navbar = () => {
                             >
                               <Assessment sx={{ fontSize: 18 }} />
                               <span>Payments</span>
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="menu_divider"></div>
+
+                      {/* Roommate Section - Collapsible */}
+                      <div className="menu_section_collapsible">
+                        <div
+                          className="menu_item menu_section_header"
+                          onClick={() => toggleSection('roommate')}
+                        >
+                          <span className="menu_icon">👥</span>
+                          <span>Find Roommate</span>
+                          <span className="expand_icon">{expandedSections.roommate ? '▼' : '▶'}</span>
+                        </div>
+
+                        {expandedSections.roommate && (
+                          <div className="menu_subsection">
+                            <Link
+                              to="/roommate/search"
+                              className="menu_item menu_subitem"
+                              onClick={() => setDropdownMenu(false)}
+                            >
+                              <Search sx={{ fontSize: 18 }} />
+                              <span>Find Roommates</span>
+                            </Link>
+                            <Link
+                              to="/roommate/my-posts"
+                              className="menu_item menu_subitem"
+                              onClick={() => setDropdownMenu(false)}
+                            >
+                              <ListAlt sx={{ fontSize: 18 }} />
+                              <span>My Posts</span>
+                            </Link>
+                            <Link
+                              to="/roommate/my-requests"
+                              className="menu_item menu_subitem"
+                              onClick={() => setDropdownMenu(false)}
+                            >
+                              <EventNote sx={{ fontSize: 18 }} />
+                              <span>My Requests</span>
                             </Link>
                           </div>
                         )}

@@ -386,10 +386,15 @@ const CreateListingPage = () => {
     setType(selectedType);
     setShowTypeModal(false);
 
-    // Check if verification is required for Shared Room and Roommate
-    const requiresVerification =
-      selectedType === "Room(s)" ||        // Shared Room (living with host)
-      selectedType === "A Shared Room";    // Roommate (finding roommates)
+    // PROCESS 3: Roommate Matching - redirect to Roommate Post Form
+    if (selectedType === "A Shared Room") {
+      console.log("🏠 Redirecting to Roommate Post Form (Process 3)...");
+      navigate("/roommate/create");
+      return;
+    }
+
+    // Check if verification is required for Room Rental (Process 2)
+    const requiresVerification = selectedType === "Room(s)";
 
     console.log("🔐 Requires verification?", requiresVerification);
 

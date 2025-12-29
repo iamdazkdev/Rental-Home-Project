@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { FileText, Calendar, DollarSign, AlertCircle, CheckCircle } from 'lucide-react';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import Loader from '../../components/Loader';
 import '../../styles/MyAgreements.scss';
 
@@ -77,7 +79,9 @@ const MyAgreements = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="my-agreements">
+    <>
+      <Navbar />
+      <div className="my-agreements">
       <div className="agreements-header">
         <FileText size={36} />
         <h1>My Rental Agreements</h1>
@@ -263,6 +267,8 @@ const MyAgreements = () => {
         </div>
       )}
     </div>
+    <Footer />
+    </>
   );
 };
 

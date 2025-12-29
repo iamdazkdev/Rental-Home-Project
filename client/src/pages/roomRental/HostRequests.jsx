@@ -1,82 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Home, Calendar, MessageSquare, Check, X, User } from 'lucide-react';
-import Loader from '../../components/Loader';
+import axios from 'axios';
+import { Calendar, MessageCircle, CheckCircle, XCircle, Clock } from 'lucide-react';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import '../../styles/HostRequests.scss';
 
 const HostRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
-  const [houseRules, setHouseRules] = useState('');
-  const [noticePeriod, setNoticePeriod] = useState(30);
+
   const user = useSelector((state) => state.user);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?._id) {
       fetchRequests();
     }
-  }, [user?.id]);
+  }, [user?._id, filter]);
 
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `http://localhost:3001/room-rental/requests/host/${user.id || user._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
+      const response = await axios.get(
+        `http://localhost:3001/room-rental/requests/host/${user._id}`
       );
 
-      if (!response.ok) throw new Error('Failed to fetch requests');
+      let filtered = response.data.requests;
+      if (filter !== 'all') {
+        filtered = filtered.filter(req => req.status === filter);
+      }
 
-      const data = await response.json();
-      setRequests(data.requests || []);
+      setRequests(filtered);
     } catch (error) {
-      console.error('❌ Error fetching requests:', error);
+      console.error('Error fetching requests:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleApprove = async (requestId) => {
-    if (!houseRules.trim()) {
-      alert('Please provide house rules before approving');
-      return;
-    }
-
     try {
-      const response = await fetch(
-        `http://localhost:3001/room-rental/requests/${requestId}/approve`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-          body: JSON.stringify({
-            hostId: user.id || user._id,
-            houseRules,
-            noticePeriod: parseInt(noticePeriod),
-          }),
-        }
-      );
-
-      if (!response.ok) throw new Error('Failed to approve request');
-
-      alert('Request approved! Agreement has been created.');
-      setHouseRules('');
-      setNoticePeriod(30);
+      await axios.post(`http://localhost:3001/room-rental/requests/${requestId}/approve`);
+      alert('Request approved successfully!');
       fetchRequests();
     } catch (error) {
-      console.error('❌ Error approving request:', error);
-      alert('Failed to approve request');
+      console.error('Error approving request:', error);
+      alert(error.response?.data?.message || 'Failed to approve request');
     }
   };
 
@@ -87,193 +62,197 @@ const HostRequests = () => {
     }
 
     try {
-      const response = await fetch(
+      await axios.post(
         `http://localhost:3001/room-rental/requests/${selectedRequest._id}/reject`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-          body: JSON.stringify({
-            rejectionReason,
-          }),
-        }
+        { reason: rejectionReason }
       );
-
-      if (!response.ok) throw new Error('Failed to reject request');
-
-      alert('Request rejected successfully');
+      alert('Request rejected');
       setShowRejectModal(false);
       setRejectionReason('');
       setSelectedRequest(null);
       fetchRequests();
     } catch (error) {
-      console.error('❌ Error rejecting request:', error);
-      alert('Failed to reject request');
+      console.error('Error rejecting request:', error);
+      alert(error.response?.data?.message || 'Failed to reject request');
     }
   };
 
-  const pendingRequests = requests.filter((r) => r.status === 'REQUESTED');
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: '#f59e0b',
+      approved: '#10b981',
+      rejected: '#ef4444'
+    };
+    return colors[status] || '#6b7280';
+  };
 
-  if (loading) return <Loader />;
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="host-requests-loading">
+          <div className="loader"></div>
+          <p>Loading requests...</p>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
-    <div className="host-requests">
-      <div className="requests-header">
-        <Home size={36} />
-        <h1>Rental Requests</h1>
-        <p>Review and manage incoming room rental requests</p>
-      </div>
-
-      {pendingRequests.length === 0 ? (
-        <div className="no-requests">
-          <Home size={64} />
-          <h3>No pending requests</h3>
-          <p>New rental requests will appear here</p>
+    <>
+      <Navbar />
+      <div className="host-requests-page">
+        <div className="page-header">
+          <h1>Rental Requests</h1>
+          <p>Manage incoming requests for your shared rooms</p>
         </div>
-      ) : (
-        <div className="requests-grid">
-          {pendingRequests.map((request) => (
-            <div key={request._id} className="request-card">
-              <div className="card-header">
-                <div className="tenant-info">
-                  {request.tenantId?.profileImagePath && (
-                    <img
-                      src={request.tenantId.profileImagePath}
-                      alt={`${request.tenantId.firstName} ${request.tenantId.lastName}`}
-                      className="tenant-avatar"
-                    />
-                  )}
-                  <div>
-                    <h3>
-                      {request.tenantId?.firstName} {request.tenantId?.lastName}
-                    </h3>
-                    <p className="tenant-email">{request.tenantId?.email}</p>
-                  </div>
-                </div>
-                <div className="room-name">
-                  <Home size={18} />
-                  <span>{request.roomId?.title}</span>
-                </div>
-              </div>
 
-              <div className="request-details">
-                <div className="detail-row">
-                  <Calendar size={18} />
-                  <span>
-                    Move-in: {new Date(request.moveInDate).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="detail-row">
-                  <Calendar size={18} />
-                  <span>Duration: {request.intendedStayDuration} months</span>
-                </div>
-                <div className="detail-row">
-                  <Calendar size={18} />
-                  <span>
-                    Requested: {new Date(request.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-
-              <div className="tenant-message">
-                <h4>Message from Tenant:</h4>
-                <p>{request.message}</p>
-              </div>
-
-              <div className="approval-section">
-                <h4>Agreement Terms:</h4>
-                <div className="form-group">
-                  <label>House Rules *</label>
-                  <textarea
-                    value={houseRules}
-                    onChange={(e) => setHouseRules(e.target.value)}
-                    placeholder="Enter house rules (e.g., no smoking, quiet hours, etc.)"
-                    rows={3}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Notice Period (days) *</label>
-                  <input
-                    type="number"
-                    value={noticePeriod}
-                    onChange={(e) => setNoticePeriod(e.target.value)}
-                    min="7"
-                    max="90"
-                  />
-                </div>
-              </div>
-
-              <div className="card-actions">
-                <button
-                  className="chat-btn"
-                  onClick={() => navigate(`/messages?userId=${request.tenantId._id}`)}
-                >
-                  <MessageSquare size={18} />
-                  Chat with Tenant
-                </button>
-                <button
-                  className="approve-btn"
-                  onClick={() => handleApprove(request._id)}
-                >
-                  <Check size={18} />
-                  Approve
-                </button>
-                <button
-                  className="reject-btn"
-                  onClick={() => {
-                    setSelectedRequest(request);
-                    setShowRejectModal(true);
-                  }}
-                >
-                  <X size={18} />
-                  Reject
-                </button>
-              </div>
-            </div>
+        <div className="filters">
+          {['all', 'pending', 'approved', 'rejected'].map(f => (
+            <button
+              key={f}
+              className={`filter-btn ${filter === f ? 'active' : ''}`}
+              onClick={() => setFilter(f)}
+            >
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
           ))}
         </div>
-      )}
 
-      {showRejectModal && (
-        <div className="reject-modal" onClick={() => setShowRejectModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+        {requests.length === 0 ? (
+          <div className="empty-state">
+            <MessageCircle size={64} color="#9ca3af" />
+            <h3>No Requests Found</h3>
+            <p>You haven't received any rental requests yet.</p>
+          </div>
+        ) : (
+          <div className="requests-list">
+            {requests.map(request => (
+              <div key={request._id} className="request-card">
+                <div className="request-header">
+                  <div className="tenant-info">
+                    <img
+                      src={request.tenantId?.profileImagePath || '/assets/default-avatar.png'}
+                      alt={`${request.tenantId?.firstName} ${request.tenantId?.lastName}`}
+                      className="tenant-avatar"
+                    />
+                    <div>
+                      <h3>{request.tenantId?.firstName} {request.tenantId?.lastName}</h3>
+                      <p className="room-name">{request.roomId?.title}</p>
+                    </div>
+                  </div>
+                  <div
+                    className="status-badge"
+                    style={{ background: getStatusColor(request.status) }}
+                  >
+                    {request.status.toUpperCase()}
+                  </div>
+                </div>
+
+                <div className="request-details">
+                  <div className="detail-item">
+                    <Calendar size={16} />
+                    <span>Move-in: {new Date(request.moveInDate).toLocaleDateString()}</span>
+                  </div>
+                  <div className="detail-item">
+                    <Clock size={16} />
+                    <span>Duration: {request.intendedStayDuration} months</span>
+                  </div>
+                </div>
+
+                <div className="request-message">
+                  <h4>Message:</h4>
+                  <p>{request.message}</p>
+                </div>
+
+                {request.status === 'pending' && (
+                  <div className="request-actions">
+                    <button
+                      className="btn-approve"
+                      onClick={() => handleApprove(request._id)}
+                    >
+                      <CheckCircle size={18} />
+                      Approve
+                    </button>
+                    <button
+                      className="btn-reject"
+                      onClick={() => {
+                        setSelectedRequest(request);
+                        setShowRejectModal(true);
+                      }}
+                    >
+                      <XCircle size={18} />
+                      Reject
+                    </button>
+                    <button
+                      className="btn-chat"
+                      onClick={() => navigate(`/messages?userId=${request.tenantId._id}`)}
+                    >
+                      <MessageCircle size={18} />
+                      Chat
+                    </button>
+                  </div>
+                )}
+
+                {request.status === 'approved' && (
+                  <div className="approved-notice">
+                    <CheckCircle size={18} color="#10b981" />
+                    <span>Approved - Proceed to agreement generation</span>
+                  </div>
+                )}
+
+                {request.status === 'rejected' && request.rejectionReason && (
+                  <div className="rejection-reason">
+                    <h4>Rejection Reason:</h4>
+                    <p>{request.rejectionReason}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Reject Modal */}
+        {showRejectModal && (
+          <div className="modal-overlay" onClick={() => setShowRejectModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
               <h2>Reject Request</h2>
-              <button className="close-btn" onClick={() => setShowRejectModal(false)}>
-                ×
-              </button>
-            </div>
+              <p>Please provide a reason for rejecting this request:</p>
 
-            <div className="modal-body">
-              <p className="info-text">
-                Please provide a reason for rejecting this request. The tenant will be
-                notified.
-              </p>
-              <div className="form-group">
-                <label>Reason for Rejection *</label>
-                <textarea
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="Explain why you're rejecting this request..."
-                  rows={5}
-                />
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Reason for rejection..."
+                rows={4}
+                className="rejection-textarea"
+              />
+
+              <div className="modal-actions">
+                <button
+                  className="btn-cancel"
+                  onClick={() => {
+                    setShowRejectModal(false);
+                    setRejectionReason('');
+                    setSelectedRequest(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn-submit"
+                  onClick={handleReject}
+                  disabled={!rejectionReason.trim()}
+                >
+                  Confirm Rejection
+                </button>
               </div>
             </div>
-
-            <div className="modal-footer">
-              <button className="cancel-btn" onClick={() => setShowRejectModal(false)}>
-                Cancel
-              </button>
-              <button className="submit-btn" onClick={handleReject}>
-                Reject Request
-              </button>
-            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+      <Footer />
+    </>
   );
 };
 

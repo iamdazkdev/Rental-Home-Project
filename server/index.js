@@ -40,6 +40,7 @@ const staticDataRoutes = require("./routes/staticData.js");
 // Import services
 const { startPaymentReminderScheduler } = require("./services/paymentReminderService");
 const { startMonthlyRentScheduler } = require("./services/monthlyRentScheduler");
+const { upload } = require("./services/cloudinaryService");
 
 // Middleware
 const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE;
@@ -47,6 +48,33 @@ app.use(cors());
 app.use(express.json({ limit: MAX_FILE_SIZE }));
 app.use(express.urlencoded({ limit: MAX_FILE_SIZE, extended: true }));
 app.use(express.static("public"));
+
+// Upload endpoint for general image uploads
+app.post("/upload", upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
+
+    console.log("✅ Image uploaded to Cloudinary:", req.file.path);
+
+    res.status(200).json({
+      success: true,
+      message: "Image uploaded successfully",
+      imageUrl: req.file.path,
+    });
+  } catch (error) {
+    console.error("❌ Error uploading image:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to upload image",
+      error: error.message,
+    });
+  }
+});
 
 // Health check endpoint for Railway
 app.get("/health", (req, res) => {
@@ -64,6 +92,7 @@ app.use("/booking", bookingRoutes);
 app.use("/entire-place-booking", entirePlaceBookingRoutes); // New route for Entire Place Rental
 app.use("/room-rental", require("./routes/roomRental")); // Room Rental (Process 2) - Core
 app.use("/room-rental-advanced", require("./routes/roomRentalAdvanced")); // Room Rental (Process 2) - Advanced
+app.use("/roommate", require("./routes/roommate")); // Roommate Matching (Process 3) - NO PAYMENT, NO BOOKING
 app.use("/user", userRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/reviews", reviewRoutes);
@@ -98,12 +127,22 @@ app.use("/user-facilities", require("./routes/userFacilities"));
 // Admin routes
 app.use("/admin", require("./routes/admin"));
 
+// 404 handler - must be before global error handler
+app.use((req, res, next) => {
+  res.status(404).json({
+    success: false,
+    message: `Cannot ${req.method} ${req.url}`,
+    error: "Route not found",
+  });
+});
+
 // Global error handler - must be after all routes
 app.use((err, req, res, next) => {
   console.error("🔥 Global error handler:", err);
 
   // Ensure we always return JSON, not HTML
   res.status(err.status || 500).json({
+    success: false,
     message: err.message || "Internal Server Error",
     error: process.env.NODE_ENV === "development" ? {
       stack: err.stack,

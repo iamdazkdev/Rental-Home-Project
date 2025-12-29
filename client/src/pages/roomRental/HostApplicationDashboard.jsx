@@ -11,6 +11,8 @@ import {
   TrendingUp,
   AlertCircle
 } from 'lucide-react';
+import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import '../../styles/HostApplicationDashboard.scss';
 
 const HostApplicationDashboard = () => {
@@ -124,15 +126,21 @@ const HostApplicationDashboard = () => {
 
   if (loading) {
     return (
-      <div className="host-dashboard-loading">
-        <div className="loader"></div>
-        <p>Loading applications...</p>
-      </div>
+      <>
+        <Navbar />
+        <div className="host-dashboard-loading">
+          <div className="loader"></div>
+          <p>Loading applications...</p>
+        </div>
+        <Footer />
+      </>
     );
   }
 
   return (
-    <div className="host-application-dashboard">
+    <>
+      <Navbar />
+      <div className="host-application-dashboard">
       <div className="dashboard-header">
         <div className="header-content">
           <h1>Room Rental Applications</h1>
@@ -359,7 +367,9 @@ const HostApplicationDashboard = () => {
           onSubmit={handleMakeOffer}
         />
       )}
-    </div>
+      </div>
+      <Footer />
+    </>
   );
 };
 

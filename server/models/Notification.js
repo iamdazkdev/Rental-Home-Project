@@ -10,7 +10,7 @@ const NotificationSchema = new mongoose.Schema(
     type: {
       type: String,
       enum: [
-        // Booking lifecycle
+        // Booking lifecycle (Entire Place - Process 1)
         "booking_request",
         "booking_accepted",
         "booking_approved",
@@ -40,15 +40,54 @@ const NotificationSchema = new mongoose.Schema(
         // Messages
         "new_message",
 
+        // Room Rental (Process 2)
+        "rental_request",
+        "rental_accepted",
+        "rental_approved",
+        "rental_rejected",
+        "rental_cancelled",
+        "rental_agreement_created",
+        "rental_agreement_signed",
+        "rental_agreement_confirmed",
+        "rental_agreement_active",
+        "rental_agreement_tenant_accepted",
+        "rental_move_in",
+        "rental_move_in_confirmed",
+        "rental_move_out",
+        "rental_payment_due",
+        "rental_payment_received",
+        "rental_payment_confirmed",
+        "rental_terminated",
+        "rental_termination_request",
+
+        // Roommate matching (Process 3)
+        "roommate_request",
+        "roommate_accepted",
+        "roommate_rejected",
+        "roommate_matched",
+
         // General
         "system_notification",
       ],
       required: true,
     },
+    // For Entire Place bookings (Process 1)
     bookingId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Booking",
-      required: true,
+      required: false, // Made optional for Room Rental & Roommate notifications
+    },
+    // For Room Rental (Process 2)
+    rentalRequestId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "RentalRequest",
+      required: false,
+    },
+    // For Roommate (Process 3)
+    roommatePostId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "RoommatePost",
+      required: false,
     },
     message: {
       type: String,

@@ -6,6 +6,55 @@ const Listing = require("../models/Listing");
 const { HTTP_STATUS } = require("../constants");
 const { uploadUserProfile } = require("../services/cloudinaryService");
 
+// GET USER BY ID
+router.get("/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    console.log(`📥 Fetching user: ${userId}`);
+
+    // Validate userId
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({
+        success: false,
+        message: "Invalid user ID format"
+      });
+    }
+
+    // Find user (exclude password)
+    const user = await User.findById(userId).select('-password');
+
+    if (!user) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    console.log(`✅ User found: ${user.email}`);
+
+    res.status(HTTP_STATUS.OK).json({
+      success: true,
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      profileImagePath: user.profileImagePath,
+      hostBio: user.hostBio,
+      role: user.role,
+    });
+  } catch (err) {
+    console.log("❌ ERROR: Failed to fetch user", err);
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to fetch user",
+      error: err.message
+    });
+  }
+});
+
 // UPDATE USER PROFILE
 router.patch("/:userId/profile", uploadUserProfile.single("profileImage"), async (req, res) => {
   try {
