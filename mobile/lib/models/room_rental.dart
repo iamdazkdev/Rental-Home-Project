@@ -119,6 +119,28 @@ class RentalRequest {
   final dynamic tenant;
   final dynamic host;
 
+  // Computed display fields
+  String? get roomTitle {
+    if (room is Map) {
+      return room['title'] ?? 'Room';
+    }
+    return null;
+  }
+
+  String? get tenantName {
+    if (tenant is Map) {
+      return '${tenant['firstName'] ?? ''} ${tenant['lastName'] ?? ''}'.trim();
+    }
+    return null;
+  }
+
+  String? get hostName {
+    if (host is Map) {
+      return '${host['firstName'] ?? ''} ${host['lastName'] ?? ''}'.trim();
+    }
+    return null;
+  }
+
   RentalRequest({
     required this.id,
     required this.roomId,
@@ -205,6 +227,30 @@ class RentalAgreement {
   final dynamic room;
   final dynamic tenant;
   final dynamic host;
+
+  // Computed display fields
+  String? get roomTitle {
+    if (room is Map) {
+      return room['title'] ?? 'Room';
+    }
+    return null;
+  }
+
+  String? get tenantName {
+    if (tenant is Map) {
+      return '${tenant['firstName'] ?? ''} ${tenant['lastName'] ?? ''}'.trim();
+    }
+    return null;
+  }
+
+  String? get hostName {
+    if (host is Map) {
+      return '${host['firstName'] ?? ''} ${host['lastName'] ?? ''}'.trim();
+    }
+    return null;
+  }
+
+  String get houseRulesText => houseRules.join('\n');
 
   RentalAgreement({
     required this.id,

@@ -158,6 +158,22 @@ class LifestylePreferences {
         return 'Moderate';
     }
   }
+
+  bool get isNotEmpty => sleepSchedule.isNotEmpty || smoking.isNotEmpty || pets.isNotEmpty || cleanliness.isNotEmpty;
+
+  Map<String, String> get entries => {
+    'sleep': sleepScheduleDisplay,
+    'smoking': smokingDisplay,
+    'pets': petsDisplay,
+    'cleanliness': cleanlinessDisplay,
+  };
+
+  List<String> get displayList => [
+    sleepScheduleDisplay,
+    smokingDisplay,
+    petsDisplay,
+    cleanlinessDisplay,
+  ];
 }
 
 /// Roommate Post model
@@ -295,6 +311,14 @@ class RoommatePost {
   bool get isActive => status == RoommatePostStatus.active;
   bool get isSeeker => postType == RoommatePostType.seeker;
   bool get isProvider => postType == RoommatePostType.provider;
+
+  String get formattedDate {
+    return '${createdAt.day}/${createdAt.month}/${createdAt.year}';
+  }
+
+  String get formattedMoveInDate {
+    return '${moveInDate.day}/${moveInDate.month}/${moveInDate.year}';
+  }
 }
 
 /// Roommate Request model

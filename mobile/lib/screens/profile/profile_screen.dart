@@ -6,6 +6,14 @@ import '../wishlist/wishlist_screen.dart';
 import '../properties/my_properties_screen.dart';
 import '../bookings/booking_history_screen.dart';
 import '../host/booking_requests_screen.dart';
+import '../room_rental/my_rental_requests_screen.dart';
+import '../room_rental/host_rental_requests_screen.dart';
+import '../room_rental/my_agreements_screen.dart';
+import '../room_rental/host_agreements_screen.dart';
+import '../room_rental/room_rental_search_screen.dart';
+import '../roommate/roommate_search_screen.dart';
+import '../roommate/my_roommate_posts_screen.dart';
+import '../roommate/my_roommate_requests_screen.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -117,6 +125,139 @@ class ProfileScreen extends StatelessWidget {
                       );
                     },
                   ),
+
+                  const SizedBox(height: 8),
+                  const Divider(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Room Rental',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+
+                  _MenuItem(
+                    icon: Icons.search,
+                    title: 'Find a Room',
+                    subtitle: 'Search available rooms',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RoomRentalSearchScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _MenuItem(
+                    icon: Icons.send_outlined,
+                    title: 'My Rental Requests',
+                    subtitle: 'Your room requests',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyRentalRequestsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _MenuItem(
+                    icon: Icons.description_outlined,
+                    title: 'My Agreements',
+                    subtitle: 'Your rental agreements',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyAgreementsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _MenuItem(
+                    icon: Icons.inbox_outlined,
+                    title: 'Host Requests',
+                    subtitle: 'Incoming rental requests',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HostRentalRequestsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _MenuItem(
+                    icon: Icons.handshake_outlined,
+                    title: 'Host Agreements',
+                    subtitle: 'Manage tenant agreements',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HostAgreementsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 8),
+                  const Divider(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Roommate',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+
+                  _MenuItem(
+                    icon: Icons.people_outline,
+                    title: 'Find Roommate',
+                    subtitle: 'Search roommate posts',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RoommateSearchScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _MenuItem(
+                    icon: Icons.article_outlined,
+                    title: 'My Posts',
+                    subtitle: 'Your roommate posts',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyRoommatePostsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _MenuItem(
+                    icon: Icons.mail_outline,
+                    title: 'Roommate Requests',
+                    subtitle: 'View and manage requests',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyRoommateRequestsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
                   const SizedBox(height: 16),
                   // Logout Button
                   OutlinedButton.icon(

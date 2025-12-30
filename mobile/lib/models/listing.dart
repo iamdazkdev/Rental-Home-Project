@@ -26,6 +26,7 @@ class Listing {
   final bool isHidden;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final double? roomArea;
 
   final Map<String, dynamic>? creatorData;
   final Map<String, dynamic>? hostProfile;
@@ -58,6 +59,7 @@ class Listing {
     this.hostProfile,
     this.createdAt,
     this.updatedAt,
+    this.roomArea,
   });
 
   String get fullAddress => '$streetAddress, $aptSuite, $city, $province, $country';
@@ -190,6 +192,7 @@ class Listing {
       priceType: json['priceType'],
       isAvailable: json['isAvailable'] ?? true,
       isHidden: isHidden, // Use the inverted isActive value
+      roomArea: json['roomArea'] != null ? (json['roomArea']).toDouble() : null,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : null,
