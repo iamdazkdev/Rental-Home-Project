@@ -246,7 +246,7 @@ class _RequestCard extends StatelessWidget {
             ),
 
             // Rejection reason if applicable
-            if (request.status.toLowerCase() == 'rejected' && request.rejectionReason != null) ...[
+            if (request.status.value.toLowerCase() == 'rejected' && request.rejectionReason != null) ...[
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -270,7 +270,7 @@ class _RequestCard extends StatelessWidget {
             ],
 
             // Actions
-            if (request.status.toLowerCase() == 'requested') ...[
+            if (request.status.value.toLowerCase() == 'requested') ...[
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
@@ -294,7 +294,9 @@ class _RequestCard extends StatelessWidget {
     Color color;
     String label;
 
-    switch (request.status.toLowerCase()) {
+    final statusValue = request.status.value.toLowerCase();
+
+    switch (statusValue) {
       case 'requested':
         color = Colors.orange;
         label = 'Pending';
@@ -313,7 +315,7 @@ class _RequestCard extends StatelessWidget {
         break;
       default:
         color = Colors.grey;
-        label = request.status;
+        label = request.status.value;
     }
 
     return Container(

@@ -41,7 +41,7 @@ class _HostRentalRequestsScreenState extends State<HostRentalRequestsScreen> {
 
   List<RentalRequest> get _filteredRequests {
     if (_selectedFilter == 'all') return _requests;
-    return _requests.where((r) => r.status.toLowerCase() == _selectedFilter).toList();
+    return _requests.where((r) => r.status.value.toLowerCase() == _selectedFilter).toList();
   }
 
   @override
@@ -383,7 +383,7 @@ class _HostRequestCard extends StatelessWidget {
             ),
 
             // Actions
-            if (request.status.toLowerCase() == 'requested') ...[
+            if (request.status.value.toLowerCase() == 'requested') ...[
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -420,7 +420,7 @@ class _HostRequestCard extends StatelessWidget {
     Color color;
     String label;
 
-    switch (request.status.toLowerCase()) {
+    switch (request.status.value.toLowerCase()) {
       case 'requested':
         color = Colors.orange;
         label = 'Pending';
@@ -435,7 +435,7 @@ class _HostRequestCard extends StatelessWidget {
         break;
       default:
         color = Colors.grey;
-        label = request.status;
+        label = request.status.value;
     }
 
     return Container(

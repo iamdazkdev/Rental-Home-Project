@@ -6,7 +6,6 @@ import '../../models/roommate.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/roommate_service.dart';
 import '../../utils/price_formatter.dart';
-import '../messages/chat_screen.dart';
 
 class RoommatePostDetailScreen extends StatefulWidget {
   final String postId;
@@ -26,7 +25,6 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
   RoommatePost? _post;
   bool _isLoading = true;
   bool _isSendingRequest = false;
-  int _currentImageIndex = 0;
 
   @override
   void initState() {
@@ -112,13 +110,11 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
   void _contactUser() {
     if (_post == null) return;
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatScreen(
-          recipientId: _post!.userId,
-          recipientName: _post!.userName ?? 'User',
-        ),
+    // TODO: Implement chat feature
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Chat feature coming soon'),
+        duration: Duration(seconds: 2),
       ),
     );
   }
@@ -153,9 +149,6 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
                 ? FlexibleSpaceBar(
                     background: PageView.builder(
                       itemCount: _post!.photos.length,
-                      onPageChanged: (index) {
-                        setState(() => _currentImageIndex = index);
-                      },
                       itemBuilder: (context, index) {
                         return CachedNetworkImage(
                           imageUrl: _post!.photos[index],
@@ -326,17 +319,18 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
     String text;
 
     switch (_post!.status) {
-      case 'ACTIVE':
+      case RoommatePostStatus.active:
         color = AppTheme.successColor;
         text = 'Active';
         break;
-      case 'MATCHED':
+      case RoommatePostStatus.matched:
         color = Colors.orange;
         text = 'Matched';
         break;
-      default:
+      case RoommatePostStatus.closed:
         color = Colors.grey;
-        text = _post!.status;
+        text = 'Closed';
+        break;
     }
 
     return Container(
@@ -395,7 +389,10 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: _post!.lifestyle.entries.map((entry) {
+      children: _post!.lifestyle.displayList.asMap().entries.map((entry) {
+        final index = entry.key;
+        final value = entry.value;
+        final icons = ['🌙', '🚬', '🐾', '🧹']; // sleep, smoking, pets, cleanliness
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
@@ -403,37 +400,12 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            _formatLifestyle(entry.key, entry.value),
+            '${icons[index]} $value',
             style: const TextStyle(fontSize: 13),
           ),
         );
       }).toList(),
     );
-  }
-
-  String _formatLifestyle(String key, String value) {
-    final keyLabels = {
-      'sleepSchedule': '🛏️ Sleep',
-      'smoking': '🚬 Smoking',
-      'pets': '🐾 Pets',
-      'cleanliness': '🧹 Clean',
-      'personality': '🌟 Personality',
-    };
-
-    final valueLabels = {
-      'early_bird': 'Early Bird',
-      'night_owl': 'Night Owl',
-      'non_smoker': 'Non-Smoker',
-      'smoker': 'Smoker',
-      'no_pets': 'No Pets',
-      'has_pets': 'Has Pets',
-      'very_clean': 'Very Clean',
-      'moderate': 'Moderate',
-      'introvert': 'Introvert',
-      'extrovert': 'Extrovert',
-    };
-
-    return '${keyLabels[key] ?? key}: ${valueLabels[value] ?? value}';
   }
 
   Widget _buildContactSection(bool isOwnPost) {
@@ -452,7 +424,7 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
           )
         else ...[
           Text(
-            'Preferred contact: ${_post!.preferredContact ?? 'Chat'}',
+            'Preferred contact: ${_post!.preferredContact}',
             style: TextStyle(color: Colors.grey[700]),
           ),
           const SizedBox(height: 8),
@@ -466,7 +438,7 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
   }
 
   Widget _buildBottomBar() {
-    if (_post!.status != 'ACTIVE') {
+    if (_post!.status != RoommatePostStatus.active) {
       return Container(
         padding: const EdgeInsets.all(16),
         child: const Text(

@@ -184,15 +184,11 @@ class _MyRoommateRequestsScreenState extends State<MyRoommateRequestsScreen>
             onAccept: () => _handleAccept(request.id),
             onReject: () => _handleReject(request.id),
             onChat: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChatScreen(
-                    recipientId: isReceived ? request.senderId : request.receiverId,
-                    recipientName: isReceived
-                        ? (request.senderName ?? 'User')
-                        : (request.receiverName ?? 'User'),
-                  ),
+              // TODO: Implement chat feature
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Chat feature coming soon'),
+                  duration: Duration(seconds: 2),
                 ),
               );
             },
@@ -302,7 +298,7 @@ class _RequestCard extends StatelessWidget {
             ],
 
             // Actions
-            if (request.status == 'PENDING' && isReceived)
+            if (request.isPending && isReceived)
               Row(
                 children: [
                   Expanded(
@@ -328,7 +324,7 @@ class _RequestCard extends StatelessWidget {
                   ),
                 ],
               )
-            else if (request.status == 'ACCEPTED')
+            else if (request.isAccepted)
               ElevatedButton.icon(
                 onPressed: onChat,
                 icon: const Icon(Icons.chat),
@@ -348,21 +344,18 @@ class _RequestCard extends StatelessWidget {
     String text;
 
     switch (request.status) {
-      case 'PENDING':
+      case RoommateRequestStatus.pending:
         color = AppTheme.warningColor;
         text = 'Pending';
         break;
-      case 'ACCEPTED':
+      case RoommateRequestStatus.accepted:
         color = AppTheme.successColor;
         text = 'Accepted';
         break;
-      case 'REJECTED':
+      case RoommateRequestStatus.rejected:
         color = Colors.red;
         text = 'Rejected';
         break;
-      default:
-        color = Colors.grey;
-        text = request.status;
     }
 
     return Container(

@@ -75,7 +75,7 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
       return;
     }
 
-    final result = await _verificationService.checkVerificationStatus(user.id);
+    final result = await _verificationService.checkStatus(user.id);
 
     setState(() {
       _isCheckingVerification = false;

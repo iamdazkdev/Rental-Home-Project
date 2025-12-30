@@ -503,6 +503,7 @@ class _RoomRentalDetailScreenState extends State<RoomRentalDetailScreen> {
       await _roomRentalService.submitRentalRequest(
         roomId: widget.room.id,
         tenantId: user.id,
+        hostId: widget.room.hostId,
         moveInDate: moveInDate,
         intendedStayDuration: stayDuration,
         message: message,

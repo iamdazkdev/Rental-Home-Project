@@ -41,7 +41,7 @@ class _MyAgreementsScreenState extends State<MyAgreementsScreen> {
 
   List<RentalAgreement> get _filteredAgreements {
     if (_selectedFilter == 'all') return _agreements;
-    return _agreements.where((a) => a.status.toLowerCase() == _selectedFilter).toList();
+    return _agreements.where((a) => a.status.value.toLowerCase() == _selectedFilter).toList();
   }
 
   @override
@@ -321,14 +321,14 @@ class _AgreementCard extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(agreement.houseRules),
+                    child: Text(agreement.houseRules.join('\n')),
                   ),
                 ],
               ),
             ],
 
             // Actions based on status
-            if (agreement.status.toLowerCase() == 'draft' && agreement.agreedByTenantAt == null) ...[
+            if (agreement.status.value.toLowerCase() == 'draft' && agreement.agreedByTenantAt == null) ...[
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
@@ -345,7 +345,7 @@ class _AgreementCard extends StatelessWidget {
             ],
 
             // Show signature status
-            if (agreement.status.toLowerCase() == 'draft') ...[
+            if (agreement.status.value.toLowerCase() == 'draft') ...[
               const SizedBox(height: 12),
               _buildSignatureStatus(),
             ],
@@ -359,7 +359,7 @@ class _AgreementCard extends StatelessWidget {
     Color color;
     String label;
 
-    switch (agreement.status.toLowerCase()) {
+    switch (agreement.status.value.toLowerCase()) {
       case 'draft':
         color = Colors.orange;
         label = 'Pending Signatures';
@@ -374,7 +374,7 @@ class _AgreementCard extends StatelessWidget {
         break;
       default:
         color = Colors.grey;
-        label = agreement.status;
+        label = agreement.status.value;
     }
 
     return Container(

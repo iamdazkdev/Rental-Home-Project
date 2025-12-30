@@ -50,5 +50,26 @@ class Message {
   bool isSentByMe(String userId) {
     return senderId == userId;
   }
+
+  // Alias for message text
+  String get text => message;
+
+  // Formatted time
+  String get formattedTime {
+    if (createdAt == null) return '';
+
+    final now = DateTime.now();
+    final difference = now.difference(createdAt!);
+
+    if (difference.inDays > 0) {
+      return '${createdAt!.day}/${createdAt!.month}/${createdAt!.year}';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
+  }
 }
 

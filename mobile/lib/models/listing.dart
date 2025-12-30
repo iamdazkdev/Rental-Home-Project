@@ -66,6 +66,9 @@ class Listing {
 
   String get shortAddress => '$city, $province';
 
+  // Get hostId from creator field
+  String get hostId => creator;
+
   List<String> get photoUrls {
     return listingPhotoPaths
         .where((path) => !path.startsWith('blob:')) // Filter out blob URLs

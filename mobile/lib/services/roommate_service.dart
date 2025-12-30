@@ -365,6 +365,33 @@ class RoommateService {
     }
   }
 
+  /// Get all requests for a user (sent + received)
+  Future<List<RoommateRequest>> getMyRequests(String userId) async {
+    try {
+      final sent = await getSentRequests(userId);
+      final received = await getReceivedRequests(userId);
+      return [...sent, ...received];
+    } catch (e) {
+      debugPrint('❌ Error fetching my requests: $e');
+      return [];
+    }
+  }
+
+
+  /// Respond to a request (accept or reject)
+  Future<Map<String, dynamic>> respondToRequest(String requestId, String status) async {
+    if (status == 'ACCEPTED') {
+      return acceptRequest(requestId);
+    } else if (status == 'REJECTED') {
+      return rejectRequest(requestId);
+    } else {
+      return {
+        'success': false,
+        'message': 'Invalid status. Use ACCEPTED or REJECTED.',
+      };
+    }
+  }
+
   /// Accept a request
   Future<Map<String, dynamic>> acceptRequest(String requestId) async {
     try {

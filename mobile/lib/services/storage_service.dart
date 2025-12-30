@@ -51,6 +51,11 @@ class StorageService {
     await _prefs?.remove(AppConstants.keyUser);
   }
 
+  Future<String?> getUserId() async {
+    final user = await getUser();
+    return user?.id;
+  }
+
   // Onboarding
   Future<void> setOnboardingCompleted() async {
     await _prefs?.setBool(AppConstants.keyOnboarding, true);

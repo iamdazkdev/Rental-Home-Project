@@ -11,9 +11,10 @@ import '../../providers/auth_provider.dart';
 import '../../config/app_theme.dart';
 import '../../utils/price_formatter.dart';
 import '../../utils/amenity_icons.dart';
-import '../bookings/create_booking_screen.dart';
 import '../host/host_profile_screen.dart';
 import '../messages/messages_screen.dart';
+import '../../data/models/listing_model.dart';
+import '../../presentation/booking/widgets/booking_widget.dart';
 
 class ListingDetailScreen extends StatefulWidget {
   final String listingId;
@@ -67,6 +68,34 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       _averageRating = avgRating;
       _isLoading = false;
     });
+  }
+
+  void _showBookingBottomSheet(BuildContext context) {
+    if (_listing == null) return;
+
+    // Convert Listing to ListingModel
+    final listingModel = ListingModel.fromListing(_listing!);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SingleChildScrollView(
+            controller: scrollController,
+            child: BookingWidget(listing: listingModel),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -403,17 +432,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     flex: 3,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CreateBookingScreen(listing: _listing!),
-                          ),
-                        );
+                        _showBookingBottomSheet(context);
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      child: const Text('Book Now'),
+                      child: const Text('Reserve'),
                     ),
                   ),
                 ],

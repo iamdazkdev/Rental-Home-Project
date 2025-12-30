@@ -50,6 +50,8 @@ class BookingStatusWidget extends StatelessWidget {
             _buildLoaded(context, state),
 
           BookingsLoaded() => const SizedBox.shrink(),
+          // TODO: Handle this case.
+          BookingState() => throw UnimplementedError(),
         };
       },
     );
@@ -408,8 +410,8 @@ class BookingStatusWidget extends StatelessWidget {
   Widget _buildStatusBadge(BookingStatus status) {
     final (color, label) = switch (status) {
       BookingStatus.pending => (Colors.blue, 'Pending'),
-      BookingStatus.confirmed => (Colors.green, 'Confirmed'),
-      BookingStatus.active => (Colors.green, 'Active'),
+      BookingStatus.approved => (Colors.green, 'Approved'),
+      BookingStatus.checkedIn => (Colors.green, 'Checked In'),
       BookingStatus.completed => (Colors.grey, 'Completed'),
       BookingStatus.cancelled => (Colors.red, 'Cancelled'),
       _ => (Colors.grey, status.value),
@@ -417,7 +419,7 @@ class BookingStatusWidget extends StatelessWidget {
 
     return Chip(
       label: Text(label),
-      backgroundColor: color.withOpacity(0.2),
+      backgroundColor: color.withValues(alpha: 0.2),
       labelStyle: TextStyle(color: color),
     );
   }
@@ -481,6 +483,7 @@ class BookingStatusWidget extends StatelessWidget {
     return switch (type) {
       PaymentType.full => 'Pay Full',
       PaymentType.deposit => 'Pay Deposit',
+      PaymentType.cash => 'Cash Payment',
       PaymentType.cashOnArrival => 'Cash on Arrival',
       PaymentType.installment => 'Pay in Installments',
     };

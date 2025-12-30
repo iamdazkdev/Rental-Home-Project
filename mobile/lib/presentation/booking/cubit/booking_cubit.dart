@@ -19,11 +19,17 @@ class BookingCubit extends Cubit<BookingState> {
         super(BookingInitial());
 
   /// Step 1: Create booking intent (lock the listing)
+  /// For Entire Place Rental with 3 payment options:
+  /// - VNPay Full (100%)
+  /// - VNPay Deposit (30%)
+  /// - Cash (100%)
   Future<void> createBookingIntent({
     required String listingId,
+    required String hostId,
     required DateTime checkIn,
     required DateTime checkOut,
-    int? guests,
+    required double totalPrice,
+    required String paymentType, // 'full', 'deposit', or 'cash'
   }) async {
     if (_isProcessing) return;
     _isProcessing = true;
@@ -31,90 +37,151 @@ class BookingCubit extends Cubit<BookingState> {
     emit(const BookingLoading(message: 'Reserving listing...'));
 
     try {
-      final result = await _bookingRepository.createBookingIntent(
+      // For cash payment, create booking directly without intent
+      if (paymentType == 'cash') {
+        final booking = await _bookingRepository.createCashBooking(
+          listingId: listingId,
+          hostId: hostId,
+          startDate: checkIn,
+          endDate: checkOut,
+          totalPrice: totalPrice,
+        );
+
+        if (booking != null) {
+          emit(BookingConfirmed(booking: booking));
+        } else {
+          emit(const BookingError(
+            message: 'Failed to create cash booking. Please try again.',
+            canRetry: true,
+          ));
+        }
+        return;
+      }
+
+      // For VNPay payments, create intent first
+      final intent = await _bookingRepository.createBookingIntent(
         listingId: listingId,
-        checkIn: checkIn,
-        checkOut: checkOut,
-        guests: guests,
+        hostId: hostId,
+        startDate: checkIn,
+        endDate: checkOut,
+        totalPrice: totalPrice,
+        paymentType: paymentType, // 'full' or 'deposit'
       );
 
-      result.fold(
-        (failure) {
-          if (failure.code == 'LISTING_LOCKED') {
-            emit(BookingListingLocked(
-              listingId: listingId,
-              message: failure.message,
-            ));
-          } else {
-            emit(BookingError(
-              message: failure.message,
-              errorCode: failure.code,
-            ));
-          }
-        },
-        (intent) {
-          _startIntentExpiryTimer(intent);
-          emit(BookingIntentCreated(
-            intent: intent,
-            timeRemaining: intent.timeRemaining,
-          ));
-        },
-      );
+      if (intent == null) {
+        emit(const BookingError(
+          message: 'This listing is currently being reserved by another user. Please try again.',
+          errorCode: 'LISTING_LOCKED',
+        ));
+        return;
+      }
+
+      if (!intent.isValid) {
+        emit(BookingIntentExpired(
+          intentId: intent.id,
+          listingId: listingId,
+        ));
+        return;
+      }
+
+      _startIntentExpiryTimer(intent);
+      emit(BookingIntentCreated(
+        intent: intent,
+        timeRemaining: intent.timeRemaining,
+      ));
+    } catch (e) {
+      emit(BookingError(message: e.toString()));
     } finally {
       _isProcessing = false;
     }
   }
 
-  /// Step 2: Confirm intent and create booking
-  Future<void> confirmBookingIntent({
-    required String intentId,
-    required PaymentType paymentType,
-    String? notes,
+  /// Step 2: Initiate VNPay payment (redirect to payment gateway)
+  Future<String?> initiateVNPayPayment({
+    required BookingIntentModel intent,
+    required String returnUrl,
+  }) async {
+    if (_isProcessing) return null;
+    _isProcessing = true;
+
+    try {
+      final orderInfo = intent.isFullPayment
+          ? 'Full payment - ${intent.tempOrderId}'
+          : 'Deposit ${intent.depositPercentage.toInt()}% - ${intent.tempOrderId}';
+
+      final paymentUrl = await _bookingRepository.createVNPayPaymentUrl(
+        tempOrderId: intent.tempOrderId,
+        amount: intent.paymentAmount,
+        orderInfo: orderInfo,
+        returnUrl: returnUrl,
+      );
+
+      if (paymentUrl != null) {
+        emit(BookingPaymentProcessing(
+          booking: BookingModel.empty(), // Will be created after payment
+          paymentId: intent.tempOrderId,
+          paymentUrl: paymentUrl,
+        ));
+      }
+
+      return paymentUrl;
+    } finally {
+      _isProcessing = false;
+    }
+  }
+
+  /// Step 3: Handle VNPay payment callback
+  Future<void> handleVNPayCallback({
+    required String tempOrderId,
+    required Map<String, String> queryParams,
   }) async {
     if (_isProcessing) return;
     _isProcessing = true;
 
-    emit(const BookingLoading(message: 'Creating booking...'));
+    emit(const BookingLoading(message: 'Confirming payment...'));
 
     try {
-      final result = await _bookingRepository.confirmBookingIntent(
-        intentId: intentId,
-        paymentType: paymentType,
-        notes: notes,
-      );
+      final responseCode = queryParams['vnp_ResponseCode'];
+      final transactionId = queryParams['vnp_TransactionNo'] ?? '';
 
-      result.fold(
-        (failure) {
-          if (failure.code == 'INTENT_EXPIRED') {
-            emit(BookingIntentExpired(
-              intentId: intentId,
-              listingId: '', // Will be handled by UI
-            ));
-          } else {
-            emit(BookingError(
-              message: failure.message,
-              errorCode: failure.code,
-            ));
-          }
-        },
-        (booking) => _handleBookingStateTransition(booking),
-      );
+      if (responseCode == '00') {
+        // Payment successful - create booking
+        final booking = await _bookingRepository.handlePaymentCallback(
+          tempOrderId: tempOrderId,
+          transactionId: transactionId,
+          paymentData: queryParams,
+        );
+
+        if (booking != null) {
+          _cancelIntentExpiryTimer();
+          _handleBookingStateTransition(booking);
+        } else {
+          emit(const BookingError(
+            message: 'Payment confirmed but booking creation failed. Please contact support.',
+          ));
+        }
+      } else {
+        // Payment failed
+        emit(const BookingError(
+          message: 'Payment failed. Please try again.',
+          canRetry: true,
+        ));
+      }
     } finally {
       _isProcessing = false;
-      _cancelIntentExpiryTimer();
     }
   }
 
   /// Handle state transitions based on backend response
   void _handleBookingStateTransition(BookingModel booking) {
-    final status = BookingStatus.fromString(booking.status);
+    final status = booking.bookingStatus;
 
     switch (status) {
       case BookingStatus.agreementRequired:
         emit(BookingAgreementRequired(
           booking: booking,
-          agreementId: booking.agreementId ?? '',
-          agreementUrl: booking.agreementUrl,
+          agreementId: '', // Will be populated when Room Rental agreement is available
+          agreementUrl: null,
         ));
         break;
 
@@ -122,12 +189,12 @@ class BookingCubit extends Cubit<BookingState> {
       case BookingStatus.partiallyPaid:
         emit(BookingPaymentRequired(
           booking: booking,
-          amountDue: booking.amountDue ?? booking.totalPrice,
+          amountDue: booking.remainingAmount > 0 ? booking.remainingAmount : booking.totalPrice,
           depositAmount: booking.depositAmount,
           availablePaymentTypes: _getAvailablePaymentTypes(booking),
           paymentStatus: status == BookingStatus.partiallyPaid
               ? PaymentStatus.partiallyPaid
-              : PaymentStatus.pending,
+              : PaymentStatus.unpaid,
         ));
         break;
 
@@ -135,8 +202,8 @@ class BookingCubit extends Cubit<BookingState> {
         emit(BookingPendingApproval(booking: booking));
         break;
 
-      case BookingStatus.confirmed:
-      case BookingStatus.active:
+      case BookingStatus.approved:
+      case BookingStatus.checkedIn:
         emit(BookingConfirmed(booking: booking));
         break;
 
@@ -144,7 +211,7 @@ class BookingCubit extends Cubit<BookingState> {
       case BookingStatus.rejected:
         emit(BookingCancelled(
           bookingId: booking.id,
-          reason: booking.cancellationReason ?? 'Booking was cancelled',
+          reason: '', // Cancellation reason will be handled separately
         ));
         break;
 
@@ -161,7 +228,6 @@ class BookingCubit extends Cubit<BookingState> {
   Future<void> signAgreement({
     required String bookingId,
     required String agreementId,
-    required String signature,
   }) async {
     if (_isProcessing) return;
     _isProcessing = true;
@@ -172,13 +238,15 @@ class BookingCubit extends Cubit<BookingState> {
       final result = await _bookingRepository.signAgreement(
         bookingId: bookingId,
         agreementId: agreementId,
-        signature: signature,
       );
 
-      result.fold(
-        (failure) => emit(BookingError(message: failure.message)),
-        (booking) => _handleBookingStateTransition(booking),
-      );
+      if (result) {
+        await loadBooking(bookingId);
+      } else {
+        emit(const BookingError(message: 'Failed to sign agreement'));
+      }
+    } catch (e) {
+      emit(BookingError(message: e.toString()));
     } finally {
       _isProcessing = false;
     }
@@ -188,7 +256,6 @@ class BookingCubit extends Cubit<BookingState> {
   Future<void> initiatePayment({
     required String bookingId,
     required PaymentType paymentType,
-    required String paymentMethod,
     double? amount,
   }) async {
     if (_isProcessing) return;
@@ -197,37 +264,37 @@ class BookingCubit extends Cubit<BookingState> {
     emit(const BookingLoading(message: 'Processing payment...'));
 
     try {
-      final result = await _bookingRepository.initiatePayment(
+      final booking = await _bookingRepository.getBookingById(bookingId);
+
+      if (booking == null) {
+        emit(const BookingError(message: 'Booking not found'));
+        return;
+      }
+
+      final paymentAmount = amount ?? booking.totalPrice;
+
+      final paymentUrl = await _bookingRepository.initiatePayment(
         bookingId: bookingId,
-        paymentType: paymentType,
-        paymentMethod: paymentMethod,
-        amount: amount,
+        paymentType: paymentType.value,
+        amount: paymentAmount,
       );
 
-      result.fold(
-        (failure) => emit(BookingError(message: failure.message)),
-        (paymentResponse) {
-          // Get booking from current state if possible
-          final currentState = state;
-          BookingModel? booking;
-          if (currentState is BookingPaymentRequired) {
-            booking = currentState.booking;
-          }
-
-          if (paymentResponse.requiresRedirect && paymentResponse.paymentUrl != null) {
-            emit(BookingPaymentProcessing(
-              booking: booking ?? BookingModel.empty(),
-              paymentId: paymentResponse.paymentId,
-              paymentUrl: paymentResponse.paymentUrl,
-            ));
-            // Start polling for payment status
-            _startPaymentPolling(bookingId, paymentResponse.paymentId);
-          } else {
-            // Payment completed immediately (e.g., cash on arrival)
-            loadBooking(bookingId);
-          }
-        },
-      );
+      if (paymentUrl != null) {
+        emit(BookingPaymentProcessing(
+          booking: booking,
+          paymentId: bookingId,
+          paymentUrl: paymentUrl,
+        ));
+        // Start polling for payment status
+        _startPaymentPolling(bookingId, bookingId);
+      } else {
+        emit(const BookingError(
+          message: 'Failed to initiate payment',
+          canRetry: true,
+        ));
+      }
+    } catch (e) {
+      emit(BookingError(message: e.toString()));
     } finally {
       _isProcessing = false;
     }
@@ -257,12 +324,13 @@ class BookingCubit extends Cubit<BookingState> {
     emit(const BookingLoading());
 
     try {
-      final result = await _bookingRepository.getBookingById(bookingId);
+      final booking = await _bookingRepository.getBookingById(bookingId);
 
-      result.fold(
-        (failure) => emit(BookingError(message: failure.message)),
-        (booking) => _handleBookingStateTransition(booking),
-      );
+      if (booking != null) {
+        _handleBookingStateTransition(booking);
+      } else {
+        emit(const BookingError(message: 'Booking not found'));
+      }
     } catch (e) {
       emit(BookingError(message: e.toString()));
     }
@@ -273,12 +341,8 @@ class BookingCubit extends Cubit<BookingState> {
     emit(const BookingLoading());
 
     try {
-      final result = await _bookingRepository.getUserBookings();
-
-      result.fold(
-        (failure) => emit(BookingError(message: failure.message)),
-        (bookings) => emit(BookingsLoaded(bookings: bookings)),
-      );
+      final bookings = await _bookingRepository.getUserBookings();
+      emit(BookingsLoaded(bookings: bookings));
     } catch (e) {
       emit(BookingError(message: e.toString()));
     }
@@ -296,14 +360,17 @@ class BookingCubit extends Cubit<BookingState> {
 
     try {
       final result = await _bookingRepository.cancelBooking(
-        bookingId: bookingId,
+        bookingId,
         reason: reason,
       );
 
-      result.fold(
-        (failure) => emit(BookingError(message: failure.message)),
-        (_) => emit(BookingCancelled(bookingId: bookingId, reason: reason)),
-      );
+      if (result) {
+        emit(BookingCancelled(bookingId: bookingId, reason: reason));
+      } else {
+        emit(const BookingError(message: 'Failed to cancel booking'));
+      }
+    } catch (e) {
+      emit(BookingError(message: 'Error: $e'));
     } finally {
       _isProcessing = false;
     }
@@ -325,9 +392,8 @@ class BookingCubit extends Cubit<BookingState> {
   // ============ PRIVATE HELPERS ============
 
   List<PaymentType> _getAvailablePaymentTypes(BookingModel booking) {
-    // This should come from backend, but fallback to defaults
-    return booking.availablePaymentTypes?.map(PaymentType.fromString).toList() ??
-        [PaymentType.full, PaymentType.deposit];
+    // Default payment types for booking
+    return [PaymentType.full, PaymentType.deposit];
   }
 
   List<String> _getAvailableActions(BookingStatus status) {
@@ -340,10 +406,9 @@ class BookingCubit extends Cubit<BookingState> {
       case BookingStatus.pendingPayment:
       case BookingStatus.partiallyPaid:
         return ['PAY', 'CANCEL'];
-      case BookingStatus.confirmed:
+      case BookingStatus.approved:
+      case BookingStatus.checkedIn:
         return ['CANCEL'];
-      case BookingStatus.active:
-        return ['VIEW'];
       default:
         return [];
     }
@@ -400,22 +465,26 @@ class BookingCubit extends Cubit<BookingState> {
         return;
       }
 
-      final result = await _bookingRepository.checkPaymentStatus(paymentId);
-      result.fold(
-        (_) {}, // Continue polling on error
-        (status) {
-          if (status == PaymentStatus.completed) {
+      try {
+        final result = await _bookingRepository.checkPaymentStatus(paymentId);
+
+        if (result != null) {
+          final paymentStatus = result['paymentStatus'] as String?;
+
+          if (paymentStatus == 'paid') {
             timer.cancel();
             loadBooking(bookingId);
-          } else if (status == PaymentStatus.failed) {
+          } else if (paymentStatus == 'failed' || paymentStatus == 'unpaid') {
             timer.cancel();
             emit(const BookingError(
               message: 'Payment failed. Please try again.',
               canRetry: true,
             ));
           }
-        },
-      );
+        }
+      } catch (_) {
+        // Continue polling on error
+      }
     });
   }
 

@@ -1,117 +1,5 @@
 import 'package:equatable/equatable.dart';
-
-/// Booking Status enum matching backend states
-enum BookingStatus {
-  draft('draft'),
-  pending('pending'),
-  approved('approved'),
-  checkedIn('checked_in'),
-  checkedOut('checked_out'),
-  completed('completed'),
-  cancelled('cancelled'),
-  rejected('rejected'),
-  expired('expired');
-
-  final String value;
-  const BookingStatus(this.value);
-
-  static BookingStatus fromString(String status) {
-    switch (status.toLowerCase()) {
-      case 'draft':
-        return BookingStatus.draft;
-      case 'pending':
-        return BookingStatus.pending;
-      case 'approved':
-      case 'accepted':
-        return BookingStatus.approved;
-      case 'checked_in':
-      case 'checkedin':
-        return BookingStatus.checkedIn;
-      case 'checked_out':
-      case 'checkedout':
-        return BookingStatus.checkedOut;
-      case 'completed':
-        return BookingStatus.completed;
-      case 'cancelled':
-        return BookingStatus.cancelled;
-      case 'rejected':
-        return BookingStatus.rejected;
-      case 'expired':
-        return BookingStatus.expired;
-      default:
-        return BookingStatus.pending;
-    }
-  }
-}
-
-/// Payment Status enum matching backend states
-enum PaymentStatus {
-  unpaid('unpaid'),
-  partiallyPaid('partially_paid'),
-  paid('paid'),
-  refunded('refunded');
-
-  final String value;
-  const PaymentStatus(this.value);
-
-  static PaymentStatus fromString(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'unpaid':
-        return PaymentStatus.unpaid;
-      case 'partially_paid':
-        return PaymentStatus.partiallyPaid;
-      case 'paid':
-        return PaymentStatus.paid;
-      case 'refunded':
-        return PaymentStatus.refunded;
-      default:
-        return PaymentStatus.unpaid;
-    }
-  }
-}
-
-/// Payment Method enum
-enum PaymentMethod {
-  vnpay('vnpay'),
-  cash('cash');
-
-  final String value;
-  const PaymentMethod(this.value);
-
-  static PaymentMethod fromString(String? method) {
-    switch (method?.toLowerCase()) {
-      case 'vnpay':
-        return PaymentMethod.vnpay;
-      case 'cash':
-        return PaymentMethod.cash;
-      default:
-        return PaymentMethod.cash;
-    }
-  }
-}
-
-/// Payment Type enum
-enum PaymentType {
-  full('full'),
-  deposit('deposit'),
-  cash('cash');
-
-  final String value;
-  const PaymentType(this.value);
-
-  static PaymentType fromString(String? type) {
-    switch (type?.toLowerCase()) {
-      case 'full':
-        return PaymentType.full;
-      case 'deposit':
-        return PaymentType.deposit;
-      case 'cash':
-        return PaymentType.cash;
-      default:
-        return PaymentType.cash;
-    }
-  }
-}
+import '../../core/enums/booking_enums.dart';
 
 /// BookingModel for Cubit/BLoC state management
 class BookingModel extends Equatable {
@@ -324,6 +212,28 @@ class BookingModel extends Equatable {
       customer: customer ?? this.customer,
     );
   }
+
+  // Add empty factory method for initial state
+  factory BookingModel.empty() {
+    return BookingModel(
+      id: '',
+      customerId: '',
+      hostId: '',
+      listingId: '',
+      startDate: DateTime.now(),
+      endDate: DateTime.now(),
+      totalPrice: 0,
+    );
+  }
+
+  // Additional getters that were missing
+  BookingStatus get status => bookingStatus;
+  String? get agreementId => null; // TODO: Add if needed
+  String? get agreementUrl => null; // TODO: Add if needed
+  double get amountDue => remainingAmount;
+  String? get cancellationReason => null; // TODO: Add if room rental needs it
+  String? get transactionId => null; // TODO: Add from payment history if needed
+  DateTime? get paidAt => null; // TODO: Add from payment history if needed
 
   @override
   List<Object?> get props => [

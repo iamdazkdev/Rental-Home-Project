@@ -299,7 +299,7 @@ class _RoommatePostCard extends StatelessWidget {
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
-                  children: post.lifestyle.entries.take(3).map((entry) {
+                  children: post.lifestyle.displayList.take(3).map((value) {
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -307,7 +307,7 @@ class _RoommatePostCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        _formatLifestyleValue(entry.key, entry.value),
+                        value,
                         style: const TextStyle(fontSize: 11),
                       ),
                     );

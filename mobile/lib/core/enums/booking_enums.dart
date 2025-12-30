@@ -5,7 +5,11 @@
 enum BookingStatus {
   draft,
   pending,
+  pendingApproval,
   approved,
+  agreementRequired,
+  pendingPayment,
+  partiallyPaid,
   checkedIn,
   checkedOut,
   completed,
@@ -19,8 +23,16 @@ enum BookingStatus {
         return 'draft';
       case BookingStatus.pending:
         return 'pending';
+      case BookingStatus.pendingApproval:
+        return 'pending';
       case BookingStatus.approved:
         return 'approved';
+      case BookingStatus.agreementRequired:
+        return 'agreement_required';
+      case BookingStatus.pendingPayment:
+        return 'pending_payment';
+      case BookingStatus.partiallyPaid:
+        return 'partially_paid';
       case BookingStatus.checkedIn:
         return 'checked_in';
       case BookingStatus.checkedOut:
@@ -41,10 +53,17 @@ enum BookingStatus {
       case 'draft':
         return BookingStatus.draft;
       case 'pending':
-        return BookingStatus.pending;
+      case 'pending_approval':
+        return BookingStatus.pendingApproval;
       case 'approved':
       case 'accepted':
         return BookingStatus.approved;
+      case 'agreement_required':
+        return BookingStatus.agreementRequired;
+      case 'pending_payment':
+        return BookingStatus.pendingPayment;
+      case 'partially_paid':
+        return BookingStatus.partiallyPaid;
       case 'checked_in':
       case 'checkedin':
         return BookingStatus.checkedIn;
@@ -131,7 +150,9 @@ enum PaymentMethod {
 enum PaymentType {
   full,
   deposit,
-  cash;
+  cash,
+  cashOnArrival,
+  installment;
 
   String get value {
     switch (this) {
@@ -141,6 +162,10 @@ enum PaymentType {
         return 'deposit';
       case PaymentType.cash:
         return 'cash';
+      case PaymentType.cashOnArrival:
+        return 'cash_on_arrival';
+      case PaymentType.installment:
+        return 'installment';
     }
   }
 
@@ -151,7 +176,10 @@ enum PaymentType {
       case 'deposit':
         return PaymentType.deposit;
       case 'cash':
-        return PaymentType.cash;
+      case 'cash_on_arrival':
+        return PaymentType.cashOnArrival;
+      case 'installment':
+        return PaymentType.installment;
       default:
         return PaymentType.cash;
     }
@@ -165,6 +193,10 @@ enum PaymentType {
         return 'Deposit (30%)';
       case PaymentType.cash:
         return 'Pay at Check-in';
+      case PaymentType.cashOnArrival:
+        return 'Cash on Arrival';
+      case PaymentType.installment:
+        return 'Pay in Installments';
     }
   }
 }
@@ -209,4 +241,5 @@ enum BookingIntentStatus {
     }
   }
 }
+
 

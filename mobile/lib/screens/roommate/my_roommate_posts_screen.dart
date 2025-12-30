@@ -214,7 +214,7 @@ class _PostCard extends StatelessWidget {
                       if (value == 'close') onClose();
                     },
                     itemBuilder: (context) => [
-                      if (post.status == 'ACTIVE')
+                      if (post.status.value == 'ACTIVE')
                         const PopupMenuItem(
                           value: 'close',
                           child: Row(
@@ -288,7 +288,7 @@ class _PostCard extends StatelessWidget {
   }
 
   Widget _buildTypeBadge() {
-    final isSeeker = post.postType == 'SEEKER';
+    final isSeeker = post.postType.value == 'SEEKER';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -312,7 +312,7 @@ class _PostCard extends StatelessWidget {
     Color color;
     String text;
 
-    switch (post.status) {
+    switch (post.status.value) {
       case 'ACTIVE':
         color = AppTheme.successColor;
         text = 'Active';
@@ -327,7 +327,7 @@ class _PostCard extends StatelessWidget {
         break;
       default:
         color = Colors.grey;
-        text = post.status;
+        text = post.status.value;
     }
 
     return Container(

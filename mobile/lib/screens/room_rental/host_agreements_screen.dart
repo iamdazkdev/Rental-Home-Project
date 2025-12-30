@@ -41,7 +41,7 @@ class _HostAgreementsScreenState extends State<HostAgreementsScreen> {
 
   List<RentalAgreement> get _filteredAgreements {
     if (_selectedFilter == 'all') return _agreements;
-    return _agreements.where((a) => a.status.toLowerCase() == _selectedFilter).toList();
+    return _agreements.where((a) => a.status.value.toLowerCase() == _selectedFilter).toList();
   }
 
   @override
@@ -412,7 +412,7 @@ class _HostAgreementCard extends StatelessWidget {
             ),
 
             // Signature Status for Draft
-            if (agreement.status.toLowerCase() == 'draft') ...[
+            if (agreement.status.value.toLowerCase() == 'draft') ...[
               const SizedBox(height: 16),
               _buildSignatureStatus(),
             ],
@@ -421,7 +421,7 @@ class _HostAgreementCard extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Confirm button when tenant has signed
-            if (agreement.status.toLowerCase() == 'draft' &&
+            if (agreement.status.value.toLowerCase() == 'draft' &&
                 agreement.agreedByTenantAt != null &&
                 agreement.agreedByHostAt == null)
               SizedBox(
@@ -438,7 +438,7 @@ class _HostAgreementCard extends StatelessWidget {
               ),
 
             // Record Payment for Active agreements
-            if (agreement.status.toLowerCase() == 'active')
+            if (agreement.status.value.toLowerCase() == 'active')
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -468,7 +468,7 @@ class _HostAgreementCard extends StatelessWidget {
     Color color;
     String label;
 
-    switch (agreement.status.toLowerCase()) {
+    switch (agreement.status.value.toLowerCase()) {
       case 'draft':
         color = Colors.orange;
         label = 'Pending Signatures';
@@ -483,7 +483,7 @@ class _HostAgreementCard extends StatelessWidget {
         break;
       default:
         color = Colors.grey;
-        label = agreement.status;
+        label = agreement.status.value;
     }
 
     return Container(

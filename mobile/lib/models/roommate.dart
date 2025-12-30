@@ -161,7 +161,14 @@ class LifestylePreferences {
 
   bool get isNotEmpty => sleepSchedule.isNotEmpty || smoking.isNotEmpty || pets.isNotEmpty || cleanliness.isNotEmpty;
 
-  Map<String, String> get entries => {
+  List<MapEntry<String, String>> get entries => [
+    MapEntry('sleep', sleepScheduleDisplay),
+    MapEntry('smoking', smokingDisplay),
+    MapEntry('pets', petsDisplay),
+    MapEntry('cleanliness', cleanlinessDisplay),
+  ];
+
+  Map<String, String> get entriesMap => {
     'sleep': sleepScheduleDisplay,
     'smoking': smokingDisplay,
     'pets': petsDisplay,
@@ -312,6 +319,17 @@ class RoommatePost {
   bool get isSeeker => postType == RoommatePostType.seeker;
   bool get isProvider => postType == RoommatePostType.provider;
 
+  // Get user name from populated user field
+  String? get userName {
+    if (user is Map) {
+      final userMap = user as Map<String, dynamic>;
+      final firstName = userMap['firstName'] ?? '';
+      final lastName = userMap['lastName'] ?? '';
+      return '$firstName $lastName'.trim();
+    }
+    return null;
+  }
+
   String get formattedDate {
     return '${createdAt.day}/${createdAt.month}/${createdAt.year}';
   }
@@ -369,6 +387,55 @@ class RoommateRequest {
   bool get isPending => status == RoommateRequestStatus.pending;
   bool get isAccepted => status == RoommateRequestStatus.accepted;
   bool get isRejected => status == RoommateRequestStatus.rejected;
+
+  // Get sender name from populated sender field
+  String? get senderName {
+    if (sender is Map) {
+      final senderMap = sender as Map<String, dynamic>;
+      final firstName = senderMap['firstName'] ?? '';
+      final lastName = senderMap['lastName'] ?? '';
+      return '$firstName $lastName'.trim();
+    }
+    return null;
+  }
+
+  // Get receiver name from populated receiver field
+  String? get receiverName {
+    if (receiver is Map) {
+      final receiverMap = receiver as Map<String, dynamic>;
+      final firstName = receiverMap['firstName'] ?? '';
+      final lastName = receiverMap['lastName'] ?? '';
+      return '$firstName $lastName'.trim();
+    }
+    return null;
+  }
+
+  // Get post title from populated post field
+  String? get postTitle {
+    if (post is Map) {
+      final postMap = post as Map<String, dynamic>;
+      return postMap['title'];
+    }
+    return null;
+  }
+
+  // Get formatted date
+  String get formattedDate {
+    final now = DateTime.now();
+    final difference = now.difference(createdAt);
+
+    if (difference.inDays > 7) {
+      return '${createdAt.day}/${createdAt.month}/${createdAt.year}';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
+  }
 }
 
 /// Roommate Match model
