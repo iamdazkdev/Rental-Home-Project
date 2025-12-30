@@ -106,7 +106,7 @@ const MessagesPage = () => {
           _id: contactData.receiverId,
           firstName: contactData.receiverName?.split(' ')[0] || 'Host',
           lastName: contactData.receiverName?.split(' ').slice(1).join(' ') || '',
-          profileImagePath: null,
+          profileImagePath: contactData.receiverProfileImage || null,
         },
         listing: contactData.listingId ? {
           _id: contactData.listingId,
@@ -466,7 +466,7 @@ const MessagesPage = () => {
                     <div className="conv-avatar-wrapper">
                       <img
                         src={
-                          conv.otherUser.profileImagePath?.startsWith("https://")
+                          conv.otherUser.profileImagePath?.startsWith("http")
                             ? conv.otherUser.profileImagePath
                             : conv.otherUser.profileImagePath
                             ? `${CONFIG.API_BASE_URL}/${conv.otherUser.profileImagePath.replace("public/", "")}`
@@ -530,7 +530,7 @@ const MessagesPage = () => {
                   <div className="chat-user-info">
                     <img
                       src={
-                        selectedConversation.otherUser.profileImagePath?.startsWith("https://")
+                        selectedConversation.otherUser.profileImagePath?.startsWith("http")
                           ? selectedConversation.otherUser.profileImagePath
                           : selectedConversation.otherUser.profileImagePath
                           ? `${CONFIG.API_BASE_URL}/${selectedConversation.otherUser.profileImagePath.replace("public/", "")}`

@@ -277,7 +277,70 @@ router.get("/posts/:postId", async (req, res) => {
 });
 
 // ========================================
-// 3.5. UPDATE ROOMMATE POST
+// 3.5 CLOSE ROOMMATE POST (PUT - must come before :postId route)
+// ========================================
+router.put("/posts/:postId/close", async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { userId } = req.body;
+
+    console.log("🔒 Closing roommate post:", postId);
+
+    // Find post
+    const post = await RoommatePost.findById(postId);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    // Verify ownership if userId provided
+    if (userId && post.userId.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to close this post",
+      });
+    }
+
+    // Check if already closed
+    if (post.status === "CLOSED") {
+      return res.status(400).json({
+        success: false,
+        message: "Post is already closed",
+      });
+    }
+
+    // Update status to CLOSED
+    post.status = "CLOSED";
+    post.closedAt = new Date();
+    await post.save();
+
+    // Cancel all pending requests for this post
+    await RoommateRequest.updateMany(
+      { postId: post._id, status: "PENDING" },
+      { status: "CANCELLED" }
+    );
+
+    console.log("✅ Roommate post closed:", post._id);
+
+    res.status(200).json({
+      success: true,
+      message: "Post closed successfully",
+      post,
+    });
+  } catch (error) {
+    console.error("❌ Error closing roommate post:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to close roommate post",
+      error: error.message,
+    });
+  }
+});
+
+// ========================================
+// 3.6. UPDATE ROOMMATE POST
 // ========================================
 router.put("/posts/:postId", async (req, res) => {
   try {
@@ -822,77 +885,7 @@ router.get("/matches/:userId", async (req, res) => {
 });
 
 // ========================================
-// 11. CLOSE POST (Manual)
-// ========================================
-router.patch("/posts/:postId/close", async (req, res) => {
-  try {
-    const { postId } = req.params;
-    const { userId } = req.body;
-
-    console.log("🔒 Closing post:", postId);
-
-    const post = await RoommatePost.findById(postId);
-
-    if (!post) {
-      return res.status(404).json({
-        success: false,
-        message: "Post not found",
-      });
-    }
-
-    // Verify user is the post owner
-    if (post.userId.toString() !== userId.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: "You are not authorized to close this post",
-      });
-    }
-
-    // Check if already closed or matched
-    if (post.status !== "ACTIVE") {
-      return res.status(400).json({
-        success: false,
-        message: `Post is already ${post.status.toLowerCase()}`,
-      });
-    }
-
-    // Update post
-    post.status = "CLOSED";
-    post.closedAt = new Date();
-    await post.save();
-
-    // Reject all pending requests
-    await RoommateRequest.updateMany(
-      {
-        postId: post._id,
-        status: "PENDING",
-      },
-      {
-        status: "REJECTED",
-        rejectionReason: "Post closed by owner",
-        respondedAt: new Date(),
-      }
-    );
-
-    console.log("✅ Post closed successfully");
-
-    res.status(200).json({
-      success: true,
-      message: "Post closed successfully",
-      post,
-    });
-  } catch (error) {
-    console.error("❌ Error closing post:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to close post",
-      error: error.message,
-    });
-  }
-});
-
-// ========================================
-// 12. UPDATE POST (Edit)
+// 11. UPDATE POST (Edit) - Alternative PATCH endpoint
 // ========================================
 router.patch("/posts/:postId/update", async (req, res) => {
   try {

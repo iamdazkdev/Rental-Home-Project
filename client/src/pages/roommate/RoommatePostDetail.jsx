@@ -293,14 +293,16 @@ const RoommatePostDetail = () => {
               <img
                 src={
                   post.userId?.profileImagePath
-                    ? `http://localhost:3001/${post.userId.profileImagePath.replace(
-                        "public/",
-                        ""
-                      )}`
+                    ? post.userId.profileImagePath.startsWith("http")
+                      ? post.userId.profileImagePath
+                      : `http://localhost:3001/${post.userId.profileImagePath.replace("public/", "")}`
                     : "/assets/default-avatar.png"
                 }
                 alt={post.userId?.firstName}
                 className="user-avatar"
+                onError={(e) => {
+                  e.target.src = "/assets/default-avatar.png";
+                }}
               />
               <h3>
                 {post.userId?.firstName} {post.userId?.lastName}
@@ -322,7 +324,7 @@ const RoommatePostDetail = () => {
                 <div className="status-badge closed">Post Closed</div>
               ) : isOwnPost ? (
                 <div className="own-post-actions">
-                  <button onClick={() => navigate(`/roommate/posts/${postId}/edit`)}>
+                  <button onClick={() => navigate(`/roommate/edit/${postId}`)}>
                     Edit Post
                   </button>
                   <button onClick={() => navigate("/roommate/my-posts")}>
@@ -352,8 +354,16 @@ const RoommatePostDetail = () => {
                       <button
                         className="chat-btn"
                         onClick={() => {
-                          // Navigate to messages with the post owner
-                          navigate(`/messages?userId=${post.userId._id}`);
+                          // Navigate to messages with the post owner using state
+                          navigate("/messages", {
+                            state: {
+                              receiverId: post.userId._id,
+                              receiverName: `${post.userId.firstName} ${post.userId.lastName}`,
+                              receiverProfileImage: post.userId.profileImagePath,
+                              listingId: null,
+                              listingTitle: post.title,
+                            }
+                          });
                         }}
                       >
                         Start Chat

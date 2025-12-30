@@ -1,337 +1,863 @@
-# 🏠 Rento - Rental Home Platform
+# 🏠 Rental Home Platform
 
-A modern, full-stack rental home platform built with React.js, Node.js, and Flutter. Rento allows users to discover, list, and manage rental properties with a beautiful, responsive interface across web and mobile.
+A comprehensive multi-platform rental solution supporting **Entire Place Rentals**, **Room Rentals**, and **Roommate Matching**. Built with React.js (Web), Flutter (Mobile), Node.js (Backend), and MongoDB.
 
-![Rento](https://img.shields.io/badge/Rento-Rental%20Platform-blue?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-1.0.0-success?style=for-the-badge)
+![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Mobile-blue?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-2.0.0-success?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-ISC-green?style=for-the-badge)
 
-## ✨ Features
+---
 
-### 🔐 **Authentication System**
+## 📋 Table of Contents
 
-- **User Registration** with profile image upload
-- **Secure Login** with JWT tokens
-- **Password Validation** with strength requirements
-- **Email Validation** and duplicate prevention
-- **Modern Glass Morphism UI** design
+- [Overview](#-overview)
+- [Core Features](#-core-features)
+- [Business Processes](#-business-processes)
+- [Tech Stack](#️-tech-stack)
+- [Quick Start](#-quick-start)
+- [Project Structure](#-project-structure)
+- [API Documentation](#-api-documentation)
+- [Environment Setup](#-environment-setup)
+- [Testing](#-testing)
+- [Deployment](#-deployment)
+- [Documentation](#-documentation)
 
-### 🏡 **Property Management**
+---
 
-- Browse rental properties
-- Advanced search and filtering
-- Property listing creation
-- Image upload for properties
-- Detailed property views
+## 🌟 Overview
 
-### 💻 **Modern UI/UX**
+This platform serves three distinct rental processes:
 
-- **Responsive Design** for all devices
-- **Glass Morphism** design aesthetic
-- **Smooth Animations** and transitions
-- **Loading States** and error handling
-- **Dark/Light Theme** support
+1. **PROCESS 1: Entire Place Rental** - Short-term/nightly bookings with payment integration
+2. **PROCESS 2: Room Rental** - Monthly room rentals with digital agreements
+3. **PROCESS 3: Roommate Matching** - Find compatible roommates (no booking/payment)
 
-### 🔒 **Security Features**
+### Key Differentiators
 
-- **JWT Authentication** with 7-day expiration
-- **Password Hashing** with bcrypt (12 salt rounds)
-- **File Validation** for image uploads (5MB limit)
-- **Input Sanitization** and validation
-- **CORS Protection** enabled
+- ✅ **Multi-Process Architecture** - Each rental type has its own complete flow
+- ✅ **Cross-Platform** - Web (React) + Mobile (Flutter)
+- ✅ **Payment Integration** - VNPay gateway with multiple payment options
+- ✅ **Identity Verification** - Required for shared living situations
+- ✅ **Concurrent Booking Protection** - Prevents overbooking via BookingIntent system
+- ✅ **Real-time Messaging** - Socket.io powered chat
+- ✅ **Admin Dashboard** - Complete platform management
+
+---
+
+## ✨ Core Features
+
+### 🔐 Authentication & Security
+
+- User registration with profile image upload
+- JWT-based authentication (7-day expiration)
+- Password reset via email
+- Identity verification (ID card upload) for shared rentals
+- Admin role management
+- Secure file uploads with Cloudinary
+
+### 🏡 PROCESS 1: Entire Place Rental
+
+- **Search & Discovery** with filters (dates, location, price, amenities)
+- **Booking Widget** with real-time availability
+- **Payment Options**:
+  - VNPay Full Payment (100%)
+  - VNPay Deposit (30%) + Cash
+  - Cash on Check-in
+- **BookingIntent** system prevents concurrent bookings
+- **Booking lifecycle**: Pending → Approved → Check-in → Check-out → Completed
+- **Payment reminders** for partial payments
+- **Reviews & Ratings** post-checkout
+
+### 🚪 PROCESS 2: Room Rental (Monthly)
+
+- **Room search** with lifestyle compatibility filters
+- **Rental Request** flow with host approval
+- **Digital Agreement** generation and signing
+- **Monthly rent cycle** with due date tracking
+- **Move-in/Move-out** confirmation
+- **Payment tracking** (Online/Cash)
+- **Termination notice** handling
+
+### 🤝 PROCESS 3: Roommate Matching
+
+- **Post creation** (Seeker/Provider roles)
+- **Search by lifestyle preferences** (sleep schedule, pets, cleanliness, etc.)
+- **Request & Match** system
+- **In-app chat** between matched users
+- **No payment/booking** - pure matching platform
+- **Post status**: Active → Matched → Closed
+
+### 💬 Messaging System
+
+- Real-time chat powered by Socket.io
+- Conversation management
+- Unread message notifications
+- Contact host functionality
+- Message history
+
+### 📊 Admin Dashboard
+
+- User management (view/suspend/delete)
+- Identity verification approval
+- Listing moderation
+- Booking statistics
+- Payment history
+- System analytics
+
+### 📱 Mobile Application (Flutter)
+
+- All core web features available on mobile
+- Native payment integration
+- Push notifications
+- Offline mode support
+- Responsive UI optimized for mobile
+
+---
+
+## 💼 Business Processes
+
+### PROCESS 1: Entire Place Rental Flow
+
+```
+Guest Search → View Listing → Select Dates → Choose Payment Method
+→ Create BookingIntent (locks listing)
+→ Complete Payment (VNPay/Cash)
+→ Host Approves (auto-approve if full payment)
+→ Check-in → Check-out → Reviews
+```
+
+### PROCESS 2: Room Rental Flow
+
+```
+Tenant Search → Submit Rental Request → Host Reviews
+→ Generate Agreement → Both Parties Sign
+→ Pay Deposit → Move-in Confirmation
+→ Monthly Rent Cycle → Termination Notice → Move-out
+```
+
+### PROCESS 3: Roommate Flow
+
+```
+User Creates Post (Seeker/Provider)
+→ Other Users Browse & Search
+→ Send Request → Accept/Reject
+→ Match Created → Chat Enabled
+→ Close Post
+```
+
+---
 
 ## 🛠️ Tech Stack
 
-### **Frontend**
+### Frontend (Web)
 
-- ![React](https://img.shields.io/badge/React-19.2.0-61DAFB?style=flat&logo=react&logoColor=white)
-- ![React Router](https://img.shields.io/badge/React%20Router-7.9.5-CA4245?style=flat&logo=react-router&logoColor=white)
-- ![Sass](https://img.shields.io/badge/Sass-1.93.3-CC6699?style=flat&logo=sass&logoColor=white)
-- ![Material-UI](https://img.shields.io/badge/Material--UI-7.3.4-0081CB?style=flat&logo=mui&logoColor=white)
+- **React.js** 19.2.0 - UI framework
+- **React Router** 7.9.5 - Navigation
+- **Redux Toolkit** - State management
+- **Sass** 1.93.3 - Styling
+- **Material-UI** 7.3.4 - Component library
+- **Socket.io Client** - Real-time communication
+- **Axios** - HTTP client
 
-### **Backend**
+### Frontend (Mobile)
 
-- ![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat&logo=node.js&logoColor=white)
-- ![Express.js](https://img.shields.io/badge/Express.js-5.1.0-000000?style=flat&logo=express&logoColor=white)
-- ![MongoDB](https://img.shields.io/badge/MongoDB-8.19.2-47A248?style=flat&logo=mongodb&logoColor=white)
-- ![JWT](https://img.shields.io/badge/JWT-9.0.2-000000?style=flat&logo=json-web-tokens&logoColor=white)
+- **Flutter** 3.24+ - Cross-platform framework
+- **Dart** 3.4+ - Programming language
+- **Provider** - State management
+- **http** - API communication
+- **socket_io_client** - Real-time messaging
+- **image_picker** - Media upload
 
-### **Additional Tools**
+### Backend
 
-- ![Multer](https://img.shields.io/badge/Multer-File%20Upload-orange?style=flat)
-- ![bcryptjs](https://img.shields.io/badge/bcryptjs-Password%20Hashing-red?style=flat)
-- ![CORS](https://img.shields.io/badge/CORS-Security-blue?style=flat)
-- ![dotenv](https://img.shields.io/badge/dotenv-Environment-yellow?style=flat)
+- **Node.js** 20.14.0 - Runtime
+- **Express.js** 5.1.0 - Web framework
+- **MongoDB** 8.19.2 - Database
+- **Mongoose** - ODM
+- **Socket.io** - WebSocket server
+- **JWT** 9.0.2 - Authentication
+- **bcryptjs** - Password hashing
+- **Multer** - File upload middleware
+- **Cloudinary** - Image storage
+- **node-cron** - Scheduled tasks
+
+### Payment Integration
+
+- **VNPay** - Vietnamese payment gateway
+- Support for QR, card, and bank transfer
+
+### DevOps & Tools
+
+- **dotenv** - Environment management
+- **CORS** - Cross-origin security
+- **Nodemon** - Development auto-reload
+- **Make** - Build automation
+
+---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- **Node.js** (v16 or higher)
+- **Node.js** v20.14.0 or higher
 - **npm** or **yarn**
-- **MongoDB** (local or MongoDB Atlas)
+- **MongoDB** (local or Atlas)
+- **Flutter SDK** 3.24+ (for mobile)
 - **Git**
+- **Cloudinary Account** (for image uploads)
+- **VNPay Sandbox Account** (for payment testing)
 
 ### Installation
 
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/iamdazkdev/Rental-Home-Project.git
-   cd Rental-Home-Project
-   ```
-
-2. **Install Server Dependencies**
-
-   ```bash
-   cd server
-   npm install
-   ```
-
-3. **Install Client Dependencies**
-
-   ```bash
-   cd ../client
-   npm install
-   ```
-
-4. **Environment Setup**
-
-   Create a `.env` file in the `server` directory:
-
-   ```env
-   MONGO_URL=your_mongodb_connection_string
-   JWT_SECRET=your_super_secret_jwt_key
-   NODE_ENV=development
-   ```
-
-5. **Start the Development Servers**
-
-   **Terminal 1 - Backend Server:**
-
-   ```bash
-   cd server
-   npm start
-   ```
-
-   **Terminal 2 - Frontend Client:**
-
-   ```bash
-   cd client
-   npm start
-   ```
-
-6. **Access the Application**
-   - **Frontend:** <http://localhost:3000>
-   - **Backend API:** <http://localhost:3001>
-
-## 📁 Project Structure
-
-```
-Rental-Home-Project/
-├── client/                          # React Frontend
-│   ├── public/
-│   │   ├── assets/                  # Static images and icons
-│   │   └── index.html
-│   ├── src/
-│   │   ├── components/              # Reusable components
-│   │   ├── pages/
-│   │   │   ├── auth/
-│   │   │   │   ├── LoginPage.jsx    # Login page
-│   │   │   │   └── RegisterPage.jsx # Registration page
-│   │   │   └── HomePage.jsx         # Home page
-│   │   ├── styles/                  # SCSS stylesheets
-│   │   │   ├── Login.scss
-│   │   │   ├── Register.scss
-│   │   │   ├── variables.scss       # Color variables
-│   │   │   └── breakpoints.scss     # Media queries
-│   │   ├── App.js                   # Main App component
-│   │   └── index.js                 # Entry point
-│   └── package.json
-├── server/                          # Node.js Backend
-│   ├── models/
-│   │   └── User.js                  # User model
-│   ├── routes/
-│   │   └── auth.js                  # Authentication routes
-│   ├── public/
-│   │   └── uploads/                 # File upload directory
-│   ├── .env                         # Environment variables
-│   ├── index.js                     # Server entry point
-│   └── package.json
-└── README.md
-```
-
-## 🔌 API Endpoints
-
-### Authentication Routes
-
-| Method | Endpoint | Description | Body |
-|--------|----------|-------------|------|
-| `POST` | `/auth/register` | Register new user | `firstName`, `lastName`, `email`, `password`, `confirmPassword`, `profileImage` |
-| `POST` | `/auth/login` | User login | `email`, `password` |
-
-### Example API Usage
-
-#### Register User
-
-```javascript
-const formData = new FormData();
-formData.append('firstName', 'John');
-formData.append('lastName', 'Doe');
-formData.append('email', 'john@example.com');
-formData.append('password', 'SecurePass123');
-formData.append('confirmPassword', 'SecurePass123');
-formData.append('profileImage', fileObject);
-
-fetch('http://localhost:3001/auth/register', {
-  method: 'POST',
-  body: formData,
-});
-```
-
-#### Login User
-
-```javascript
-fetch('http://localhost:3001/auth/login', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    email: 'john@example.com',
-    password: 'SecurePass123',
-  }),
-});
-```
-
-## 🎨 Design System
-
-### **Color Palette**
-
-- **Primary Pink:** `#F8395A` - Main brand color
-- **Primary Blue:** `#24355A` - Text and accents
-- **Light Grey:** `#F7F8F8` - Backgrounds
-- **Grey:** `#bdb9b9` - Secondary text
-- **Dark Grey:** `#969393` - Muted text
-
-### **Typography**
-
-- **Primary Font:** System fonts with fallbacks
-- **Headings:** Bold (700), letter-spacing optimized
-- **Body Text:** Regular (400) and Medium (500)
-
-### **Components**
-
-- **Glass Morphism Cards** with backdrop blur
-- **Gradient Backgrounds** for visual depth
-- **Smooth Animations** with CSS transitions
-- **Responsive Grid System** for all screen sizes
-
-## 🔧 Development
-
-### **Available Scripts**
-
-#### Client (Frontend)
+#### Option 1: Using Makefile (Recommended)
 
 ```bash
-npm start          # Start development server
-npm build          # Build for production
-npm test           # Run tests
-npm eject          # Eject from Create React App
+# Clone repository
+git clone https://github.com/yourusername/Rental-Home-Project.git
+cd Rental-Home-Project
+
+# Setup and start entire project
+make setup
+make start
+
+# Or individual commands
+make install-server    # Install server dependencies
+make install-client    # Install client dependencies
+make start-server      # Start backend
+make start-client      # Start frontend
 ```
 
-#### Server (Backend)
+#### Option 2: Manual Setup
+
+**1. Clone Repository**
 
 ```bash
-npm start          # Start server with nodemon
-npm test           # Run tests (placeholder)
+git clone https://github.com/yourusername/Rental-Home-Project.git
+cd Rental-Home-Project
 ```
 
-### **Environment Variables**
+**2. Server Setup**
 
-Create a `.env` file in the server directory:
+```bash
+cd server
+npm install
+```
+
+Create `.env` file in `server/` directory:
 
 ```env
 # Database
 MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/rental-home-db
 
 # Authentication
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_SECRET=your-super-secret-jwt-key-minimum-32-characters
 
-# Environment
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# VNPay
+VNPAY_TMN_CODE=your_tmn_code
+VNPAY_HASH_SECRET=your_hash_secret
+VNPAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+VNPAY_RETURN_URL=http://localhost:3000/payment/vnpay-callback
+
+# Server
+PORT=3001
 NODE_ENV=development
+
+# Email (Optional - for password reset)
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASSWORD=your_app_password
 ```
 
-## 📱 Mobile Responsiveness
+**3. Client Setup**
 
-The application is fully responsive with breakpoints:
+```bash
+cd ../client
+npm install
+```
 
-- **Mobile:** < 580px
-- **Tablet:** 580px - 1000px  
-- **Desktop:** > 1000px
+**4. Mobile Setup (Optional)**
 
-## 🛡️ Security Features
+```bash
+cd ../mobile
+flutter pub get
 
-- **JWT Tokens** with 7-day expiration
-- **Password Hashing** with bcrypt (12 salt rounds)
-- **Input Validation** and sanitization
-- **File Upload Security** with type and size limits
-- **CORS Protection** for cross-origin requests
-- **Environment Variables** for sensitive data
+# For iOS
+cd ios && pod install && cd ..
+
+# For Android - ensure Android SDK is configured
+```
+
+**5. Database Migration**
+
+```bash
+cd server
+npm run migrate  # Seed initial data (categories, types, facilities)
+```
+
+**6. Start Development**
+
+```bash
+# Terminal 1 - Backend
+cd server
+npm start
+
+# Terminal 2 - Frontend
+cd client
+npm start
+
+# Terminal 3 - Mobile (optional)
+cd mobile
+flutter run
+```
+
+**7. Access Applications**
+
+- **Web App**: http://localhost:3000
+- **API Server**: http://localhost:3001
+- **Mobile**: Use emulator or physical device
+
+---
+
+## 📁 Project Structure
+
+```
+Rental-Home-Project/
+├── client/                          # React Web Application
+│   ├── public/
+│   │   ├── assets/
+│   │   ├── favicon.ico
+│   │   └── index.html
+│   ├── src/
+│   │   ├── components/              # Reusable UI components
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   ├── ListingCard.jsx
+│   │   │   └── ...
+│   │   ├── pages/
+│   │   │   ├── auth/                # Authentication pages
+│   │   │   ├── entirePlace/         # Entire Place Rental
+│   │   │   ├── roomRental/          # Room Rental
+│   │   │   ├── roommate/            # Roommate Matching
+│   │   │   ├── admin/               # Admin Dashboard
+│   │   │   ├── messages/            # Chat system
+│   │   │   └── ...
+│   │   ├── redux/                   # State management
+│   │   ├── styles/                  # SCSS stylesheets
+│   │   ├── utils/                   # Helper functions
+│   │   ├── config/                  # API endpoints
+│   │   ├── App.js
+│   │   └── index.js
+│   └── package.json
+│
+├── server/                          # Node.js Backend
+│   ├── models/                      # Mongoose schemas
+│   │   ├── User.js
+│   │   ├── Listing.js
+│   │   ├── Booking.js
+│   │   ├── BookingIntent.js
+│   │   ├── RoomRental.js
+│   │   ├── RoommatePost.js
+│   │   ├── Payment.js
+│   │   └── ...
+│   ├── routes/                      # API routes
+│   │   ├── auth.js
+│   │   ├── listing.js
+│   │   ├── booking.js
+│   │   ├── entirePlaceBooking.js
+│   │   ├── roomRental.js
+│   │   ├── roommate.js
+│   │   ├── payment.js
+│   │   └── ...
+│   ├── services/                    # Business logic
+│   │   ├── cloudinaryService.js
+│   │   ├── vnpayService.js
+│   │   ├── bookingService.js
+│   │   └── ...
+│   ├── middleware/
+│   │   └── auth.js                  # JWT verification
+│   ├── scripts/                     # Utility scripts
+│   │   ├── testConcurrentBooking.js
+│   │   └── ...
+│   ├── .env
+│   ├── index.js                     # Server entry point
+│   └── package.json
+│
+├── mobile/                          # Flutter Mobile App
+│   ├── android/
+│   ├── ios/
+│   ├── lib/
+│   │   ├── main.dart
+│   │   ├── config/
+│   │   ├── models/
+│   │   ├── providers/
+│   │   ├── screens/
+│   │   ├── services/
+│   │   ├── widgets/
+│   │   └── utils/
+│   ├── assets/
+│   ├── pubspec.yaml
+│   └── README.md
+│
+├── docs/                            # Documentation
+│   ├── BUSINESS_ANALYSIS.md
+│   ├── USE_CASES_CURRENT.md
+│   ├── SEQUENCE_DIAGRAMS.md
+│   ├── COMPARISON.md
+│   ├── PROJECT_REPORT.md
+│   └── ...
+│
+├── Makefile                         # Build automation
+├── README.md
+└── package.json
+```
+
+---
+
+## 🔌 API Documentation
+
+### Base URL
+
+```
+Development: http://localhost:3001
+Production: https://your-domain.com/api
+```
+
+### Authentication Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/auth/register` | Register new user | No |
+| POST | `/auth/login` | User login | No |
+| POST | `/auth/forgot-password` | Request password reset | No |
+| POST | `/auth/reset-password` | Reset password | No |
+| GET | `/auth/verify-token` | Verify JWT token | Yes |
+
+### Entire Place Booking Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/entire-place/search` | Search entire place listings | No |
+| GET | `/entire-place/listing/:id` | Get listing details | No |
+| POST | `/booking-intent/create` | Create booking intent (lock) | Yes |
+| POST | `/booking-intent/confirm` | Confirm booking after payment | Yes |
+| GET | `/booking-intent/check-availability/:listingId` | Check availability | No |
+| POST | `/payment/create-payment-url` | Generate VNPay payment URL | Yes |
+| GET | `/payment/vnpay-callback` | VNPay callback handler | No |
+
+### Room Rental Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/room-rental/search` | Search room rentals | No |
+| POST | `/room-rental/request` | Submit rental request | Yes |
+| PUT | `/room-rental/requests/:id/approve` | Host approves request | Yes |
+| POST | `/room-rental/agreement/sign` | Sign digital agreement | Yes |
+| GET | `/room-rental/my-rentals` | Get user's rentals | Yes |
+
+### Roommate Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/roommate/posts` | Create roommate post | Yes |
+| GET | `/roommate/search` | Search roommate posts | No |
+| POST | `/roommate/requests` | Send roommate request | Yes |
+| PUT | `/roommate/requests/:id/accept` | Accept request | Yes |
+| PUT | `/roommate/posts/:id/close` | Close post | Yes |
+
+### Admin Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/admin/dashboard/stats` | Get system statistics | Admin |
+| GET | `/admin/users` | Get all users | Admin |
+| PUT | `/admin/users/:id/suspend` | Suspend user | Admin |
+| GET | `/admin/verifications` | Get identity verifications | Admin |
+| PUT | `/admin/verifications/:id/approve` | Approve verification | Admin |
+
+### Request Example
+
+```javascript
+// Create Booking Intent
+const response = await fetch('http://localhost:3001/booking-intent/create', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  },
+  body: JSON.stringify({
+    listingId: '507f1f77bcf86cd799439011',
+    startDate: '2025-01-15',
+    endDate: '2025-01-20',
+    guests: 2,
+    paymentMethod: 'vnpay',
+    paymentType: 'full'
+  })
+});
+
+const data = await response.json();
+// Returns: { success: true, bookingIntent: {...}, expiresIn: 600 }
+```
+
+---
+
+## 🔐 Environment Setup
+
+### Server Environment Variables
+
+Create `server/.env`:
+
+```env
+# Database Configuration
+MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/rental-home-db?retryWrites=true&w=majority
+
+# JWT Configuration
+JWT_SECRET=your-minimum-32-character-secret-key-change-in-production
+
+# Cloudinary Configuration (Image Storage)
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# VNPay Configuration (Payment Gateway)
+VNPAY_TMN_CODE=your_vnpay_tmn_code
+VNPAY_HASH_SECRET=your_vnpay_hash_secret
+VNPAY_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+VNPAY_RETURN_URL=http://localhost:3000/payment/vnpay-callback
+
+# Server Configuration
+PORT=3001
+NODE_ENV=development
+CLIENT_URL=http://localhost:3000
+
+# Email Configuration (Optional - for password reset)
+EMAIL_SERVICE=gmail
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASSWORD=your_gmail_app_password
+
+# Socket.io (Optional - default values work)
+SOCKET_CORS_ORIGIN=http://localhost:3000
+```
+
+### Mobile Environment Configuration
+
+Create `mobile/lib/config/env.dart`:
+
+```dart
+class Environment {
+  static const String apiBaseUrl = 'http://localhost:3001';
+  static const String socketUrl = 'http://localhost:3001';
+  static const String cloudinaryBaseUrl = 'https://res.cloudinary.com';
+}
+```
+
+For production, update to your deployed backend URL.
+
+---
+
+## 🧪 Testing
+
+### Concurrent Booking Test
+
+Test the BookingIntent system to ensure no overbooking:
+
+```bash
+cd server
+npm run test:concurrent
+```
+
+This simulates 5+ users trying to book the same listing simultaneously.
+
+### Manual Testing Scenarios
+
+**Test PROCESS 1: Entire Place**
+
+```bash
+# 1. User A creates booking intent
+# 2. User B tries to book same listing → Should be blocked
+# 3. User A completes payment → Booking confirmed
+# 4. User B can now retry
+```
+
+**Test PROCESS 2: Room Rental**
+
+```bash
+# 1. Tenant submits rental request
+# 2. Host approves request
+# 3. Both sign digital agreement
+# 4. Tenant confirms move-in
+```
+
+**Test PROCESS 3: Roommate**
+
+```bash
+# 1. User A creates post (Seeker)
+# 2. User B sends request
+# 3. User A accepts → Match created
+# 4. Chat enabled between users
+```
+
+---
 
 ## 🚀 Deployment
 
-### **Frontend (Vercel/Netlify)**
+### Frontend Deployment (Vercel)
 
 ```bash
 cd client
 npm run build
-# Deploy the build folder
+
+# Deploy to Vercel
+vercel --prod
+
+# Or use Vercel CLI
+npm i -g vercel
+vercel login
+vercel
 ```
 
-### **Backend (Heroku/Railway)**
+### Backend Deployment (Railway/Render)
 
 ```bash
 cd server
-# Set environment variables in hosting platform
-# Deploy with your preferred service
+
+# Set environment variables in dashboard
+# Deploy via Git push or CLI
+
+# Railway
+railway login
+railway init
+railway up
+
+# Render
+# Connect GitHub repo and configure build command: npm install
+# Start command: npm start
 ```
 
-### **Database (MongoDB Atlas)**
+### Mobile Deployment
 
-- Create a MongoDB Atlas cluster
-- Get connection string
-- Update `MONGO_URL` in environment variables
+**Android:**
+
+```bash
+cd mobile
+flutter build apk --release
+# APK: build/app/outputs/flutter-apk/app-release.apk
+```
+
+**iOS:**
+
+```bash
+cd mobile
+flutter build ios --release
+# Upload to App Store via Xcode
+```
+
+### Database (MongoDB Atlas)
+
+1. Create cluster at https://cloud.mongodb.com
+2. Create database user
+3. Whitelist IP addresses (0.0.0.0/0 for testing)
+4. Get connection string
+5. Update `MONGO_URL` in environment variables
+
+---
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the `docs/` folder:
+
+- **[BUSINESS_ANALYSIS.md](docs/BUSINESS_ANALYSIS.md)** - Detailed business logic and rules
+- **[USE_CASES_CURRENT.md](docs/USE_CASES_CURRENT.md)** - All use cases with pre/post conditions
+- **[SEQUENCE_DIAGRAMS.md](docs/SEQUENCE_DIAGRAMS.md)** - Mermaid sequence diagrams
+- **[COMPARISON.md](docs/COMPARISON.md)** - Old vs New flow comparison
+- **[PROJECT_REPORT.md](docs/PROJECT_REPORT.md)** - Final project report
+
+---
+
+## 🎯 Key Design Decisions
+
+### 1. BookingIntent System
+
+**Problem:** Multiple users booking the same listing simultaneously causes overbooking.
+
+**Solution:** Temporary reservation locks with expiration (10 minutes).
+
+```javascript
+// User A creates BookingIntent → Listing locked
+// User B tries to book → Rejected (409 Conflict)
+// User A completes payment → Booking confirmed
+// OR User A times out → Lock released → User B can retry
+```
+
+### 2. Process Separation
+
+Each rental process (Entire Place, Room, Roommate) has:
+
+- ✅ Separate API routes
+- ✅ Separate data models
+- ✅ Separate state machines
+- ✅ No cross-contamination
+
+### 3. Identity Verification
+
+Required for shared living (Room Rental & Roommate):
+
+- Upload front/back of ID card
+- Admin approval required
+- Status: Pending → Approved → Rejected
+- Cannot post without approval
+
+### 4. Payment Flexibility
+
+Three payment options for Entire Place:
+
+1. **VNPay Full (100%)** - Auto-approve after payment
+2. **VNPay Deposit (30%)** - Pay remaining before check-in
+3. **Cash** - Pay at check-in (host approval required)
+
+---
+
+## 🛡️ Security Features
+
+- **JWT Authentication** with httpOnly cookies (optional)
+- **Password hashing** with bcrypt (12 salt rounds)
+- **File upload validation** (type, size, malware check)
+- **Rate limiting** on auth endpoints
+- **CORS protection** with whitelist
+- **Input sanitization** to prevent injection
+- **Environment variable protection** (no secrets in code)
+- **Admin-only routes** with middleware
+- **Socket.io authentication** required for chat
+
+---
+
+## 📱 Mobile-Specific Features
+
+- **Offline mode** for viewing cached listings
+- **Push notifications** for booking updates
+- **Native camera integration** for ID upload
+- **Deep linking** for payment callbacks
+- **Biometric authentication** (fingerprint/face)
+- **Location services** for nearby listings
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**1. MongoDB Connection Failed**
+
+```bash
+# Check connection string format
+MONGO_URL=mongodb+srv://user:password@cluster.mongodb.net/dbname
+
+# Whitelist IP in MongoDB Atlas
+# Verify network access settings
+```
+
+**2. Cloudinary Upload Error**
+
+```bash
+# Verify credentials
+CLOUDINARY_CLOUD_NAME=xxxxx
+CLOUDINARY_API_KEY=xxxxx
+CLOUDINARY_API_SECRET=xxxxx
+
+# Check file size limit (default 5MB)
+```
+
+**3. VNPay Payment Fails**
+
+```bash
+# Use sandbox credentials for testing
+# Check return URL matches exactly
+# Verify hash secret is correct
+```
+
+**4. Socket.io Not Connecting**
+
+```bash
+# Check CORS settings
+# Verify Socket.io version compatibility
+# Check firewall rules
+```
+
+**5. Mobile Build Errors**
+
+```bash
+# Flutter
+flutter clean
+flutter pub get
+flutter doctor
+
+# iOS
+cd ios && pod install
+
+# Android
+flutter build apk --debug
+```
+
+---
 
 ## 🤝 Contributing
 
+We welcome contributions! Please follow these steps:
+
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
+
+### Code Standards
+
+- **ESLint** for JavaScript
+- **Prettier** for code formatting
+- **Conventional Commits** for commit messages
+- **JSDoc** for function documentation
+
+---
 
 ## 📝 License
 
-This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **ISC License**.
 
-## 👨‍💻 Author
+---
 
-**iamdazkdev**
+## 👨‍💻 Authors
 
-- GitHub: [@iamdazkdev](https://github.com/iamdazkdev)
+**Development Team**
+
+- Lead Developer: [@iamdazkdev](https://github.com/iamdazkdev)
 - Project: [Rental-Home-Project](https://github.com/iamdazkdev/Rental-Home-Project)
+
+---
 
 ## 🙏 Acknowledgments
 
-- React.js community for excellent documentation
-- Material-UI for beautiful components
-- MongoDB for flexible database solutions
-- Express.js for robust backend framework
+- **React.js** community for excellent documentation
+- **Flutter** team for cross-platform framework
+- **MongoDB** for flexible database solutions
+- **VNPay** for payment gateway integration
+- **Cloudinary** for image hosting
+- **Socket.io** for real-time communication
+
+---
+
+## 📞 Support
+
+For support, email support@rentalhome.com or join our Discord channel.
 
 ---
 
 <div align="center">
-  <p>Made with ❤️ by iamdazkdev</p>
-  <p>Rento - Find Your Perfect Home</p>
+
+**Built with ❤️ using React, Flutter & Node.js**
+
+[⬆ Back to Top](#-rental-home-platform)
+
 </div>

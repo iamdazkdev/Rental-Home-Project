@@ -69,20 +69,20 @@ const RoommatePostForm = () => {
             return;
           }
 
-          // Populate form with existing data
+          // Populate form with existing data - using flat fields from schema
           setFormData({
             postType: post.postType || "SEEKER",
             title: post.title || "",
             description: post.description || "",
-            city: post.location?.city || "",
-            province: post.location?.province || "",
-            country: post.location?.country || "Vietnam",
+            city: post.city || "",
+            province: post.province || "",
+            country: post.country || "Vietnam",
             budgetMin: post.budgetMin || "",
             budgetMax: post.budgetMax || "",
             moveInDate: post.moveInDate ? post.moveInDate.split('T')[0] : "",
             genderPreference: post.genderPreference || "ANY",
-            ageRangeMin: post.ageRange?.min || 18,
-            ageRangeMax: post.ageRange?.max || 100,
+            ageRangeMin: post.ageRangeMin || 18,
+            ageRangeMax: post.ageRangeMax || 100,
             lifestyle: {
               sleepSchedule: post.lifestyle?.sleepSchedule || "FLEXIBLE",
               smoking: post.lifestyle?.smoking || "NO",
@@ -90,9 +90,9 @@ const RoommatePostForm = () => {
               cleanliness: post.lifestyle?.cleanliness || "MODERATE",
               occupation: post.lifestyle?.occupation || "STUDENT",
             },
-            preferredContact: post.contactPreference?.method || "CHAT",
-            contactEmail: post.contactPreference?.email || "",
-            contactPhone: post.contactPreference?.phone || "",
+            preferredContact: post.preferredContact || "CHAT",
+            contactEmail: post.contactEmail || "",
+            contactPhone: post.contactPhone || "",
           });
 
           // Set existing images
@@ -298,9 +298,9 @@ const RoommatePostForm = () => {
 
       // Determine API endpoint and method based on mode
       const endpoint = isEditMode
-        ? `http://localhost:3001/roommate/posts/${postId}/update`
+        ? `http://localhost:3001/roommate/posts/${postId}`
         : "http://localhost:3001/roommate/posts/create";
-      const method = isEditMode ? "PATCH" : "POST";
+      const method = isEditMode ? "PUT" : "POST";
 
       const response = await fetch(endpoint, {
         method,

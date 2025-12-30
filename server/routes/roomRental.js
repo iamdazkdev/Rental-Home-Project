@@ -203,47 +203,77 @@ router.get("/search", async (req, res) => {
   try {
     const { location, minPrice, maxPrice, amenities } = req.query;
 
-    const query = {
-      type: "A Room",
-      isActive: true,
+    console.log("🔍 Room rental search - query params:", req.query);
+
+    // Base query for rooms - type must be "Room(s)" or contain "room" and must be active
+    const typeCondition = {
+      $and: [
+        { isActive: true },
+        {
+          $or: [
+            { type: "Room(s)" },
+            { type: { $regex: /room/i } }
+          ]
+        }
+      ]
     };
 
+    // Build additional conditions
+    const conditions = [typeCondition];
+
     if (location) {
-      query.$or = [
-        { city: { $regex: location, $options: "i" } },
-        { province: { $regex: location, $options: "i" } },
-        { country: { $regex: location, $options: "i" } },
-      ];
+      conditions.push({
+        $or: [
+          { city: { $regex: location, $options: "i" } },
+          { province: { $regex: location, $options: "i" } },
+          { country: { $regex: location, $options: "i" } },
+        ]
+      });
     }
 
     if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = Number(minPrice);
-      if (maxPrice) query.price.$lte = Number(maxPrice);
+      const priceCondition = {};
+      if (minPrice) priceCondition.$gte = Number(minPrice);
+      if (maxPrice) priceCondition.$lte = Number(maxPrice);
+
+      conditions.push({
+        $or: [
+          { price: priceCondition },
+          { monthlyRent: priceCondition }
+        ]
+      });
     }
 
     if (amenities) {
-      const amenitiesArray = amenities.split(",");
-      query.amenities = { $all: amenitiesArray };
+      const amenitiesArray = amenities.split(",").map(a => a.trim());
+      conditions.push({ amenities: { $all: amenitiesArray } });
     }
+
+    // Combine all conditions with $and
+    const query = conditions.length === 1 ? conditions[0] : { $and: conditions };
+
+    console.log("🔍 Room rental search - final query:", JSON.stringify(query, null, 2));
 
     const rooms = await Listing.find(query)
       .populate("creator", "firstName lastName profileImagePath")
       .sort({ createdAt: -1 });
 
-    // Filter out rooms that are not available
-    const availableRooms = [];
-    for (const room of rooms) {
-      const available = await isRoomAvailable(room._id);
-      if (available) {
-        availableRooms.push(room);
-      }
-    }
+    console.log(`✅ Room rental search - found ${rooms.length} rooms`);
+
+    // Add availability status to each room
+    const roomsWithStatus = await Promise.all(
+      rooms.map(async (room) => {
+        const roomObj = room.toObject();
+        const available = await isRoomAvailable(room._id);
+        roomObj.roomAvailabilityStatus = available ? 'AVAILABLE' : 'RENTED';
+        return roomObj;
+      })
+    );
 
     res.status(200).json({
       success: true,
-      count: availableRooms.length,
-      rooms: availableRooms,
+      count: roomsWithStatus.length,
+      rooms: roomsWithStatus,
     });
   } catch (error) {
     console.error("Error searching rooms:", error);
