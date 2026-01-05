@@ -255,7 +255,7 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
               activeColor: const Color(0xFF4CAF50),
             ),
             Icon(icon, color: const Color(0xFF4CAF50)),
-            const SizedBox(width: 12),
+            const SizedBox(width: 2),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,7 +267,7 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       if (badge != null) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 2),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,

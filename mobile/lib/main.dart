@@ -10,11 +10,16 @@ import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/main_screen.dart';
+import 'screens/verification/identity_verification_screen.dart';
+import 'screens/payment/payment_reminder_screen.dart';
+import 'screens/bookings/extend_stay_screen.dart';
 import 'presentation/booking/screens/booking_review_screen.dart';
 import 'presentation/booking/screens/payment_callback_screen.dart';
 import 'presentation/booking/screens/booking_confirmation_screen.dart';
 import 'presentation/booking/cubit/booking_cubit.dart';
+import 'presentation/chat/cubit/chat_cubit.dart';
 import 'data/repositories/booking_repository.dart';
+import 'data/repositories/message_repository.dart';
 import 'data/models/booking_model.dart';
 
 void main() async {
@@ -95,6 +100,12 @@ class _MyAppState extends State<MyApp> {
             bookingRepository: BookingRepository(),
           ),
         ),
+        // Add ChatCubit as global provider
+        BlocProvider(
+          create: (_) => ChatCubit(
+            messageRepository: MessageRepository(),
+          ),
+        ),
       ],
       child: MaterialApp(
         navigatorKey: _navigatorKey,
@@ -134,6 +145,31 @@ class _MyAppState extends State<MyApp> {
               final booking = settings.arguments as BookingModel;
               return MaterialPageRoute(
                 builder: (_) => BookingConfirmationScreen(
+                  booking: booking,
+                ),
+              );
+
+            case '/identity-verification':
+              final args = settings.arguments as Map<String, dynamic>?;
+              return MaterialPageRoute(
+                builder: (_) => IdentityVerificationScreen(
+                  isRequired: args?['isRequired'] ?? false,
+                  onVerificationComplete: args?['onComplete'],
+                ),
+              );
+
+            case '/payment-reminder':
+              final bookingId = settings.arguments as String;
+              return MaterialPageRoute(
+                builder: (_) => PaymentReminderScreen(
+                  bookingId: bookingId,
+                ),
+              );
+
+            case '/extend-stay':
+              final booking = settings.arguments as BookingModel;
+              return MaterialPageRoute(
+                builder: (_) => ExtendStayScreen(
                   booking: booking,
                 ),
               );

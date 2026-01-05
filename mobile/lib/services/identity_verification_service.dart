@@ -2,108 +2,21 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../config/api_config.dart';
 import 'storage_service.dart';
 
-/// Identity Verification Status enum
-enum VerificationStatus {
-  pending('pending'),
-  approved('approved'),
-  rejected('rejected');
-
-  final String value;
-  const VerificationStatus(this.value);
-
-  static VerificationStatus fromString(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'pending':
-        return VerificationStatus.pending;
-      case 'approved':
-        return VerificationStatus.approved;
-      case 'rejected':
-        return VerificationStatus.rejected;
-      default:
-        return VerificationStatus.pending;
-    }
-  }
-}
-
-/// Identity Verification model
-class IdentityVerification {
-  final String id;
-  final String userId;
-  final String fullName;
-  final String phoneNumber;
-  final DateTime dateOfBirth;
-  final String? idCardFront;
-  final String? idCardBack;
-  final VerificationStatus status;
-  final String? rejectionReason;
-  final DateTime? reviewedAt;
-  final String? reviewedBy;
-  final DateTime createdAt;
-  final DateTime? updatedAt;
-
-  IdentityVerification({
-    required this.id,
-    required this.userId,
-    required this.fullName,
-    required this.phoneNumber,
-    required this.dateOfBirth,
-    this.idCardFront,
-    this.idCardBack,
-    required this.status,
-    this.rejectionReason,
-    this.reviewedAt,
-    this.reviewedBy,
-    required this.createdAt,
-    this.updatedAt,
-  });
-
-  factory IdentityVerification.fromJson(Map<String, dynamic> json) {
-    return IdentityVerification(
-      id: json['_id'] ?? json['id'] ?? '',
-      userId: json['userId'] is Map ? json['userId']['_id'] : (json['userId'] ?? ''),
-      fullName: json['fullName'] ?? '',
-      phoneNumber: json['phoneNumber'] ?? '',
-      dateOfBirth: json['dateOfBirth'] != null
-        ? DateTime.parse(json['dateOfBirth'])
-        : DateTime.now(),
-      idCardFront: json['idCardFront'],
-      idCardBack: json['idCardBack'],
-      status: VerificationStatus.fromString(json['status']),
-      rejectionReason: json['rejectionReason'],
-      reviewedAt: json['reviewedAt'] != null
-        ? DateTime.parse(json['reviewedAt'])
-        : null,
-      reviewedBy: json['reviewedBy'],
-      createdAt: json['createdAt'] != null
-        ? DateTime.parse(json['createdAt'])
-        : DateTime.now(),
-      updatedAt: json['updatedAt'] != null
-        ? DateTime.parse(json['updatedAt'])
-        : null,
-    );
-  }
-
-  bool get isPending => status == VerificationStatus.pending;
-  bool get isApproved => status == VerificationStatus.approved;
-  bool get isRejected => status == VerificationStatus.rejected;
-}
-
-/// Service for Identity Verification operations
-/// Required for Room Rental and Roommate features
 class IdentityVerificationService {
   final StorageService _storageService = StorageService();
 
-  /// Check verification status for a user
-  Future<Map<String, dynamic>> checkStatus(String userId) async {
+  /// Get verification status for a user
+  Future<Map<String, dynamic>> getVerificationStatus(String userId) async {
     try {
       final token = await _storageService.getToken();
 
       final uri = Uri.parse('${ApiConfig.baseUrl}/identity-verification/$userId/status');
 
-      debugPrint('🔍 Checking verification status for user: $userId');
+      debugPrint('📋 Checking verification status for user: $userId');
 
       final response = await http.get(
         uri,
@@ -115,32 +28,29 @@ class IdentityVerificationService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return {
-          'success': true,
           'exists': data['exists'] ?? false,
           'status': data['status'],
-          'verification': data['verification'] != null
-            ? IdentityVerification.fromJson(data['verification'])
-            : null,
+          'verification': data['verification'],
         };
       } else if (response.statusCode == 404) {
         return {
-          'success': true,
           'exists': false,
           'status': null,
           'verification': null,
         };
-      } else {
-        final error = json.decode(response.body);
-        return {
-          'success': false,
-          'message': error['message'] ?? 'Failed to check verification status',
-        };
       }
+
+      return {
+        'exists': false,
+        'status': null,
+        'verification': null,
+      };
     } catch (e) {
       debugPrint('❌ Error checking verification status: $e');
       return {
-        'success': false,
-        'message': 'An error occurred: ${e.toString()}',
+        'exists': false,
+        'status': null,
+        'verification': null,
       };
     }
   }
@@ -158,15 +68,19 @@ class IdentityVerificationService {
       final token = await _storageService.getToken();
 
       if (token == null) {
-        return {'success': false, 'message': 'Not authenticated'};
+        return {
+          'success': false,
+          'message': 'Not authenticated',
+        };
       }
 
       final uri = Uri.parse('${ApiConfig.baseUrl}/identity-verification/submit');
 
       debugPrint('📤 Submitting identity verification for user: $userId');
 
-      // Create multipart request
-      final request = http.MultipartRequest('POST', uri);
+      var request = http.MultipartRequest('POST', uri);
+
+      // Add headers
       request.headers.addAll({
         'Authorization': 'Bearer $token',
       });
@@ -175,31 +89,38 @@ class IdentityVerificationService {
       request.fields['userId'] = userId;
       request.fields['fullName'] = fullName;
       request.fields['phoneNumber'] = phoneNumber;
-      request.fields['dateOfBirth'] = dateOfBirth.toIso8601String();
+      request.fields['dateOfBirth'] = dateOfBirth.toIso8601String().split('T')[0];
 
-      // Add ID card images
-      request.files.add(await http.MultipartFile.fromPath(
-        'idCardFront',
-        idCardFront.path,
-      ));
-      request.files.add(await http.MultipartFile.fromPath(
-        'idCardBack',
-        idCardBack.path,
-      ));
+      // Add files
+      debugPrint('📸 Uploading ID card front...');
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'idCardFront',
+          idCardFront.path,
+          contentType: MediaType('image', 'jpeg'),
+        ),
+      );
+
+      debugPrint('📸 Uploading ID card back...');
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'idCardBack',
+          idCardBack.path,
+          contentType: MediaType('image', 'jpeg'),
+        ),
+      );
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      debugPrint('📥 Submit response: ${response.statusCode}');
+      debugPrint('📥 Submit verification response: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         return {
           'success': true,
           'message': data['message'] ?? 'Verification submitted successfully',
-          'verification': data['verification'] != null
-            ? IdentityVerification.fromJson(data['verification'])
-            : null,
+          'verification': data['verification'],
         };
       } else {
         final error = json.decode(response.body);
@@ -217,7 +138,7 @@ class IdentityVerificationService {
     }
   }
 
-  /// Update verification (for rejected status)
+  /// Update existing verification (for rejected cases)
   Future<Map<String, dynamic>> updateVerification({
     required String verificationId,
     required String fullName,
@@ -230,51 +151,53 @@ class IdentityVerificationService {
       final token = await _storageService.getToken();
 
       if (token == null) {
-        return {'success': false, 'message': 'Not authenticated'};
+        return {
+          'success': false,
+          'message': 'Not authenticated',
+        };
       }
 
       final uri = Uri.parse('${ApiConfig.baseUrl}/identity-verification/$verificationId/update');
 
-      debugPrint('📤 Updating identity verification: $verificationId');
+      var request = http.MultipartRequest('PUT', uri);
 
-      // Create multipart request
-      final request = http.MultipartRequest('PUT', uri);
       request.headers.addAll({
         'Authorization': 'Bearer $token',
       });
 
-      // Add fields
       request.fields['fullName'] = fullName;
       request.fields['phoneNumber'] = phoneNumber;
-      request.fields['dateOfBirth'] = dateOfBirth.toIso8601String();
+      request.fields['dateOfBirth'] = dateOfBirth.toIso8601String().split('T')[0];
 
-      // Add ID card images if provided
       if (idCardFront != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'idCardFront',
-          idCardFront.path,
-        ));
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'idCardFront',
+            idCardFront.path,
+            contentType: MediaType('image', 'jpeg'),
+          ),
+        );
       }
+
       if (idCardBack != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'idCardBack',
-          idCardBack.path,
-        ));
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'idCardBack',
+            idCardBack.path,
+            contentType: MediaType('image', 'jpeg'),
+          ),
+        );
       }
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-
-      debugPrint('📥 Update response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return {
           'success': true,
           'message': data['message'] ?? 'Verification updated successfully',
-          'verification': data['verification'] != null
-            ? IdentityVerification.fromJson(data['verification'])
-            : null,
+          'verification': data['verification'],
         };
       } else {
         final error = json.decode(response.body);
@@ -292,36 +215,9 @@ class IdentityVerificationService {
     }
   }
 
-  /// Get verification details
-  Future<IdentityVerification?> getVerification(String userId) async {
-    try {
-      final token = await _storageService.getToken();
-
-      final uri = Uri.parse('${ApiConfig.baseUrl}/identity-verification/$userId');
-
-      final response = await http.get(
-        uri,
-        headers: ApiConfig.headers(token: token),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return IdentityVerification.fromJson(data['verification'] ?? data);
-      }
-      return null;
-    } catch (e) {
-      debugPrint('❌ Error fetching verification: $e');
-      return null;
-    }
-  }
-
-  /// Check if user needs verification for a specific listing type
-  bool requiresVerification(String listingType) {
-    // Room and Shared Room require identity verification
-    final typeLower = listingType.toLowerCase();
-    return typeLower.contains('room') ||
-           typeLower.contains('shared') ||
-           typeLower == 'rooms';
+  /// Alias for getVerificationStatus (backward compatibility)
+  Future<Map<String, dynamic>> checkStatus(String userId) {
+    return getVerificationStatus(userId);
   }
 }
 

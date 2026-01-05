@@ -9,7 +9,6 @@ import '../../utils/date_formatter.dart';
 import '../../utils/price_formatter.dart';
 import '../checkout/checkout_screen.dart';
 import '../../widgets/cancel_booking_bottom_sheet.dart';
-import '../../widgets/booking_status_widgets.dart';
 
 class TripsScreen extends StatefulWidget {
   const TripsScreen({super.key});
@@ -63,17 +62,13 @@ class _TripsScreenState extends State<TripsScreen> with SingleTickerProviderStat
   List<Booking> get _upcomingTrips {
     final now = DateTime.now();
     return _trips.where((trip) {
-      // Use effectiveStatus which prefers bookingStatus over status
-      final status = trip.effectiveStatus.toLowerCase();
-
-      // Show pending, approved, and accepted bookings that haven't ended yet
-      final isActiveFutureBooking = (status == 'pending' ||
-                                      status == 'approved' ||
-                                      status == 'accepted' ||
-                                      status == 'checked_in') &&
+      // Show pending, approved bookings that haven't ended yet
+      final isActiveFutureBooking = (trip.isPending ||
+                                      trip.isApproved ||
+                                      trip.isCheckedIn) &&
                                      trip.endDate.isAfter(now);
 
-      debugPrint('  Upcoming check: $status, ends ${trip.endDate}, now $now, include: $isActiveFutureBooking');
+      debugPrint('  Upcoming check: ${trip.effectiveStatus}, ends ${trip.endDate}, now $now, include: $isActiveFutureBooking');
       return isActiveFutureBooking;
     }).toList();
   }
@@ -81,19 +76,16 @@ class _TripsScreenState extends State<TripsScreen> with SingleTickerProviderStat
   List<Booking> get _pastTrips {
     final now = DateTime.now();
     return _trips.where((trip) {
-      // Use effectiveStatus which prefers bookingStatus over status
-      final status = trip.effectiveStatus.toLowerCase();
-
       // Show completed, checked out, rejected, cancelled, or past bookings
-      final isPastBooking = status == 'completed' ||
-                           status == 'checked_out' ||
-                           status == 'rejected' ||
-                           status == 'cancelled' ||
-                           status == 'expired' ||
+      final isPastBooking = trip.isCompleted ||
+                           trip.isCheckedOut ||
+                           trip.isRejected ||
+                           trip.isCancelled ||
+                           trip.isExpired ||
                            trip.endDate.isBefore(now) ||
                            trip.endDate.isAtSameMomentAs(now);
 
-      debugPrint('  Past check: $status, ends ${trip.endDate}, now $now, include: $isPastBooking');
+      debugPrint('  Past check: ${trip.effectiveStatus}, ends ${trip.endDate}, now $now, include: $isPastBooking');
       return isPastBooking;
     }).toList();
   }
@@ -172,40 +164,20 @@ class _BookingCard extends StatelessWidget {
   });
 
   Color _getStatusColor() {
-    switch (booking.status) {
-      case 'pending':
-        return AppTheme.warningColor;
-      case 'approved':
-      case 'accepted':
-        return AppTheme.successColor;
-      case 'rejected':
-        return AppTheme.errorColor;
-      case 'completed':
-      case 'checkedOut':
-      case 'checked_out':
-        return Colors.grey;
-      default:
-        return Colors.grey;
-    }
+    if (booking.isPending) return AppTheme.warningColor;
+    if (booking.isApproved) return AppTheme.successColor;
+    if (booking.isRejected) return AppTheme.errorColor;
+    if (booking.isCompleted || booking.isCheckedOut) return Colors.grey;
+    return Colors.grey;
   }
 
   String _getStatusText() {
-    switch (booking.status) {
-      case 'pending':
-        return 'Pending Approval';
-      case 'approved':
-      case 'accepted':
-        return 'Approved';
-      case 'rejected':
-        return 'Rejected';
-      case 'completed':
-        return 'Completed';
-      case 'checkedOut':
-      case 'checked_out':
-        return 'Checked Out';
-      default:
-        return booking.status;
-    }
+    if (booking.isPending) return 'Pending Approval';
+    if (booking.isApproved) return 'Approved';
+    if (booking.isRejected) return 'Rejected';
+    if (booking.isCompleted) return 'Completed';
+    if (booking.isCheckedOut) return 'Checked Out';
+    return booking.effectiveStatus;
   }
 
   @override
@@ -324,8 +296,7 @@ class _BookingCard extends StatelessWidget {
                 ),
 
                 // Payment Info for Deposit Bookings
-                if (booking.paymentMethod == 'vnpay_deposit' &&
-                    booking.paymentStatus == 'partially_paid') ...[
+                if (booking.isDepositPayment && booking.isPartiallyPaid) ...[
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -354,12 +325,12 @@ class _BookingCard extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Deposit Paid (30%):',
-                              style: TextStyle(fontSize: 12),
+                            Text(
+                              'Deposit Paid (${booking.depositPercentage ?? 30}%):',
+                              style: const TextStyle(fontSize: 12),
                             ),
                             Text(
-                              PriceFormatter.formatPriceInteger(booking.depositAmount ?? 0),
+                              PriceFormatter.formatPriceInteger(booking.depositAmount?.toInt() ?? 0),
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -377,9 +348,7 @@ class _BookingCard extends StatelessWidget {
                               style: TextStyle(fontSize: 12),
                             ),
                             Text(
-                              PriceFormatter.formatPriceInteger(
-                                booking.totalPrice - (booking.depositAmount ?? 0)
-                              ),
+                              PriceFormatter.formatPriceInteger(booking.effectiveRemainingAmount.toInt()),
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -394,7 +363,7 @@ class _BookingCard extends StatelessWidget {
                 ],
 
                 // Cash Payment Info
-                if (booking.paymentMethod == 'cash') ...[
+                if (booking.isCashPayment) ...[
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(8),
@@ -402,11 +371,11 @@ class _BookingCard extends StatelessWidget {
                       color: Colors.green.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
-                        const Icon(Icons.money, size: 16, color: Colors.green),
-                        const SizedBox(width: 4),
-                        const Text(
+                        Icon(Icons.money, size: 16, color: Colors.green),
+                        SizedBox(width: 4),
+                        Text(
                           'Payment: Cash at check-in',
                           style: TextStyle(fontSize: 12, color: Colors.green),
                         ),
@@ -428,7 +397,7 @@ class _BookingCard extends StatelessWidget {
 
   Widget _buildActionButtons(BuildContext context) {
     // Show Cancel button for pending bookings
-    if (booking.status == 'pending') {
+    if (booking.isPending) {
       return SizedBox(
         width: double.infinity,
         child: OutlinedButton.icon(
@@ -443,14 +412,13 @@ class _BookingCard extends StatelessWidget {
       );
     }
 
-    // Show Checkout/Extend buttons for accepted/approved bookings
+    // Show Checkout/Extend buttons for approved bookings
     if (!booking.isApproved) {
       return const SizedBox.shrink();
     }
 
-    final now = DateTime.now();
-    final canCheckout = booking.startDate.isBefore(now) && !booking.isCheckedOut;
-    final canExtend = !booking.isCheckedOut && booking.endDate.isAfter(now);
+    final canCheckout = booking.canCheckout && !booking.isCheckedOut;
+    final canExtend = booking.canExtend;
 
     if (!canCheckout && !canExtend) {
       return const SizedBox.shrink();

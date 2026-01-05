@@ -657,5 +657,97 @@ class BookingRepository {
       return null;
     }
   }
+
+  /// Create remaining payment URL for deposit bookings
+  Future<Map<String, dynamic>?> createRemainingPaymentUrl(String bookingId) async {
+    try {
+      final token = await _storageService.getToken();
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/payment/remaining-payment'),
+        headers: ApiConfig.headers(token: token),
+        body: json.encode({'bookingId': bookingId}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        return {
+          'success': true,
+          'paymentUrl': data['paymentUrl'],
+        };
+      }
+
+      final errorData = json.decode(response.body);
+      return {
+        'success': false,
+        'message': errorData['message'] ?? 'Failed to create payment URL',
+      };
+    } catch (e) {
+      debugPrint('❌ Error creating remaining payment URL: $e');
+      return {
+        'success': false,
+        'message': e.toString(),
+      };
+    }
+  }
+
+  /// Update payment method to cash for deposit bookings
+  Future<bool> updatePaymentMethodToCash({
+    required String bookingId,
+  }) async {
+    try {
+      final token = await _storageService.getToken();
+
+      final response = await http.patch(
+        Uri.parse('${ApiConfig.baseUrl}/payment/update-to-cash/$bookingId'),
+        headers: ApiConfig.headers(token: token),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('❌ Error updating payment method to cash: $e');
+      return false;
+    }
+  }
+
+  /// Request booking extension
+  Future<Map<String, dynamic>?> requestExtension({
+    required String bookingId,
+    required DateTime newEndDate,
+  }) async {
+    try {
+      final token = await _storageService.getToken();
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/booking/extend'),
+        headers: ApiConfig.headers(token: token),
+        body: json.encode({
+          'bookingId': bookingId,
+          'newEndDate': newEndDate.toIso8601String(),
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Extension request sent successfully',
+          'booking': data['booking'],
+        };
+      }
+
+      final errorData = json.decode(response.body);
+      return {
+        'success': false,
+        'message': errorData['message'] ?? 'Failed to request extension',
+      };
+    } catch (e) {
+      debugPrint('❌ Error requesting extension: $e');
+      return {
+        'success': false,
+        'message': e.toString(),
+      };
+    }
+  }
 }
 

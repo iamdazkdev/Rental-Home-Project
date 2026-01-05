@@ -299,7 +299,7 @@ class _RoommatePostCard extends StatelessWidget {
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
-                  children: post.lifestyle.displayList.take(3).map((value) {
+                  children: post.lifestyle.displayList.take(3).map((display) {
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -307,7 +307,7 @@ class _RoommatePostCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        value,
+                        display,
                         style: const TextStyle(fontSize: 11),
                       ),
                     );
@@ -351,19 +351,6 @@ class _RoommatePostCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatLifestyleValue(String key, String value) {
-    switch (key) {
-      case 'sleepSchedule':
-        return value == 'early_bird' ? '🌅 Early Bird' : '🦉 Night Owl';
-      case 'smoking':
-        return value == 'non_smoker' ? '🚭 Non-Smoker' : '🚬 Smoker';
-      case 'cleanliness':
-        return value == 'very_clean' ? '✨ Very Clean' : '🧹 Clean';
-      default:
-        return value;
-    }
   }
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config/app_theme.dart';
+import '../data/models/identity_verification_model.dart';
 import '../services/identity_verification_service.dart';
 
 /// Widget to check identity verification status and prompt user if needed
@@ -62,7 +63,7 @@ class VerificationRequiredDialog extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 40, color: iconColor),
@@ -109,18 +110,27 @@ Future<bool> checkVerificationAndPrompt({
   required VoidCallback onVerifyPressed,
 }) async {
   final service = IdentityVerificationService();
-  final result = await service.checkStatus(userId);
+  final result = await service.getVerificationStatus(userId);
 
-  if (!result['success']) {
+  if (!result['exists']) {
     return false;
   }
 
-  final exists = result['exists'] == true;
   final status = result['status'];
 
   // If approved, allow to proceed
-  if (exists && status == 'approved') {
+  if (status == 'approved') {
     return true;
+  }
+
+  // Parse verification data
+  IdentityVerification? verification;
+  if (result['verification'] != null) {
+    try {
+      verification = IdentityVerification.fromJson(result['verification']);
+    } catch (e) {
+      // Ignore parsing errors
+    }
   }
 
   // Show dialog for other cases
@@ -129,7 +139,7 @@ Future<bool> checkVerificationAndPrompt({
       context: context,
       barrierDismissible: false,
       builder: (ctx) => VerificationRequiredDialog(
-        verification: result['verification'],
+        verification: verification,
         onVerifyNow: () {
           Navigator.of(ctx).pop();
           onVerifyPressed();
@@ -164,19 +174,19 @@ class VerificationStatusBanner extends StatelessWidget {
 
     switch (status) {
       case VerificationStatus.pending:
-        bgColor = Colors.orange.withOpacity(0.1);
+        bgColor = Colors.orange.withValues(alpha: 0.1);
         textColor = Colors.orange[700]!;
         icon = Icons.hourglass_empty;
         message = 'Identity verification is pending review';
         break;
       case VerificationStatus.rejected:
-        bgColor = Colors.red.withOpacity(0.1);
+        bgColor = Colors.red.withValues(alpha: 0.1);
         textColor = Colors.red[700]!;
         icon = Icons.error_outline;
         message = rejectionReason ?? 'Verification rejected. Please update your info.';
         break;
       case VerificationStatus.approved:
-        bgColor = Colors.green.withOpacity(0.1);
+        bgColor = Colors.green.withValues(alpha: 0.1);
         textColor = Colors.green[700]!;
         icon = Icons.verified;
         message = 'Identity verified';

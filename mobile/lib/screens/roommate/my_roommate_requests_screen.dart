@@ -4,7 +4,6 @@ import '../../config/app_theme.dart';
 import '../../models/roommate.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/roommate_service.dart';
-import '../messages/chat_screen.dart';
 
 class MyRoommateRequestsScreen extends StatefulWidget {
   const MyRoommateRequestsScreen({super.key});

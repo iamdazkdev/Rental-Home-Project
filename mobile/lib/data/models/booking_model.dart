@@ -23,6 +23,7 @@ class BookingModel extends Equatable {
   final double remainingAmount;
   final double paidAmount;
   final double finalTotalPrice;
+  final DateTime? remainingDueDate;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -55,6 +56,7 @@ class BookingModel extends Equatable {
     this.remainingAmount = 0,
     this.paidAmount = 0,
     this.finalTotalPrice = 0,
+    this.remainingDueDate,
     this.createdAt,
     this.updatedAt,
     this.extensionDays = 0,
@@ -84,6 +86,7 @@ class BookingModel extends Equatable {
       remainingAmount: (json['remainingAmount'] ?? 0).toDouble(),
       paidAmount: (json['paidAmount'] ?? 0).toDouble(),
       finalTotalPrice: (json['finalTotalPrice'] ?? json['totalPrice'] ?? 0).toDouble(),
+      remainingDueDate: json['remainingDueDate'] != null ? _parseDate(json['remainingDueDate']) : null,
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
       extensionDays: json['extensionDays'] ?? 0,

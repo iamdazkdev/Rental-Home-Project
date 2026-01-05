@@ -389,18 +389,15 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: _post!.lifestyle.displayList.asMap().entries.map((entry) {
-        final index = entry.key;
-        final value = entry.value;
-        final icons = ['🌙', '🚬', '🐾', '🧹']; // sleep, smoking, pets, cleanliness
+      children: _post!.lifestyle.displayList.map<Widget>((item) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(20),
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
-            '${icons[index]} $value',
+            item,
             style: const TextStyle(fontSize: 13),
           ),
         );

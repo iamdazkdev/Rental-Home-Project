@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../config/app_theme.dart';
-import '../models/booking.dart';
 
 /// Widget to display booking status with proper styling
 class BookingStatusBadge extends StatelessWidget {
@@ -79,7 +78,7 @@ class BookingStatusBadge extends StatelessWidget {
         vertical: isCompact ? 4 : 6,
       ),
       decoration: BoxDecoration(
-        color: _color.withOpacity(0.15),
+        color: _color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(isCompact ? 8 : 12),
       ),
       child: Text(
@@ -184,7 +183,7 @@ class PaymentStatusBadge extends StatelessWidget {
             vertical: isCompact ? 2 : 4,
           ),
           decoration: BoxDecoration(
-            color: _color.withOpacity(0.1),
+            color: _color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
@@ -226,9 +225,9 @@ class DepositPaymentCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.1),
+        color: Colors.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,9 +310,9 @@ class ListingLockedBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.1),
+        color: Colors.red.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red.withOpacity(0.3)),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

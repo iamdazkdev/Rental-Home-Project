@@ -219,7 +219,7 @@ class BookingCubit extends Cubit<BookingState> {
         emit(BookingLoaded(
           booking: booking,
           status: status,
-          availableActions: _getAvailableActions(status),
+          availableActions: _getAvailableActions(booking, status),
         ));
     }
   }
@@ -396,24 +396,6 @@ class BookingCubit extends Cubit<BookingState> {
     return [PaymentType.full, PaymentType.deposit];
   }
 
-  List<String> _getAvailableActions(BookingStatus status) {
-    switch (status) {
-      case BookingStatus.pending:
-      case BookingStatus.pendingApproval:
-        return ['CANCEL'];
-      case BookingStatus.agreementRequired:
-        return ['SIGN_AGREEMENT', 'CANCEL'];
-      case BookingStatus.pendingPayment:
-      case BookingStatus.partiallyPaid:
-        return ['PAY', 'CANCEL'];
-      case BookingStatus.approved:
-      case BookingStatus.checkedIn:
-        return ['CANCEL'];
-      default:
-        return [];
-    }
-  }
-
   void _startIntentExpiryTimer(BookingIntentModel intent) {
     _cancelIntentExpiryTimer();
 
@@ -491,6 +473,169 @@ class BookingCubit extends Cubit<BookingState> {
   void _cancelPaymentPolling() {
     _paymentPollingTimer?.cancel();
     _paymentPollingTimer = null;
+  }
+
+  /// Fetch booking by ID
+  Future<void> fetchBookingById(String bookingId) async {
+    emit(const BookingLoading(message: 'Loading booking details...'));
+
+    try {
+      final booking = await _bookingRepository.getBookingById(bookingId);
+
+      if (booking != null) {
+        final status = _getBookingStatus(booking);
+        final actions = _getAvailableActions(booking, status);
+
+        emit(BookingLoaded(
+          booking: booking,
+          status: status,
+          availableActions: actions,
+        ));
+      } else {
+        emit(const BookingError(message: 'Booking not found'));
+      }
+    } catch (e) {
+      emit(BookingError(message: e.toString()));
+    }
+  }
+
+  /// Complete remaining payment for deposit bookings
+  Future<Map<String, dynamic>> completeRemainingPayment({
+    required String bookingId,
+    required String paymentMethod, // 'vnpay' or 'cash'
+  }) async {
+    try {
+      if (paymentMethod == 'vnpay') {
+        // Create VNPay payment URL for remaining amount
+        final result = await _bookingRepository.createRemainingPaymentUrl(bookingId);
+
+        if (result != null && result['paymentUrl'] != null) {
+          return {
+            'success': true,
+            'paymentUrl': result['paymentUrl'],
+          };
+        } else {
+          return {
+            'success': false,
+            'message': 'Failed to create payment URL',
+          };
+        }
+      } else if (paymentMethod == 'cash') {
+        // Update payment method to cash for remaining
+        final result = await _bookingRepository.updatePaymentMethodToCash(
+          bookingId: bookingId,
+        );
+
+        if (result) {
+          return {
+            'success': true,
+            'message': 'Payment method updated to cash',
+          };
+        } else {
+          return {
+            'success': false,
+            'message': 'Failed to update payment method',
+          };
+        }
+      }
+
+      return {
+        'success': false,
+        'message': 'Invalid payment method',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': e.toString(),
+      };
+    }
+  }
+
+  /// Request stay extension
+  Future<Map<String, dynamic>> requestStayExtension({
+    required String bookingId,
+    required DateTime newEndDate,
+  }) async {
+    try {
+      final result = await _bookingRepository.requestExtension(
+        bookingId: bookingId,
+        newEndDate: newEndDate,
+      );
+
+      if (result != null && result['success'] == true) {
+        // Reload booking to get updated data
+        loadBooking(bookingId);
+
+        return {
+          'success': true,
+          'message': result['message'] ?? 'Extension request sent',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': result?['message'] ?? 'Failed to send extension request',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': e.toString(),
+      };
+    }
+  }
+
+  /// Get booking status based on booking model
+  BookingStatus _getBookingStatus(BookingModel booking) {
+    return booking.bookingStatus;
+  }
+
+  /// Get available actions for a booking based on its status
+  List<String> _getAvailableActions(BookingModel booking, BookingStatus status) {
+    final actions = <String>[];
+
+    switch (status) {
+      case BookingStatus.draft:
+        actions.add('CANCEL');
+        break;
+
+      case BookingStatus.pending:
+      case BookingStatus.pendingApproval:
+        actions.add('CANCEL');
+        break;
+
+      case BookingStatus.agreementRequired:
+        actions.addAll(['SIGN_AGREEMENT', 'CANCEL']);
+        break;
+
+      case BookingStatus.pendingPayment:
+      case BookingStatus.partiallyPaid:
+        actions.addAll(['PAY', 'CANCEL']);
+        break;
+
+      case BookingStatus.approved:
+        actions.addAll(['CHECK_IN', 'CANCEL']);
+        break;
+
+      case BookingStatus.checkedIn:
+        actions.addAll(['CHECK_OUT', 'EXTEND']);
+        break;
+
+      case BookingStatus.checkedOut:
+        actions.add('COMPLETE');
+        break;
+
+      case BookingStatus.completed:
+        actions.add('REVIEW');
+        break;
+
+      case BookingStatus.cancelled:
+      case BookingStatus.rejected:
+      case BookingStatus.expired:
+        // No actions available for terminal states
+        break;
+    }
+
+    return actions;
   }
 
   @override
