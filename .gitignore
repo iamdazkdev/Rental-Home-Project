@@ -89,3 +89,9 @@ build/
 # VS Code server files
 .vscode/.server-controller-port.log
 .vscode/server-controller-port.log
+
+# Documentation files (except README.md)
+*.md
+!README.md
+!docs/**/*.md
+
