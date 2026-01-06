@@ -274,7 +274,7 @@ class BookingService {
         uri,
         headers: ApiConfig.headers(token: token),
         body: json.encode({
-          'extensionDays': additionalDays,
+          'additionalDays': additionalDays, // Changed from extensionDays to match server
         }),
       );
 

@@ -2,13 +2,17 @@ class ApiConstants {
   // For Android Emulator use: 10.0.2.2
   // For iOS Simulator use: 127.0.0.1 or your machine IP
   // For Real Device use: Your machine's local IP (e.g., 192.168.1.x)
+  // To find your IP: Run `ipconfig getifaddr en0` on macOS or `ipconfig` on Windows
 
   static const bool isProduction = false;
 
   // Development URLs
   static const String _devBaseUrl = 'http://10.0.2.2:3001'; // Android Emulator
   static const String _devBaseUrlIOS = 'http://127.0.0.1:3001'; // iOS Simulator
-  static const String _devBaseUrlDevice = 'http://192.168.1.100:3001'; // Real device - UPDATE THIS
+
+  // ⚠️ UPDATE THIS WITH YOUR MACHINE'S IP ADDRESS
+  // Run: ipconfig getifaddr en0 (macOS) or ipconfig (Windows)
+  static const String _devBaseUrlDevice = 'http://192.168.1.180:3001'; // Real device
 
   // Production URL
   static const String _prodBaseUrl = 'https://api.yourapp.com';
@@ -16,8 +20,8 @@ class ApiConstants {
   // Auto-detect platform and return appropriate URL
   static String get baseUrl {
     if (isProduction) return _prodBaseUrl;
-    // Default to Android emulator URL - change as needed
-    return _devBaseUrl;
+    // Using device URL for real device testing
+    return _devBaseUrlDevice;
   }
 
   // Auth endpoints

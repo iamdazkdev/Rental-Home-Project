@@ -13,17 +13,54 @@ const vnpayService = require("../services/vnpayService");
 router.post("/create-payment-url", async (req, res) => {
   try {
     console.log("📥 Received create-payment-url request:", {
+      hasTempOrderId: !!req.body.tempOrderId,
       hasBookingData: !!req.body.bookingData,
       hasAmount: !!req.body.amount,
-      bookingDataKeys: req.body.bookingData ? Object.keys(req.body.bookingData) : [],
+      hasReturnUrl: !!req.body.returnUrl,
+      returnUrlValue: req.body.returnUrl, // ✅ Show actual value
     });
 
-    const { bookingData, amount, ipAddr } = req.body;
+    const { tempOrderId: providedTempOrderId, bookingData, amount, orderInfo, ipAddr, returnUrl } = req.body;
 
+    // NEW FLOW: If tempOrderId is provided, use existing BookingIntent
+    if (providedTempOrderId) {
+      console.log("🔄 Using existing BookingIntent:", providedTempOrderId);
+
+      if (!amount || amount <= 0) {
+        console.error("❌ Invalid amount:", amount);
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
+          message: "Valid amount is required",
+        });
+      }
+
+      // Use the provided tempOrderId (which is the intentId from BookingIntent)
+      const paymentParams = {
+        orderId: providedTempOrderId,
+        amount,
+        orderInfo: orderInfo || `Payment - ${providedTempOrderId}`,
+        orderType: 'billpayment',
+        locale: 'vn',
+        ipAddr: ipAddr || req.ip || '127.0.0.1',
+        bankCode: '',
+        returnUrl: returnUrl, // ✅ Pass custom returnUrl from mobile or web
+      };
+
+      const paymentUrl = vnpayService.createPaymentUrl(paymentParams);
+
+      console.log(`✅ VNPay payment URL created for BookingIntent ${providedTempOrderId} (Amount: ${amount.toLocaleString()} VND)`);
+
+      return res.status(HTTP_STATUS.OK).json({
+        paymentUrl,
+        tempOrderId: providedTempOrderId,
+        amount: amount,
+      });
+    }
+
+    // OLD FLOW: If bookingData is provided, create PendingBooking (for backward compatibility)
     if (!bookingData) {
-      console.error("❌ Missing bookingData in request");
+      console.error("❌ Missing both tempOrderId and bookingData in request");
       return res.status(HTTP_STATUS.BAD_REQUEST).json({
-        message: "Booking data is required",
+        message: "Either tempOrderId or bookingData is required",
       });
     }
 
@@ -67,18 +104,19 @@ router.post("/create-payment-url", async (req, res) => {
 
     // Determine order info based on payment type
     const isDeposit = bookingData.paymentMethod === 'vnpay_deposit';
-    const orderInfo = isDeposit
+    const finalOrderInfo = isDeposit
       ? `Dat coc ${bookingData.depositPercentage}% - Booking ${tempOrderId}`
       : `Thanh toan dat phong - Booking ${tempOrderId}`;
 
     const paymentParams = {
       orderId: tempOrderId,
       amount, // Amount is already in VND from client
-      orderInfo,
+      orderInfo: finalOrderInfo,
       orderType: 'billpayment',
       locale: 'vn',
       ipAddr: ipAddr || req.ip || '127.0.0.1',
       bankCode: '', // Leave empty for user to select bank
+      returnUrl: returnUrl, // ✅ Pass custom returnUrl if provided
     };
 
     // Create payment URL

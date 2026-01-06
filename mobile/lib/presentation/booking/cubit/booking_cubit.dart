@@ -70,8 +70,9 @@ class BookingCubit extends Cubit<BookingState> {
 
       if (intent == null) {
         emit(const BookingError(
-          message: 'This listing is currently being reserved by another user. Please try again.',
+          message: 'Unable to reserve this listing. It may be booked by another user or unavailable for the selected dates.',
           errorCode: 'LISTING_LOCKED',
+          canRetry: true,
         ));
         return;
       }
@@ -89,8 +90,21 @@ class BookingCubit extends Cubit<BookingState> {
         intent: intent,
         timeRemaining: intent.timeRemaining,
       ));
+    } on Exception catch (e) {
+      // Handle specific error messages from server
+      String errorMessage = e.toString().replaceAll('Exception: ', '');
+      if (errorMessage.isEmpty) {
+        errorMessage = 'Failed to create booking. Please try again.';
+      }
+      emit(BookingError(
+        message: errorMessage,
+        canRetry: true,
+      ));
     } catch (e) {
-      emit(BookingError(message: e.toString()));
+      emit(BookingError(
+        message: 'An unexpected error occurred: ${e.toString()}',
+        canRetry: true,
+      ));
     } finally {
       _isProcessing = false;
     }
@@ -122,9 +136,27 @@ class BookingCubit extends Cubit<BookingState> {
           paymentId: intent.tempOrderId,
           paymentUrl: paymentUrl,
         ));
+        return paymentUrl;
+      } else {
+        emit(const BookingError(
+          message: 'Failed to create payment URL. Please try again.',
+          canRetry: true,
+        ));
+        return null;
       }
-
-      return paymentUrl;
+    } on Exception catch (e) {
+      final errorMessage = e.toString().replaceFirst('Exception: ', '');
+      emit(BookingError(
+        message: errorMessage,
+        canRetry: true,
+      ));
+      return null;
+    } catch (e) {
+      emit(BookingError(
+        message: 'Failed to initiate payment: ${e.toString()}',
+        canRetry: true,
+      ));
+      return null;
     } finally {
       _isProcessing = false;
     }
@@ -170,6 +202,22 @@ class BookingCubit extends Cubit<BookingState> {
     } finally {
       _isProcessing = false;
     }
+  }
+
+  /// Create booking from payment callback (alias for handleVNPayCallback)
+  /// This is called after VNPay payment is successful
+  Future<void> createBookingFromPayment({
+    required String tempOrderId,
+    required String transactionId,
+    required Map<String, dynamic> paymentData,
+  }) async {
+    // Convert Map<String, dynamic> to Map<String, String>
+    final queryParams = paymentData.map((key, value) => MapEntry(key, value.toString()));
+
+    await handleVNPayCallback(
+      tempOrderId: tempOrderId,
+      queryParams: queryParams,
+    );
   }
 
   /// Handle state transitions based on backend response

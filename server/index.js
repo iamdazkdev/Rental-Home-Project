@@ -13,7 +13,7 @@ const server = http.createServer(app);
 // Setup Socket.io with CORS
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: "*", // Allow all origins for local development (mobile devices)
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -232,9 +232,9 @@ const DB_NAME = process.env.DB_NAME;
 mongoose
   .connect(process.env.MONGO_URL, { dbName: DB_NAME })
   .then(() => {
-    const HOST = process.env.HOST || "localhost";
+    const HOST = process.env.HOST || "0.0.0.0"; // Changed to 0.0.0.0 to accept connections from all network interfaces
     server.listen(PORT, HOST, () => {
-      console.log(`🚀 Server running on https://${HOST}:${PORT}`);
+      console.log(`🚀 Server running on http://${HOST}:${PORT}`);
       console.log(`💬 Socket.io enabled for real-time chat`);
 
       // Start payment reminder scheduler

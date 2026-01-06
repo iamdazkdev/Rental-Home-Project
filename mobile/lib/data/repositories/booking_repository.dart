@@ -48,31 +48,43 @@ class BookingRepository {
         final data = json.decode(response.body);
         debugPrint('✅ BookingIntent created: ${data['tempOrderId']}');
 
-        // Backend returns { tempOrderId, paymentAmount, depositAmount?, remainingAmount? }
-        // We need to fetch the full intent or construct it
-        return BookingIntentModel.fromJson({
-          '_id': data['tempOrderId'],
-          'tempOrderId': data['tempOrderId'],
-          'listingId': listingId,
-          'customerId': await _storageService.getUserId() ?? '',
-          'hostId': hostId,
-          'startDate': startDate.toIso8601String(),
-          'endDate': endDate.toIso8601String(),
-          'totalPrice': totalPrice,
-          'paymentMethod': 'vnpay',
-          'paymentType': paymentType,
-          'paymentAmount': data['paymentAmount'] ?? totalPrice,
-          'depositPercentage': paymentType == 'deposit' ? 30 : 0,
-          'depositAmount': data['depositAmount'] ?? 0,
-          'remainingAmount': data['remainingAmount'] ?? 0,
-          'expiresAt': DateTime.now().add(const Duration(minutes: 30)).toIso8601String(),
-          'isExpired': false,
-          'status': 'LOCKED',
-        });
+        // Backend returns { success, tempOrderId, paymentAmount, paymentType, message }
+        if (data['success'] == true) {
+          // We need to fetch the full intent or construct it
+          return BookingIntentModel.fromJson({
+            '_id': data['tempOrderId'],
+            'tempOrderId': data['tempOrderId'],
+            'listingId': listingId,
+            'customerId': await _storageService.getUserId() ?? '',
+            'hostId': hostId,
+            'startDate': startDate.toIso8601String(),
+            'endDate': endDate.toIso8601String(),
+            'totalPrice': totalPrice,
+            'paymentMethod': 'vnpay',
+            'paymentType': paymentType,
+            'paymentAmount': data['paymentAmount'] ?? totalPrice,
+            'depositPercentage': paymentType == 'deposit' ? 30 : 0,
+            'depositAmount': paymentType == 'deposit' ? (totalPrice * 0.3) : 0,
+            'remainingAmount': paymentType == 'deposit' ? (totalPrice * 0.7) : 0,
+            'expiresAt': DateTime.now().add(const Duration(minutes: 30)).toIso8601String(),
+            'isExpired': false,
+            'status': 'LOCKED',
+          });
+        }
+      }
+
+      // Handle error response
+      if (response.statusCode >= 400) {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? errorData['error'] ?? 'Failed to create booking intent';
+        debugPrint('❌ Failed to create booking intent: $errorMessage');
+        debugPrint('❌ Response body: ${response.body}');
+        throw Exception(errorMessage);
       }
 
       final errorData = json.decode(response.body);
-      debugPrint('❌ Failed to create booking intent: ${errorData['message']}');
+      final errorMessage = errorData['message'] ?? 'Failed to create booking intent';
+      debugPrint('❌ Failed to create booking intent: $errorMessage');
       return null;
     } catch (e) {
       debugPrint('❌ Error creating booking intent: $e');
@@ -106,18 +118,30 @@ class BookingRepository {
         body: json.encode(body),
       );
 
+      debugPrint('📥 Payment URL response status: ${response.statusCode}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         debugPrint('✅ VNPay URL created: ${data['paymentUrl']}');
         return data['paymentUrl'];
       }
 
+      // Handle error response
+      if (response.statusCode >= 400) {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? errorData['error'] ?? 'Failed to create payment URL';
+        debugPrint('❌ Failed to create payment URL: $errorMessage');
+        debugPrint('❌ Response body: ${response.body}');
+        throw Exception(errorMessage);
+      }
+
       final errorData = json.decode(response.body);
-      debugPrint('❌ Failed to create payment URL: ${errorData['message']}');
-      return null;
+      final errorMessage = errorData['message'] ?? 'Failed to create payment URL';
+      debugPrint('❌ Failed to create payment URL: $errorMessage');
+      throw Exception(errorMessage);
     } catch (e) {
       debugPrint('❌ Error creating payment URL: $e');
-      return null;
+      rethrow;
     }
   }
 

@@ -100,13 +100,15 @@ class BookingService {
         remainingAmount = totalPrice - depositAmount;
       }
 
-      // Generate unique tempOrderId
-      const tempOrderId = `INTENT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // Generate unique intentId and tempOrderId
+      const intentId = `INTENT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const tempOrderId = intentId; // Use same value for compatibility
 
       // Create BookingIntent (expires in 30 minutes)
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
 
       const bookingIntent = new BookingIntent({
+        intentId,
         tempOrderId,
         customerId,
         hostId,

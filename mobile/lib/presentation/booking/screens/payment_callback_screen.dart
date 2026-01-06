@@ -9,9 +9,9 @@ class PaymentCallbackScreen extends StatefulWidget {
   final Map<String, String> queryParams;
 
   const PaymentCallbackScreen({
-    Key? key,
+    super.key,
     required this.queryParams,
-  }) : super(key: key);
+  });
 
   @override
   State<PaymentCallbackScreen> createState() => _PaymentCallbackScreenState();

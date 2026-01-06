@@ -438,7 +438,7 @@ class _ListingCardState extends State<_ListingCard> {
                       children: [
                         Text(
                           formatVND(widget.listing.price, showCurrency: false),
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,
                               ),

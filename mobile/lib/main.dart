@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
-import 'package:uni_links/uni_links.dart';
+import 'package:app_links/app_links.dart';
 import 'config/app_theme.dart';
 import 'providers/auth_provider.dart';
 import 'services/storage_service.dart';
@@ -10,6 +10,7 @@ import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/main_screen.dart';
+import 'screens/trips/trips_screen.dart';
 import 'screens/verification/identity_verification_screen.dart';
 import 'screens/payment/payment_reminder_screen.dart';
 import 'screens/bookings/extend_stay_screen.dart';
@@ -40,6 +41,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  late AppLinks _appLinks;
   StreamSubscription? _linkSubscription;
 
   @override
@@ -49,21 +51,21 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _initDeepLinks() async {
+    _appLinks = AppLinks();
+
     // Handle initial link if app was opened via deep link
     try {
-      final initialLink = await getInitialUri();
-      if (initialLink != null) {
-        _handleDeepLink(initialLink);
+      final initialUri = await _appLinks.getInitialLink();
+      if (initialUri != null) {
+        _handleDeepLink(initialUri);
       }
     } catch (e) {
       debugPrint('Error getting initial link: $e');
     }
 
     // Handle incoming links when app is already running
-    _linkSubscription = uriLinkStream.listen((Uri? uri) {
-      if (uri != null) {
-        _handleDeepLink(uri);
-      }
+    _linkSubscription = _appLinks.uriLinkStream.listen((Uri uri) {
+      _handleDeepLink(uri);
     }, onError: (err) {
       debugPrint('Error listening to link stream: $err');
     });
@@ -71,10 +73,15 @@ class _MyAppState extends State<MyApp> {
 
   void _handleDeepLink(Uri uri) {
     debugPrint('📱 Deep link received: $uri');
+    debugPrint('   - Scheme: ${uri.scheme}');
+    debugPrint('   - Host: ${uri.host}');
+    debugPrint('   - Path: ${uri.path}');
+    debugPrint('   - Query: ${uri.query}');
 
     if (uri.host == 'payment-callback') {
       // Extract query parameters from VNPay callback
       final queryParams = uri.queryParameters;
+      debugPrint('   - Query params: $queryParams');
 
       _navigatorKey.currentState?.pushNamed(
         '/payment-callback',
@@ -117,6 +124,7 @@ class _MyAppState extends State<MyApp> {
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const MainScreen(),
+          '/trips': (context) => const TripsScreen(),
         },
         onGenerateRoute: (settings) {
           // Handle dynamic routes with arguments

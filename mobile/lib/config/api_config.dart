@@ -1,9 +1,11 @@
+import 'package:rental_home/core/constants/api_constants.dart';
+
 class ApiConfig {
   // Base URL - Change this based on your platform
   // For iOS Simulator: use 'http://localhost:3001'
   // For Android Emulator: use 'http://10.0.2.2:3001'
   // For Physical Device: use your computer's IP, e.g., 'http://192.168.1.100:3001'
-  static const String baseUrl = 'http://localhost:3001';
+  static String baseUrl = ApiConstants.baseUrl ?? 'http://192.168.1.180:3001';
 
   // API Endpoints
   static const String auth = '/auth';
@@ -12,23 +14,23 @@ class ApiConfig {
   static const String forgotPassword = '/auth/forgot-password';
   static const String resetPassword = '/auth/reset-password';
 
-  static const String listings = '/listing';  // Backend uses /listing not /listings
+  static const String listings = '/listing';
   static const String search = '/search';
   static const String listingDetails = '/listing';
 
-  static const String bookings = '/booking';  // Backend uses /booking not /bookings
-  static const String trips = '/user';  // Used with /:userId/trips
-  static const String reservations = '/user';  // Used with /:userId/reservations
+  static const String bookings = '/booking';
+  static const String trips = '/user';
+  static const String reservations = '/user';
 
-  static const String wishlist = '/user';  // PATCH /user/:userId/:listingId (toggle wishlist)
-  static const String addToWishlist = '/user';  // Same endpoint
+  static const String wishlist = '/user';
+  static const String addToWishlist = '/user';
 
   static const String messages = '/messages';
   static const String conversations = '/messages/conversations';
   static const String unreadMessages = '/messages/unread';
 
   static const String notifications = '/notifications';
-  static const String markNotificationRead = '/notifications';  // PATCH /notifications/:notificationId/read
+  static const String markNotificationRead = '/notifications';
 
   static const String hostProfile = '/host';
   static const String hostReviews = '/host-reviews/host';
@@ -36,7 +38,7 @@ class ApiConfig {
   static const String reviews = '/reviews';
   static const String listingReviews = '/reviews/listing';
 
-  static const String properties = '/properties';  // GET /properties/:userId/properties
+  static const String properties = '/properties';
 
   // WebSocket
   static const String socketUrl = 'http://localhost:3001';

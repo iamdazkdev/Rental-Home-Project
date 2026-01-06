@@ -61,17 +61,25 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const SizedBox(height: 48),
                 // Logo
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(
-                    Icons.home_rounded,
-                    size: 60,
-                    color: AppTheme.primaryColor,
+                GestureDetector(
+                  onTap: (){
+                    setState(() {
+                      _emailController.text = 'anhaaa2305@gmail.com';
+                      _passwordController.text = 'Anhhlv@230500';
+                    });
+                  },
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      Icons.home_rounded,
+                      size: 60,
+                      color: AppTheme.primaryColor,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),

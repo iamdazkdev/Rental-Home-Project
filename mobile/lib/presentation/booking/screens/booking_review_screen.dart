@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/enums/booking_enums.dart';
 import '../../../data/models/listing_model.dart';
 import '../cubit/booking_cubit.dart';
 import '../cubit/booking_state.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'vnpay_payment_screen.dart';
 
 /// Booking Review Screen for Entire Place Rental
 /// Displays booking summary and 3 payment options
@@ -17,13 +18,13 @@ class BookingReviewScreen extends StatefulWidget {
   final double totalPrice;
 
   const BookingReviewScreen({
-    Key? key,
+    super.key,
     required this.listing,
     required this.checkIn,
     required this.checkOut,
     required this.nights,
     required this.totalPrice,
-  }) : super(key: key);
+  });
 
   @override
   State<BookingReviewScreen> createState() => _BookingReviewScreenState();
@@ -203,7 +204,7 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
               title: 'VNPay - Pay Full (100%)',
               subtitle: 'Pay ${_formatPrice(widget.totalPrice)} VND now',
               icon: Icons.credit_card,
-              badge: 'Recommended',
+              // badge: 'Recommended',
             ),
             const SizedBox(height: 12),
             _buildPaymentOption(
@@ -255,7 +256,7 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
               activeColor: const Color(0xFF4CAF50),
             ),
             Icon(icon, color: const Color(0xFF4CAF50)),
-            const SizedBox(width: 2),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,7 +268,7 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       if (badge != null) ...[
-                        const SizedBox(width: 2),
+                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -375,7 +376,9 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
   }
 
   void _initiatePayment(BuildContext context, intent) {
-    final returnUrl = 'yourapp://payment-callback'; // Deep link for app
+    // Use localhost returnUrl for mobile webview (same as web)
+    // After VNPay redirects, we'll detect URL change and handle it
+    final returnUrl = 'http://192.168.1.180:3000/entire-place/vnpay-callback';
 
     context.read<BookingCubit>().initiateVNPayPayment(
           intent: intent,
@@ -386,13 +389,48 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
   Future<void> _launchPaymentUrl(String? url) async {
     if (url == null) return;
 
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
+    debugPrint('🚀 Launching VNPay payment: $url');
+
+    // Navigate to VNPayPaymentScreen which handles the payment flow
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VNPayPaymentScreen(
+          paymentUrl: url,
+          tempOrderId: context.read<BookingCubit>().state is BookingIntentCreated
+              ? (context.read<BookingCubit>().state as BookingIntentCreated).intent.tempOrderId
+              : '',
+        ),
+      ),
+    );
+
+    if (result != null && mounted) {
+      if (result['success'] == true) {
+        // Payment successful - create booking from payment
+        final tempOrderId = result['tempOrderId'] as String;
+        final transactionId = result['transactionId'] as String;
+        final paymentData = result['paymentData'] as Map<String, dynamic>;
+
+        debugPrint('✅ Payment successful, creating booking...');
+        debugPrint('   - tempOrderId: $tempOrderId');
+        debugPrint('   - transactionId: $transactionId');
+
+        // Call cubit to create booking from payment callback
+        context.read<BookingCubit>().createBookingFromPayment(
+          tempOrderId: tempOrderId,
+          transactionId: transactionId,
+          paymentData: paymentData,
+        );
+      } else {
+        // Payment failed
+        final responseCode = result['responseCode'] as String?;
+        debugPrint('❌ Payment failed with code: $responseCode');
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Cannot open payment page')),
+          SnackBar(
+            content: Text('Payment was not completed (Code: $responseCode)'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
