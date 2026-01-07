@@ -16,7 +16,7 @@ class RejectBookingBottomSheet extends StatefulWidget {
 class _RejectBookingBottomSheetState extends State<RejectBookingBottomSheet> {
   String? selectedReason;
   final TextEditingController _customReasonController = TextEditingController();
-  bool _isSubmitting = false;
+  final bool _isSubmitting = false;
 
   final List<String> predefinedReasons = [
     'Property not available for selected dates',
@@ -403,7 +403,8 @@ class _RejectBookingBottomSheetState extends State<RejectBookingBottomSheet> {
 }
 
 // Helper function to show the bottom sheet
-void showRejectBookingSheet(BuildContext context, Map<String, dynamic> booking) {
+void showRejectBookingSheet(
+    BuildContext context, Map<String, dynamic> booking) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -414,4 +415,3 @@ void showRejectBookingSheet(BuildContext context, Map<String, dynamic> booking) 
     ),
   );
 }
-

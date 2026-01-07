@@ -38,8 +38,7 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
 
   String _selectedPaymentMethod = 'vnpay_full'; // vnpay_full, vnpay_deposit, cash
   bool _isSubmitting = false;
-  bool _isCheckingAvailability = false;
-  String? _availabilityError;
+  String? availabilityError;
 
   // Payment method options
   final List<Map<String, dynamic>> _paymentMethods = [
@@ -77,7 +76,7 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
 
     setState(() {
       _isSubmitting = true;
-      _availabilityError = null;
+      availabilityError = null;
     });
 
     try {
@@ -94,7 +93,7 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
       if (!availabilityResult['available'] && availabilityResult['lockedBy'] != user.id) {
         setState(() {
           _isSubmitting = false;
-          _availabilityError = availabilityResult['message'] ??
+          availabilityError = availabilityResult['message'] ??
             'This listing is currently being booked by another user. Please try again later.';
         });
         _showLockedDialog(availabilityResult['lockedUntil']);
@@ -399,7 +398,7 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
               if (intentId != null) {
                 await _bookingIntentService.cancelIntent(intentId);
               }
-
+              if (!context.mounted) return;
               Navigator.of(context).pop(); // Go back to listing
             },
             child: const Text('Cancel'),

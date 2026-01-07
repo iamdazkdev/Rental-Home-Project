@@ -11,12 +11,12 @@ class ChatScreen extends StatefulWidget {
   final String? recipientAvatar;
 
   const ChatScreen({
-    Key? key,
+    super.key,
     required this.conversationId,
     required this.recipientId,
     required this.recipientName,
     this.recipientAvatar,
-  }) : super(key: key);
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -28,7 +28,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final _storageService = StorageService();
 
   String? _currentUserId;
-  bool _isLoading = false;
+  // bool _isLoading = false;
 
   @override
   void initState() {

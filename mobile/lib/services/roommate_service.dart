@@ -24,30 +24,44 @@ class RoommateService {
       final token = await _storageService.getToken();
 
       final queryParams = <String, String>{};
-      if (city != null) queryParams['city'] = city;
-      if (postType != null) queryParams['postType'] = postType;
+      if (city != null && city.isNotEmpty) queryParams['city'] = city;
+      if (postType != null && postType.isNotEmpty) queryParams['postType'] = postType;
       if (budgetMin != null) queryParams['budgetMin'] = budgetMin.toString();
       if (budgetMax != null) queryParams['budgetMax'] = budgetMax.toString();
-      if (genderPreference != null) queryParams['genderPreference'] = genderPreference;
+      if (genderPreference != null && genderPreference.isNotEmpty) {
+        queryParams['genderPreference'] = genderPreference;
+      }
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/roommate/posts')
+      // Use /search endpoint like web client
+      final uri = Uri.parse('${ApiConfig.baseUrl}/roommate/posts/search')
         .replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
 
       debugPrint('🔍 Searching roommate posts: $uri');
+      debugPrint('📋 Query params: $queryParams');
 
       final response = await http.get(
         uri,
         headers: ApiConfig.headers(token: token),
       );
 
+      debugPrint('📥 Search response status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final List<dynamic> posts = data['posts'] ?? data ?? [];
-        return posts.map((json) => RoommatePost.fromJson(json)).toList();
+        debugPrint('📦 Search response data: ${data.keys}');
+
+        if (data['success'] == true) {
+          final List<dynamic> posts = data['posts'] ?? [];
+          debugPrint('✅ Found ${posts.length} roommate posts');
+          return posts.map((json) => RoommatePost.fromJson(json)).toList();
+        }
       }
+
+      debugPrint('⚠️ No posts found or error');
       return [];
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('❌ Error searching posts: $e');
+      debugPrint('📍 Stack trace: $stackTrace');
       return [];
     }
   }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import 'payment_failed_screen.dart';
+import 'payment_processing_screen.dart';
+
 /// VNPay Payment WebView Screen
 /// Handles VNPay payment and intercepts callback URL
 class VNPayPaymentScreen extends StatefulWidget {
@@ -8,10 +11,10 @@ class VNPayPaymentScreen extends StatefulWidget {
   final String tempOrderId;
 
   const VNPayPaymentScreen({
-    Key? key,
+    super.key,
     required this.paymentUrl,
     required this.tempOrderId,
-  }) : super(key: key);
+  });
 
   @override
   State<VNPayPaymentScreen> createState() => _VNPayPaymentScreenState();
@@ -65,8 +68,8 @@ class _VNPayPaymentScreenState extends State<VNPayPaymentScreen> {
   bool _isVNPayCallback(String url) {
     // Check if URL contains VNPay callback parameters
     return url.contains('vnpay-callback') ||
-           url.contains('vnp_ResponseCode') ||
-           url.contains('payment-callback');
+        url.contains('vnp_ResponseCode') ||
+        url.contains('payment-callback');
   }
 
   void _handleUrlChange(String url) {
@@ -94,30 +97,26 @@ class _VNPayPaymentScreenState extends State<VNPayPaymentScreen> {
       // Payment successful
       debugPrint('✅ Payment successful!');
 
-      // Create booking from payment
       if (mounted) {
-        // Show loading message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payment successful! Creating booking...'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+        // Navigate to processing screen first
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const PaymentProcessingScreen(),
           ),
         );
 
-        // Create payment data from VNPay callback parameters
-        final paymentData = uri.queryParameters;
-
-        // Wait a moment for the user to see the success message
-        await Future.delayed(const Duration(milliseconds: 500));
+        // Wait a moment to show processing
+        await Future.delayed(const Duration(milliseconds: 1500));
 
         if (mounted) {
-          // Return payment data to the previous screen
+          // Return payment data to booking review screen
+          // The booking review screen will handle creating the booking
+          Navigator.of(context).popUntil((route) => route.isFirst);
           Navigator.of(context).pop({
             'success': true,
             'tempOrderId': widget.tempOrderId,
             'transactionId': transactionId,
-            'paymentData': paymentData,
+            'paymentData': uri.queryParameters,
           });
         }
       }
@@ -126,23 +125,35 @@ class _VNPayPaymentScreenState extends State<VNPayPaymentScreen> {
       debugPrint('❌ Payment failed with code: $responseCode');
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Payment failed (Code: $responseCode)'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
+        // Navigate to failure screen
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => PaymentFailedScreen(
+              errorMessage: _getFailureMessage(responseCode),
+              transactionId: transactionId.isNotEmpty ? transactionId : null,
+            ),
           ),
         );
-
-        await Future.delayed(const Duration(seconds: 2));
-
-        if (mounted) {
-          Navigator.of(context).pop({
-            'success': false,
-            'responseCode': responseCode,
-          });
-        }
       }
+    }
+  }
+
+  String _getFailureMessage(String? code) {
+    if (code == null) return 'Payment was cancelled.';
+
+    switch (code) {
+      case '24':
+        return 'You cancelled the transaction.';
+      case '51':
+        return 'Your account has insufficient balance.';
+      case '65':
+        return 'Transaction limit exceeded.';
+      case '75':
+        return 'Bank is under maintenance.';
+      case '79':
+        return 'Too many incorrect password attempts.';
+      default:
+        return 'Payment could not be completed.';
     }
   }
 
@@ -198,6 +209,17 @@ class _VNPayPaymentScreenState extends State<VNPayPaymentScreen> {
   }
 
   void _showCancelDialog() {
+    // Don't allow cancel during processing
+    if (_isProcessingCallback) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please wait, payment is being processed...'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -211,7 +233,10 @@ class _VNPayPaymentScreenState extends State<VNPayPaymentScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context); // Close dialog
-              Navigator.pop(context, false); // Close webview with failure
+              Navigator.pop(context, {
+                'success': false,
+                'responseCode': '24', // User cancelled
+              }); // Close webview with failure
             },
             child: const Text(
               'Yes, Cancel',
@@ -223,4 +248,3 @@ class _VNPayPaymentScreenState extends State<VNPayPaymentScreen> {
     );
   }
 }
-

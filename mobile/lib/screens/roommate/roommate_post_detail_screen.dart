@@ -1,6 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../config/app_theme.dart';
 import '../../models/roommate.dart';
 import '../../providers/auth_provider.dart';
@@ -16,7 +17,8 @@ class RoommatePostDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<RoommatePostDetailScreen> createState() => _RoommatePostDetailScreenState();
+  State<RoommatePostDetailScreen> createState() =>
+      _RoommatePostDetailScreenState();
 }
 
 class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
@@ -155,7 +157,8 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
                             color: Colors.grey[200],
-                            child: const Center(child: CircularProgressIndicator()),
+                            child: const Center(
+                                child: CircularProgressIndicator()),
                           ),
                         );
                       },
@@ -196,9 +199,12 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
                     children: [
                       const Icon(Icons.location_on, color: Colors.grey),
                       const SizedBox(width: 8),
-                      Text(
-                        '${_post!.city}, ${_post!.province}',
-                        style: const TextStyle(fontSize: 16),
+                      Expanded(
+                        child: Text(
+                          '${_post!.city}, ${_post!.province}',
+                          style: const TextStyle(fontSize: 16),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
@@ -209,12 +215,15 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
                     children: [
                       const Icon(Icons.attach_money, color: Colors.grey),
                       const SizedBox(width: 8),
-                      Text(
-                        '${PriceFormatter.formatPriceInteger(_post!.budgetMin)} - ${PriceFormatter.formatPriceInteger(_post!.budgetMax)}/month',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
+                      Expanded(
+                        child: Text(
+                          '${PriceFormatter.formatPriceInteger(_post!.budgetMin)} - ${PriceFormatter.formatPriceInteger(_post!.budgetMax)}/month',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -226,7 +235,12 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
                     children: [
                       const Icon(Icons.calendar_today, color: Colors.grey),
                       const SizedBox(width: 8),
-                      Text('Move-in: ${_post!.formattedMoveInDate}'),
+                      Expanded(
+                        child: Text(
+                          'Move-in: ${_post!.formattedMoveInDate}',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
 
@@ -262,7 +276,8 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
                   if (_post!.lifestyle.isNotEmpty) ...[
                     const Text(
                       'Lifestyle',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
                     _buildLifestyle(),
@@ -555,4 +570,3 @@ class _SendRequestDialogState extends State<_SendRequestDialog> {
     );
   }
 }
-

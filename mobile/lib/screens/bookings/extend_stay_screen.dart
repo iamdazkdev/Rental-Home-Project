@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import '../../utils/date_formatter.dart';
-import '../../utils/price_formatter.dart';
+
 import '../../data/models/booking_model.dart';
 import '../../presentation/booking/cubit/booking_cubit.dart';
+import '../../utils/date_formatter.dart';
+import '../../utils/price_formatter.dart';
 
 class ExtendStayScreen extends StatefulWidget {
   final BookingModel booking;
 
   const ExtendStayScreen({
-    Key? key,
+    super.key,
     required this.booking,
-  }) : super(key: key);
+  });
 
   @override
   State<ExtendStayScreen> createState() => _ExtendStayScreenState();
@@ -59,7 +60,8 @@ class _ExtendStayScreenState extends State<ExtendStayScreen> {
   void _calculateExtension() {
     if (_newEndDate == null) return;
 
-    final originalDays = widget.booking.endDate.difference(widget.booking.startDate).inDays;
+    final originalDays =
+        widget.booking.endDate.difference(widget.booking.startDate).inDays;
     final dailyRate = widget.booking.totalPrice / originalDays;
 
     _additionalDays = _newEndDate!.difference(widget.booking.endDate).inDays;
@@ -168,137 +170,47 @@ class _ExtendStayScreenState extends State<ExtendStayScreen> {
       body: Stack(
         children: [
           SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Current Booking Info
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Current Reservation',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildInfoRow(
-                        'Check-in',
-                        DateFormatter.formatDate(widget.booking.startDate),
-                        Icons.login,
-                      ),
-                      const Divider(),
-                      _buildInfoRow(
-                        'Check-out',
-                        DateFormatter.formatDate(widget.booking.endDate),
-                        Icons.logout,
-                      ),
-                      const Divider(),
-                      _buildInfoRow(
-                        'Total Days',
-                        '${widget.booking.endDate.difference(widget.booking.startDate).inDays} days',
-                        Icons.calendar_today,
-                      ),
-                      const Divider(),
-                      _buildInfoRow(
-                        'Total Price',
-                        formatVND(widget.booking.totalPrice),
-                        Icons.payment,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // New End Date Selection
-              const Text(
-                'Select New Check-out Date',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              InkWell(
-                onTap: _selectDate,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.calendar_today, color: Color(0xFFFF385C)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _newEndDate != null && _newEndDate != widget.booking.endDate
-                              ? DateFormat('EEE, MMM d, yyyy').format(_newEndDate!)
-                              : 'Tap to select new checkout date',
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Current Booking Info
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Current Reservation',
                           style: TextStyle(
-                            fontSize: 16,
-                            color: _newEndDate != null && _newEndDate != widget.booking.endDate
-                                ? Colors.black
-                                : Colors.grey,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
-                      const Icon(Icons.arrow_drop_down),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Extension Summary
-              if (_newEndDate != null && _additionalDays > 0) ...[
-                Card(
-                  color: Colors.blue.shade50,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.info_outline, color: Colors.blue.shade700),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Extension Summary',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
                         const SizedBox(height: 16),
-                        _buildSummaryRow('Additional Days', '$_additionalDays day(s)'),
-                        const Divider(),
-                        _buildSummaryRow(
-                          'New Total Days',
-                          '${widget.booking.endDate.difference(widget.booking.startDate).inDays + _additionalDays} day(s)',
+                        _buildInfoRow(
+                          'Check-in',
+                          DateFormatter.formatDate(widget.booking.startDate),
+                          Icons.login,
                         ),
                         const Divider(),
-                        _buildSummaryRow(
-                          'Additional Cost',
-                          formatVND(_additionalCost),
-                          isBold: true,
+                        _buildInfoRow(
+                          'Check-out',
+                          DateFormatter.formatDate(widget.booking.endDate),
+                          Icons.logout,
                         ),
                         const Divider(),
-                        _buildSummaryRow(
-                          'New Total Price',
-                          formatVND(widget.booking.totalPrice + _additionalCost),
-                          isBold: true,
-                          color: const Color(0xFFFF385C),
+                        _buildInfoRow(
+                          'Total Days',
+                          '${widget.booking.endDate.difference(widget.booking.startDate).inDays} days',
+                          Icons.calendar_today,
+                        ),
+                        const Divider(),
+                        _buildInfoRow(
+                          'Total Price',
+                          formatVND(widget.booking.totalPrice),
+                          Icons.payment,
                         ),
                       ],
                     ),
@@ -306,62 +218,160 @@ class _ExtendStayScreenState extends State<ExtendStayScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Important Note
-                Card(
-                  color: Colors.orange.shade50,
-                  child: Padding(
+                // New End Date Selection
+                const Text(
+                  'Select New Check-out Date',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                InkWell(
+                  onTap: _selectDate,
+                  child: Container(
                     padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
                       children: [
-                        Row(
-                          children: [
-                            Icon(Icons.warning_amber, color: Colors.orange.shade700),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Important Notice',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                        const Icon(Icons.calendar_today,
+                            color: Color(0xFFFF385C)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _newEndDate != null &&
+                                    _newEndDate != widget.booking.endDate
+                                ? DateFormat('EEE, MMM d, yyyy')
+                                    .format(_newEndDate!)
+                                : 'Tap to select new checkout date',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: _newEndDate != null &&
+                                      _newEndDate != widget.booking.endDate
+                                  ? Colors.black
+                                  : Colors.grey,
                             ),
-                          ],
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          '• The host must approve your extension request\n'
-                          '• You will be notified once the host responds\n'
-                          '• Payment for additional days will be processed after approval\n'
-                          '• Extension requests should be made at least 2 days before checkout',
-                          style: TextStyle(height: 1.5),
-                        ),
+                        const Icon(Icons.arrow_drop_down),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // Submit Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _submitExtensionRequest,
-                    icon: const Icon(Icons.send),
-                    label: const Text('Send Extension Request'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF385C),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                // Extension Summary
+                if (_newEndDate != null && _additionalDays > 0) ...[
+                  Card(
+                    color: Colors.blue.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.info_outline,
+                                  color: Colors.blue.shade700),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Extension Summary',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSummaryRow(
+                              'Additional Days', '$_additionalDays day(s)'),
+                          const Divider(),
+                          _buildSummaryRow(
+                            'New Total Days',
+                            '${widget.booking.endDate.difference(widget.booking.startDate).inDays + _additionalDays} day(s)',
+                          ),
+                          const Divider(),
+                          _buildSummaryRow(
+                            'Additional Cost',
+                            formatVND(_additionalCost),
+                            isBold: true,
+                          ),
+                          const Divider(),
+                          _buildSummaryRow(
+                            'New Total Price',
+                            formatVND(
+                                widget.booking.totalPrice + _additionalCost),
+                            isBold: true,
+                            color: const Color(0xFFFF385C),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+
+                  // Important Note
+                  Card(
+                    color: Colors.orange.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.warning_amber,
+                                  color: Colors.orange.shade700),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Important Notice',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            '• The host must approve your extension request\n'
+                            '• You will be notified once the host responds\n'
+                            '• Payment for additional days will be processed after approval\n'
+                            '• Extension requests should be made at least 2 days before checkout',
+                            style: TextStyle(height: 1.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Submit Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoading ? null : _submitExtensionRequest,
+                      icon: const Icon(Icons.send),
+                      label: const Text('Send Extension Request'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF385C),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
           if (_isLoading)
             Container(
               color: Colors.black26,
@@ -396,7 +406,8 @@ class _ExtendStayScreenState extends State<ExtendStayScreen> {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value, {bool isBold = false, Color? color}) {
+  Widget _buildSummaryRow(String label, String value,
+      {bool isBold = false, Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -422,4 +433,3 @@ class _ExtendStayScreenState extends State<ExtendStayScreen> {
     );
   }
 }
-

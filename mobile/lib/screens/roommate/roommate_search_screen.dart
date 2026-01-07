@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../config/app_theme.dart';
 import '../../models/roommate.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/roommate_service.dart';
 import '../../utils/price_formatter.dart';
-import 'roommate_post_detail_screen.dart';
 import 'create_roommate_post_screen.dart';
+import 'roommate_post_detail_screen.dart';
 
 class RoommateSearchScreen extends StatefulWidget {
   const RoommateSearchScreen({super.key});
@@ -40,9 +41,8 @@ class _RoommateSearchScreenState extends State<RoommateSearchScreen> {
 
     // Filter out current user's own posts
     final user = context.read<AuthProvider>().user;
-    final filteredPosts = user != null
-        ? posts.where((p) => p.userId != user.id).toList()
-        : posts;
+    final filteredPosts =
+        user != null ? posts.where((p) => p.userId != user.id).toList() : posts;
 
     setState(() {
       _posts = filteredPosts;
@@ -92,7 +92,8 @@ class _RoommateSearchScreenState extends State<RoommateSearchScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => RoommatePostDetailScreen(
+                                    builder: (context) =>
+                                        RoommatePostDetailScreen(
                                       postId: _posts[index].id,
                                     ),
                                   ),
@@ -260,9 +261,12 @@ class _RoommatePostCard extends StatelessWidget {
                 children: [
                   const Icon(Icons.location_on, size: 16, color: Colors.grey),
                   const SizedBox(width: 4),
-                  Text(
-                    '${post.city}, ${post.province}',
-                    style: TextStyle(color: Colors.grey[600]),
+                  Expanded(
+                    child: Text(
+                      '${post.city}, ${post.province}',
+                      style: TextStyle(color: Colors.grey[600]),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
@@ -273,9 +277,12 @@ class _RoommatePostCard extends StatelessWidget {
                 children: [
                   const Icon(Icons.attach_money, size: 16, color: Colors.grey),
                   const SizedBox(width: 4),
-                  Text(
-                    '${PriceFormatter.formatPriceInteger(post.budgetMin)} - ${PriceFormatter.formatPriceInteger(post.budgetMax)}/month',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  Expanded(
+                    child: Text(
+                      '${PriceFormatter.formatPriceInteger(post.budgetMin)} - ${PriceFormatter.formatPriceInteger(post.budgetMax)}/month',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
@@ -284,7 +291,8 @@ class _RoommatePostCard extends StatelessWidget {
               // Move-in date
               Row(
                 children: [
-                  const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                  const Icon(Icons.calendar_today,
+                      size: 16, color: Colors.grey),
                   const SizedBox(width: 4),
                   Text(
                     'Move-in: ${post.formattedMoveInDate}',
@@ -301,7 +309,8 @@ class _RoommatePostCard extends StatelessWidget {
                   runSpacing: 6,
                   children: post.lifestyle.displayList.take(3).map((display) {
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.grey[100],
                         borderRadius: BorderRadius.circular(12),
@@ -353,4 +362,3 @@ class _RoommatePostCard extends StatelessWidget {
     );
   }
 }
-

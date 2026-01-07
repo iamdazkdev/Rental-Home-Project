@@ -373,7 +373,6 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 children: [
                   // Contact Host Button
                   Expanded(
-                    flex: 2,
                     child: OutlinedButton.icon(
                       onPressed: () {
                         // Get host name from creator data
@@ -429,7 +428,6 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   const SizedBox(width: 12),
                   // Book Now Button
                   Expanded(
-                    flex: 3,
                     child: ElevatedButton(
                       onPressed: () {
                         _showBookingBottomSheet(context);
@@ -669,7 +667,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
 
   Widget _buildProfileItem(String emoji, String label, String value) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -678,10 +676,11 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 16)),
+              Text(emoji, style: const TextStyle(fontSize: 14)),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
@@ -689,6 +688,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.textSecondaryColor,
                         fontWeight: FontWeight.w600,
+                        fontSize: 11,
                       ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -696,12 +696,13 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             value,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: AppTheme.textPrimaryColor,
                   fontWeight: FontWeight.bold,
+                  fontSize: 12,
                 ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

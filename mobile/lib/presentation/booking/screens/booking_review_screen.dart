@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../../core/enums/booking_enums.dart';
+import 'package:intl/intl.dart';
+
 import '../../../data/models/listing_model.dart';
 import '../cubit/booking_cubit.dart';
 import '../cubit/booking_state.dart';
-import 'package:intl/intl.dart';
 import 'vnpay_payment_screen.dart';
 
 /// Booking Review Screen for Entire Place Rental
-/// Displays booking summary and 3 payment options
 class BookingReviewScreen extends StatefulWidget {
   final ListingModel listing;
   final DateTime checkIn;
@@ -31,61 +29,121 @@ class BookingReviewScreen extends StatefulWidget {
 }
 
 class _BookingReviewScreenState extends State<BookingReviewScreen> {
-  String _selectedPaymentMethod = 'vnpay_full'; // vnpay_full, vnpay_deposit, cash
+  String _selectedPaymentMethod =
+      'vnpay_full'; // vnpay_full, vnpay_deposit, cash
   bool _agreedToTerms = false;
+  bool _isProcessingPayment = false;
 
   double get depositAmount => widget.totalPrice * 0.3;
+
   double get remainingAmount => widget.totalPrice * 0.7;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Review Booking'),
-        backgroundColor: const Color(0xFF4CAF50),
-      ),
-      body: BlocConsumer<BookingCubit, BookingState>(
-        listener: (context, state) {
-          if (state is BookingIntentCreated) {
-            // Intent created, now create payment URL
-            _initiatePayment(context, state.intent);
-          } else if (state is BookingPaymentProcessing) {
-            // Launch VNPay URL
-            _launchPaymentUrl(state.paymentUrl);
-          } else if (state is BookingConfirmed) {
-            // Cash booking or payment completed
-            Navigator.pushReplacementNamed(
-              context,
-              '/booking-confirmation',
-              arguments: state.booking,
-            );
-          } else if (state is BookingError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          }
-        },
-        builder: (context, state) {
-          final isLoading = state is BookingLoading;
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildBookingSummary(),
-                const SizedBox(height: 24),
-                _buildPricingBreakdown(),
-                const SizedBox(height: 24),
-                _buildPaymentOptions(),
-                const SizedBox(height: 24),
-                _buildTermsCheckbox(),
-                const SizedBox(height: 24),
-                _buildConfirmButton(isLoading),
-              ],
+    return WillPopScope(
+      onWillPop: () async {
+        // Prevent back during payment processing
+        if (_isProcessingPayment) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please wait, payment is being processed...'),
+              backgroundColor: Colors.orange,
             ),
           );
-        },
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Review Booking'),
+          backgroundColor: const Color(0xFF4CAF50),
+        ),
+        body: Stack(
+          children: [
+            BlocConsumer<BookingCubit, BookingState>(
+              listener: (context, state) {
+                if (state is BookingIntentCreated) {
+                  // Intent created, now create payment URL
+                  setState(() => _isProcessingPayment = true);
+                  _initiatePayment(context, state.intent);
+                } else if (state is BookingPaymentProcessing) {
+                  // Launch VNPay URL with tempOrderId
+                  _launchPaymentUrl(state.paymentUrl, state.paymentId);
+                } else if (state is BookingConfirmed) {
+                  // Cash booking or payment completed
+                  setState(() => _isProcessingPayment = false);
+                  Navigator.pushReplacementNamed(
+                    context,
+                    '/booking-confirmation',
+                    arguments: state.booking,
+                  );
+                } else if (state is BookingError) {
+                  setState(() => _isProcessingPayment = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.message)),
+                  );
+                }
+              },
+              builder: (context, state) {
+                final isLoading = state is BookingLoading;
+
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildBookingSummary(),
+                      const SizedBox(height: 24),
+                      _buildPricingBreakdown(),
+                      const SizedBox(height: 24),
+                      _buildPaymentOptions(),
+                      const SizedBox(height: 24),
+                      _buildTermsCheckbox(),
+                      const SizedBox(height: 24),
+                      _buildConfirmButton(isLoading),
+                    ],
+                  ),
+                );
+              },
+            ),
+            // Processing overlay
+            if (_isProcessingPayment)
+              Container(
+                color: Colors.black54,
+                child: const Center(
+                  child: Card(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF4CAF50),
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Processing your booking...',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Please do not close this screen',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -210,14 +268,16 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
             _buildPaymentOption(
               value: 'vnpay_deposit',
               title: 'VNPay - Deposit (30%)',
-              subtitle: 'Pay ${_formatPrice(depositAmount)} now, ${_formatPrice(remainingAmount)} at check-in',
+              subtitle:
+                  'Pay ${_formatPrice(depositAmount)} now, ${_formatPrice(remainingAmount)} at check-in',
               icon: Icons.account_balance_wallet,
             ),
             const SizedBox(height: 12),
             _buildPaymentOption(
               value: 'cash',
               title: 'Pay Cash at Check-in',
-              subtitle: 'Pay ${_formatPrice(widget.totalPrice)} VND at property',
+              subtitle:
+                  'Pay ${_formatPrice(widget.totalPrice)} VND at property',
               icon: Icons.money,
             ),
           ],
@@ -330,7 +390,8 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: (!_agreedToTerms || isLoading) ? null : _handleConfirmBooking,
+        onPressed:
+            (!_agreedToTerms || isLoading) ? null : _handleConfirmBooking,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF4CAF50),
           disabledBackgroundColor: Colors.grey[300],
@@ -339,7 +400,8 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
             ? const CircularProgressIndicator(color: Colors.white)
             : Text(
                 _getButtonText(),
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
       ),
     );
@@ -367,7 +429,8 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
 
     context.read<BookingCubit>().createBookingIntent(
           listingId: widget.listing.id,
-          hostId: widget.listing.creator, // Use creator field directly
+          hostId: widget.listing.creator,
+          // Use creator field directly
           checkIn: widget.checkIn,
           checkOut: widget.checkOut,
           totalPrice: widget.totalPrice,
@@ -386,10 +449,11 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
         );
   }
 
-  Future<void> _launchPaymentUrl(String? url) async {
+  Future<void> _launchPaymentUrl(String? url, String tempOrderId) async {
     if (url == null) return;
 
     debugPrint('🚀 Launching VNPay payment: $url');
+    debugPrint('📝 Temp Order ID: $tempOrderId');
 
     // Navigate to VNPayPaymentScreen which handles the payment flow
     final result = await Navigator.push<Map<String, dynamic>>(
@@ -397,42 +461,49 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
       MaterialPageRoute(
         builder: (context) => VNPayPaymentScreen(
           paymentUrl: url,
-          tempOrderId: context.read<BookingCubit>().state is BookingIntentCreated
-              ? (context.read<BookingCubit>().state as BookingIntentCreated).intent.tempOrderId
-              : '',
+          tempOrderId: tempOrderId,
         ),
       ),
     );
 
+    // Reset processing state when returning
+    setState(() => _isProcessingPayment = false);
+
     if (result != null && mounted) {
       if (result['success'] == true) {
         // Payment successful - create booking from payment
-        final tempOrderId = result['tempOrderId'] as String;
+        final tempOrderIdFromResult = result['tempOrderId'] as String;
         final transactionId = result['transactionId'] as String;
         final paymentData = result['paymentData'] as Map<String, dynamic>;
 
         debugPrint('✅ Payment successful, creating booking...');
-        debugPrint('   - tempOrderId: $tempOrderId');
+        debugPrint('   - tempOrderId: $tempOrderIdFromResult');
         debugPrint('   - transactionId: $transactionId');
+
+        // Show processing state again
+        setState(() => _isProcessingPayment = true);
 
         // Call cubit to create booking from payment callback
         context.read<BookingCubit>().createBookingFromPayment(
-          tempOrderId: tempOrderId,
-          transactionId: transactionId,
-          paymentData: paymentData,
-        );
+              tempOrderId: tempOrderIdFromResult,
+              transactionId: transactionId,
+              paymentData: paymentData,
+            );
       } else {
-        // Payment failed
+        // Payment failed - result already handled by PaymentFailedScreen
         final responseCode = result['responseCode'] as String?;
         debugPrint('❌ Payment failed with code: $responseCode');
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Payment was not completed (Code: $responseCode)'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // User already saw the error screen, just stay on review screen
       }
+    } else if (mounted) {
+      // User closed the payment screen without completing
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Payment was cancelled'),
+          backgroundColor: Colors.orange,
+        ),
+      );
     }
   }
 
@@ -440,4 +511,3 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
     return NumberFormat('#,###', 'vi_VN').format(price);
   }
 }
-

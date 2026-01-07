@@ -5,7 +5,7 @@ class ApiConfig {
   // For iOS Simulator: use 'http://localhost:3001'
   // For Android Emulator: use 'http://10.0.2.2:3001'
   // For Physical Device: use your computer's IP, e.g., 'http://192.168.1.100:3001'
-  static String baseUrl = ApiConstants.baseUrl ?? 'http://192.168.1.180:3001';
+  static String baseUrl = ApiConstants.baseUrl;
 
   // API Endpoints
   static const String auth = '/auth';
@@ -70,4 +70,3 @@ class ApiConfig {
     return defaultHeaders;
   }
 }
-

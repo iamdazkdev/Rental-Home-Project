@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../config/app_theme.dart';
 
 /// Widget to display booking status with proper styling
@@ -152,7 +153,7 @@ class PaymentStatusBadge extends StatelessWidget {
     if (showMethod && methodLower.isNotEmpty) {
       final methodText = methodLower == 'vnpay' ? 'VNPay' : 'Cash';
       if (typeLower == 'deposit') {
-        return '$statusText (${methodText} 30%)';
+        return '$statusText ($methodText 30%)';
       }
       return '$statusText ($methodText)';
     }
@@ -234,7 +235,8 @@ class DepositPaymentCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.account_balance_wallet, size: 18, color: Colors.orange),
+              const Icon(Icons.account_balance_wallet,
+                  size: 18, color: Colors.orange),
               const SizedBox(width: 8),
               const Text(
                 'Payment Details',
@@ -243,13 +245,11 @@ class DepositPaymentCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-
           _buildRow('Total Amount', totalPrice),
           const SizedBox(height: 4),
           _buildRow('Deposit Paid (30%)', depositAmount, color: Colors.green),
           const SizedBox(height: 4),
           _buildRow('Remaining', remaining, color: Colors.orange, isBold: true),
-
           if (isPartiallyPaid && onCompletePayment != null) ...[
             const SizedBox(height: 12),
             SizedBox(
@@ -270,7 +270,8 @@ class DepositPaymentCard extends StatelessWidget {
     );
   }
 
-  Widget _buildRow(String label, double amount, {Color? color, bool isBold = false}) {
+  Widget _buildRow(String label, double amount,
+      {Color? color, bool isBold = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -359,4 +360,3 @@ class ListingLockedBanner extends StatelessWidget {
     );
   }
 }
-

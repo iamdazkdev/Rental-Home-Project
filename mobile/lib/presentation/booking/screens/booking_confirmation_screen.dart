@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../data/models/booking_model.dart';
+
 import '../../../core/enums/booking_enums.dart';
+import '../../../data/models/booking_model.dart';
 
 /// Booking Confirmation Screen
 /// Shows booking details after successful payment/booking
@@ -15,26 +16,29 @@ class BookingConfirmationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Booking Confirmed'),
-        backgroundColor: const Color(0xFF4CAF50),
-        automaticallyImplyLeading: false,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildSuccessIcon(),
-            const SizedBox(height: 24),
-            _buildSuccessMessage(),
-            const SizedBox(height: 32),
-            _buildBookingDetails(),
-            const SizedBox(height: 24),
-            _buildPaymentInfo(),
-            const SizedBox(height: 32),
-            _buildActionButtons(context),
-          ],
+    return WillPopScope(
+      onWillPop: () async => false, // Prevent back button
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Booking Confirmed'),
+          backgroundColor: const Color(0xFF4CAF50),
+          automaticallyImplyLeading: false,
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              _buildSuccessIcon(),
+              const SizedBox(height: 24),
+              _buildSuccessMessage(),
+              const SizedBox(height: 32),
+              _buildBookingDetails(),
+              const SizedBox(height: 24),
+              _buildPaymentInfo(),
+              const SizedBox(height: 32),
+              _buildActionButtons(context),
+            ],
+          ),
         ),
       ),
     );
@@ -80,9 +84,11 @@ class BookingConfirmationScreen extends StatelessWidget {
   }
 
   String _getStatusMessage() {
-    if (booking.paymentMethod == PaymentMethod.vnpay && booking.paymentType == PaymentType.full) {
+    if (booking.paymentMethod == PaymentMethod.vnpay &&
+        booking.paymentType == PaymentType.full) {
       return 'Your payment was successful and booking is confirmed!';
-    } else if (booking.paymentMethod == PaymentMethod.vnpay && booking.paymentType == PaymentType.deposit) {
+    } else if (booking.paymentMethod == PaymentMethod.vnpay &&
+        booking.paymentType == PaymentType.deposit) {
       return 'Deposit paid successfully! Pay remaining amount before check-in.';
     } else {
       return 'Your booking request has been sent to the host.';
@@ -118,7 +124,7 @@ class BookingConfirmationScreen extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               'Total Amount',
-              _formatPrice(booking.finalTotalPrice ?? booking.totalPrice),
+              _formatPrice(booking.finalTotalPrice),
             ),
           ],
         ),
@@ -146,13 +152,15 @@ class BookingConfirmationScreen extends StatelessWidget {
               booking.paymentMethod == PaymentMethod.vnpay ? 'VNPay' : 'Cash',
             ),
             const SizedBox(height: 12),
-            if (booking.paymentMethod == PaymentMethod.vnpay && booking.paymentType == PaymentType.full)
+            if (booking.paymentMethod == PaymentMethod.vnpay &&
+                booking.paymentType == PaymentType.full)
               _buildDetailRow(
                 'Paid (100%)',
-                _formatPrice(booking.finalTotalPrice ?? booking.totalPrice),
+                _formatPrice(booking.finalTotalPrice),
                 valueColor: Colors.green,
               ),
-            if (booking.paymentMethod == PaymentMethod.vnpay && booking.paymentType == PaymentType.deposit) ...[
+            if (booking.paymentMethod == PaymentMethod.vnpay &&
+                booking.paymentType == PaymentType.deposit) ...[
               _buildDetailRow(
                 'Deposit Paid (${booking.depositPercentage.toInt()}%)',
                 _formatPrice(booking.depositAmount),
@@ -168,7 +176,7 @@ class BookingConfirmationScreen extends StatelessWidget {
             if (booking.paymentMethod == PaymentMethod.cash)
               _buildDetailRow(
                 'Pay at Check-in',
-                _formatPrice(booking.finalTotalPrice ?? booking.totalPrice),
+                _formatPrice(booking.finalTotalPrice),
                 valueColor: Colors.orange,
               ),
             if (booking.transactionId != null) ...[
@@ -272,4 +280,3 @@ class BookingConfirmationScreen extends StatelessWidget {
     return '${NumberFormat('#,###', 'vi_VN').format(price)} VND';
   }
 }
-

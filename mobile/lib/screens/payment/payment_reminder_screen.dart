@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../utils/date_formatter.dart';
-import '../../utils/price_formatter.dart';
+
 import '../../data/models/booking_model.dart';
 import '../../presentation/booking/cubit/booking_cubit.dart';
 import '../../presentation/booking/cubit/booking_state.dart';
-import '../../widgets/loading_overlay.dart';
+import '../../utils/date_formatter.dart';
+import '../../utils/price_formatter.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/loading_overlay.dart';
 
 class PaymentReminderScreen extends StatefulWidget {
   final String bookingId;
 
   const PaymentReminderScreen({
-    Key? key,
+    super.key,
     required this.bookingId,
-  }) : super(key: key);
+  });
 
   @override
   State<PaymentReminderScreen> createState() => _PaymentReminderScreenState();
@@ -158,7 +159,8 @@ class _PaymentReminderScreenState extends State<PaymentReminderScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message'] ?? 'Failed to update payment method'),
+              content:
+                  Text(result['message'] ?? 'Failed to update payment method'),
               backgroundColor: Colors.red,
             ),
           );
@@ -290,7 +292,8 @@ class _PaymentReminderScreenState extends State<PaymentReminderScreen> {
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                DateFormatter.formatDate(_booking!.remainingDueDate!),
+                                DateFormatter.formatDate(
+                                    _booking!.remainingDueDate!),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -417,4 +420,3 @@ class _PaymentReminderScreenState extends State<PaymentReminderScreen> {
     );
   }
 }
-

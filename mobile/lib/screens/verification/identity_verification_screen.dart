@@ -1,7 +1,9 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+
 import '../../services/identity_verification_service.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/custom_button.dart';
@@ -12,16 +14,18 @@ class IdentityVerificationScreen extends StatefulWidget {
   final VoidCallback? onVerificationComplete;
 
   const IdentityVerificationScreen({
-    Key? key,
+    super.key,
     this.isRequired = false,
     this.onVerificationComplete,
-  }) : super(key: key);
+  });
 
   @override
-  State<IdentityVerificationScreen> createState() => _IdentityVerificationScreenState();
+  State<IdentityVerificationScreen> createState() =>
+      _IdentityVerificationScreenState();
 }
 
-class _IdentityVerificationScreenState extends State<IdentityVerificationScreen> {
+class _IdentityVerificationScreenState
+    extends State<IdentityVerificationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -46,7 +50,8 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
     try {
       final user = await _storageService.getUser();
       if (user != null) {
-        final result = await _identityVerificationService.getVerificationStatus(user.id);
+        final result =
+            await _identityVerificationService.getVerificationStatus(user.id);
 
         if (result['exists'] == true) {
           setState(() {
@@ -103,7 +108,8 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
       context: context,
       initialDate: _selectedDate ?? DateTime(2000, 1, 1),
       firstDate: DateTime(1950),
-      lastDate: DateTime.now().subtract(const Duration(days: 6570)), // 18 years ago
+      lastDate: DateTime.now().subtract(const Duration(days: 6570)),
+      // 18 years ago
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -183,7 +189,8 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message'] ?? 'Failed to submit verification'),
+              content:
+                  Text(result['message'] ?? 'Failed to submit verification'),
               backgroundColor: Colors.red,
             ),
           );
@@ -270,7 +277,9 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                                             : Colors.red.shade900,
                                   ),
                                 ),
-                                if (isRejected && _existingVerification!['rejectionReason'] != null) ...[
+                                if (isRejected &&
+                                    _existingVerification!['rejectionReason'] !=
+                                        null) ...[
                                   const SizedBox(height: 4),
                                   Text(
                                     'Reason: ${_existingVerification!['rejectionReason']}',
@@ -299,7 +308,8 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.info_outline, color: Colors.blue.shade700),
+                            Icon(Icons.info_outline,
+                                color: Colors.blue.shade700),
                             const SizedBox(width: 8),
                             const Text(
                               'Why verify your identity?',
@@ -334,7 +344,6 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   TextFormField(
                     controller: _fullNameController,
                     decoration: const InputDecoration(
@@ -351,7 +360,6 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                     enabled: !isPending,
                   ),
                   const SizedBox(height: 16),
-
                   TextFormField(
                     controller: _phoneController,
                     decoration: const InputDecoration(
@@ -369,7 +377,6 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                     enabled: !isPending,
                   ),
                   const SizedBox(height: 16),
-
                   InkWell(
                     onTap: isPending ? null : _selectDate,
                     child: InputDecorator(
@@ -383,13 +390,14 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                             ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
                             : 'Select date',
                         style: TextStyle(
-                          color: _selectedDate != null ? Colors.black : Colors.grey,
+                          color: _selectedDate != null
+                              ? Colors.black
+                              : Colors.grey,
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   const Text(
                     'ID Card Photos',
                     style: TextStyle(
@@ -398,7 +406,6 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   _buildImagePicker(
                     'ID Card - Front Side *',
                     _idCardFront,
@@ -406,7 +413,6 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                     isPending,
                   ),
                   const SizedBox(height: 16),
-
                   _buildImagePicker(
                     'ID Card - Back Side *',
                     _idCardBack,
@@ -414,10 +420,11 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                     isPending,
                   ),
                   const SizedBox(height: 24),
-
                   if (!isPending)
                     CustomButton(
-                      text: isRejected ? 'Resubmit Verification' : 'Submit Verification',
+                      text: isRejected
+                          ? 'Resubmit Verification'
+                          : 'Submit Verification',
                       onPressed: _submitVerification,
                       icon: Icons.verified_user,
                     ),
@@ -446,7 +453,8 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
     );
   }
 
-  Widget _buildImagePicker(String label, File? image, VoidCallback onTap, bool isDisabled) {
+  Widget _buildImagePicker(
+      String label, File? image, VoidCallback onTap, bool isDisabled) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -481,7 +489,8 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
                       Icon(
                         Icons.add_photo_alternate,
                         size: 50,
-                        color: isDisabled ? Colors.grey : const Color(0xFFFF385C),
+                        color:
+                            isDisabled ? Colors.grey : const Color(0xFFFF385C),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -505,4 +514,3 @@ class _IdentityVerificationScreenState extends State<IdentityVerificationScreen>
     super.dispose();
   }
 }
-

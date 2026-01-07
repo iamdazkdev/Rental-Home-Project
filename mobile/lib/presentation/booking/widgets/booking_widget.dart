@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../../../data/models/listing_model.dart';
 import '../../../utils/price_formatter.dart';
 
@@ -9,9 +10,9 @@ class BookingWidget extends StatefulWidget {
   final ListingModel listing;
 
   const BookingWidget({
-    Key? key,
+    super.key,
     required this.listing,
-  }) : super(key: key);
+  });
 
   @override
   State<BookingWidget> createState() => _BookingWidgetState();
@@ -65,7 +66,8 @@ class _BookingWidgetState extends State<BookingWidget> {
       setState(() {
         _checkInDate = pickedDate;
         // Reset checkout if it's before new checkin
-        if (_checkOutDate != null && _checkOutDate!.isBefore(pickedDate.add(const Duration(days: 1)))) {
+        if (_checkOutDate != null &&
+            _checkOutDate!.isBefore(pickedDate.add(const Duration(days: 1)))) {
           _checkOutDate = null;
         }
         _calculatePrice();
@@ -112,7 +114,8 @@ class _BookingWidgetState extends State<BookingWidget> {
   void _proceedToReview() {
     if (_checkInDate == null || _checkOutDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select check-in and check-out dates')),
+        const SnackBar(
+            content: Text('Please select check-in and check-out dates')),
       );
       return;
     }
@@ -326,4 +329,3 @@ class _BookingWidgetState extends State<BookingWidget> {
     );
   }
 }
-
