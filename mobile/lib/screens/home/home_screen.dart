@@ -647,25 +647,56 @@ class _RoommatePostCard extends StatelessWidget {
             ClipRRect(
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(12)),
-              child: post.photos.isNotEmpty
-                  ? Image.network(
-                      post.photos.first,
-                      height: 120,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 120,
-                          color: AppTheme.backgroundColor,
-                          child: const Icon(Icons.people_outline, size: 40),
-                        );
-                      },
-                    )
-                  : Container(
+              child: Builder(
+                builder: (context) {
+                  // Debug log
+                  debugPrint(
+                      '🖼️ RoommatePostCard: post.id=${post.id}, photos count=${post.photos.length}');
+                  if (post.photos.isNotEmpty) {
+                    debugPrint(
+                        '🖼️ RoommatePostCard: first photo URL=${post.photos.first}');
+                  }
+
+                  if (post.photos.isEmpty) {
+                    return Container(
                       height: 120,
                       color: AppTheme.backgroundColor,
-                      child: const Icon(Icons.people_outline, size: 40),
-                    ),
+                      child: const Center(
+                        child: Icon(Icons.people_outline,
+                            size: 40, color: AppTheme.textLightColor),
+                      ),
+                    );
+                  }
+
+                  return Image.network(
+                    post.photos.first,
+                    height: 120,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        height: 120,
+                        color: AppTheme.backgroundColor,
+                        child: const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      debugPrint('❌ Failed to load roommate photo: $error');
+                      return Container(
+                        height: 120,
+                        color: AppTheme.backgroundColor,
+                        child: const Center(
+                          child: Icon(Icons.broken_image,
+                              size: 40, color: AppTheme.textLightColor),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
             // Details
             Expanded(
@@ -673,91 +704,52 @@ class _RoommatePostCard extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Post type badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: post.postType == RoommatePostType.provider
-                                ? AppTheme.primaryColor.withValues(alpha: 0.1)
-                                : AppTheme.accentColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            _getPostTypeLabel(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color:
-                                      post.postType == RoommatePostType.provider
-                                          ? AppTheme.primaryColor
-                                          : AppTheme.accentColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          post.title,
-                          style: Theme.of(context).textTheme.titleSmall,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          post.city,
-                          style: Theme.of(context).textTheme.bodySmall,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                    // Post type badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: post.postType == RoommatePostType.provider
+                            ? AppTheme.primaryColor.withValues(alpha: 0.1)
+                            : AppTheme.accentColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        _getPostTypeLabel(),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: post.postType == RoommatePostType.provider
+                                  ? AppTheme.primaryColor
+                                  : AppTheme.accentColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      post.title,
+                      style: Theme.of(context).textTheme.titleSmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      post.city,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
                     // Budget
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            formatVND(post.budgetMin, showCurrency: false),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                  color: AppTheme.primaryColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                    Text(
+                      '${formatVND(post.budgetMin, showCurrency: false)} - ${formatVND(post.budgetMax, showCurrency: false)} VND',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.bold,
                           ),
-                        ),
-                        Text(
-                          ' - ',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        Flexible(
-                          child: Text(
-                            formatVND(post.budgetMax, showCurrency: false),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                  color: AppTheme.primaryColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Text(
-                          ' VND',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

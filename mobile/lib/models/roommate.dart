@@ -7,6 +7,7 @@ enum RoommatePostType {
   provider('PROVIDER');
 
   final String value;
+
   const RoommatePostType(this.value);
 
   static RoommatePostType fromString(String? type) {
@@ -37,6 +38,7 @@ enum RoommatePostStatus {
   closed('CLOSED');
 
   final String value;
+
   const RoommatePostStatus(this.value);
 
   static RoommatePostStatus fromString(String? status) {
@@ -60,6 +62,7 @@ enum RoommateRequestStatus {
   rejected('REJECTED');
 
   final String value;
+
   const RoommateRequestStatus(this.value);
 
   static RoommateRequestStatus fromString(String? status) {
@@ -159,28 +162,32 @@ class LifestylePreferences {
     }
   }
 
-  bool get isNotEmpty => sleepSchedule.isNotEmpty || smoking.isNotEmpty || pets.isNotEmpty || cleanliness.isNotEmpty;
+  bool get isNotEmpty =>
+      sleepSchedule.isNotEmpty ||
+      smoking.isNotEmpty ||
+      pets.isNotEmpty ||
+      cleanliness.isNotEmpty;
 
   List<MapEntry<String, String>> get entries => [
-    MapEntry('sleep', sleepScheduleDisplay),
-    MapEntry('smoking', smokingDisplay),
-    MapEntry('pets', petsDisplay),
-    MapEntry('cleanliness', cleanlinessDisplay),
-  ];
+        MapEntry('sleep', sleepScheduleDisplay),
+        MapEntry('smoking', smokingDisplay),
+        MapEntry('pets', petsDisplay),
+        MapEntry('cleanliness', cleanlinessDisplay),
+      ];
 
   Map<String, String> get entriesMap => {
-    'sleep': sleepScheduleDisplay,
-    'smoking': smokingDisplay,
-    'pets': petsDisplay,
-    'cleanliness': cleanlinessDisplay,
-  };
+        'sleep': sleepScheduleDisplay,
+        'smoking': smokingDisplay,
+        'pets': petsDisplay,
+        'cleanliness': cleanlinessDisplay,
+      };
 
   List<String> get displayList => [
-    sleepScheduleDisplay,
-    smokingDisplay,
-    petsDisplay,
-    cleanlinessDisplay,
-  ];
+        sleepScheduleDisplay,
+        smokingDisplay,
+        petsDisplay,
+        cleanlinessDisplay,
+      ];
 }
 
 /// Roommate Post model
@@ -258,7 +265,9 @@ class RoommatePost {
   factory RoommatePost.fromJson(Map<String, dynamic> json) {
     return RoommatePost(
       id: json['_id'] ?? json['id'] ?? '',
-      userId: json['userId'] is Map ? json['userId']['_id'] : (json['userId'] ?? ''),
+      userId: json['userId'] is Map
+          ? json['userId']['_id']
+          : (json['userId'] ?? ''),
       postType: RoommatePostType.fromString(json['postType']),
       title: json['title'] ?? '',
       description: json['description'] ?? '',
@@ -268,8 +277,8 @@ class RoommatePost {
       budgetMin: (json['budgetMin'] ?? 0).toDouble(),
       budgetMax: (json['budgetMax'] ?? 0).toDouble(),
       moveInDate: json['moveInDate'] != null
-        ? DateTime.parse(json['moveInDate'])
-        : DateTime.now(),
+          ? DateTime.parse(json['moveInDate'])
+          : DateTime.now(),
       genderPreference: json['genderPreference'] ?? 'ANY',
       ageRangeMin: json['ageRangeMin'],
       ageRangeMax: json['ageRangeMax'],
@@ -277,15 +286,15 @@ class RoommatePost {
       preferredContact: json['preferredContact'] ?? 'CHAT',
       phoneNumber: json['phoneNumber'],
       emailAddress: json['emailAddress'],
-      photos: List<String>.from(json['photos'] ?? []),
+      photos: List<String>.from(json['images'] ?? json['photos'] ?? []),
+      // Backend uses 'images'
       status: RoommatePostStatus.fromString(json['status']),
       viewCount: json['viewCount'] ?? 0,
       createdAt: json['createdAt'] != null
-        ? DateTime.parse(json['createdAt'])
-        : DateTime.now(),
-      updatedAt: json['updatedAt'] != null
-        ? DateTime.parse(json['updatedAt'])
-        : null,
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
       user: json['userId'] is Map ? json['userId'] : null,
     );
   }
@@ -314,9 +323,14 @@ class RoommatePost {
   }
 
   String get locationString => '$city, $province';
-  String get budgetRangeString => '${budgetMin.toStringAsFixed(0)} - ${budgetMax.toStringAsFixed(0)}';
+
+  String get budgetRangeString =>
+      '${budgetMin.toStringAsFixed(0)} - ${budgetMax.toStringAsFixed(0)}';
+
   bool get isActive => status == RoommatePostStatus.active;
+
   bool get isSeeker => postType == RoommatePostType.seeker;
+
   bool get isProvider => postType == RoommatePostType.provider;
 
   // Get user name from populated user field
@@ -370,14 +384,20 @@ class RoommateRequest {
   factory RoommateRequest.fromJson(Map<String, dynamic> json) {
     return RoommateRequest(
       id: json['_id'] ?? json['id'] ?? '',
-      postId: json['postId'] is Map ? json['postId']['_id'] : (json['postId'] ?? ''),
-      senderId: json['senderId'] is Map ? json['senderId']['_id'] : (json['senderId'] ?? ''),
-      receiverId: json['receiverId'] is Map ? json['receiverId']['_id'] : (json['receiverId'] ?? ''),
+      postId: json['postId'] is Map
+          ? json['postId']['_id']
+          : (json['postId'] ?? ''),
+      senderId: json['senderId'] is Map
+          ? json['senderId']['_id']
+          : (json['senderId'] ?? ''),
+      receiverId: json['receiverId'] is Map
+          ? json['receiverId']['_id']
+          : (json['receiverId'] ?? ''),
       message: json['message'] ?? '',
       status: RoommateRequestStatus.fromString(json['status']),
       createdAt: json['createdAt'] != null
-        ? DateTime.parse(json['createdAt'])
-        : DateTime.now(),
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
       post: json['postId'] is Map ? json['postId'] : null,
       sender: json['senderId'] is Map ? json['senderId'] : null,
       receiver: json['receiverId'] is Map ? json['receiverId'] : null,
@@ -385,7 +405,9 @@ class RoommateRequest {
   }
 
   bool get isPending => status == RoommateRequestStatus.pending;
+
   bool get isAccepted => status == RoommateRequestStatus.accepted;
+
   bool get isRejected => status == RoommateRequestStatus.rejected;
 
   // Get sender name from populated sender field
@@ -465,16 +487,21 @@ class RoommateMatch {
   factory RoommateMatch.fromJson(Map<String, dynamic> json) {
     return RoommateMatch(
       id: json['_id'] ?? json['id'] ?? '',
-      postId: json['postId'] is Map ? json['postId']['_id'] : (json['postId'] ?? ''),
-      userAId: json['userAId'] is Map ? json['userAId']['_id'] : (json['userAId'] ?? ''),
-      userBId: json['userBId'] is Map ? json['userBId']['_id'] : (json['userBId'] ?? ''),
+      postId: json['postId'] is Map
+          ? json['postId']['_id']
+          : (json['postId'] ?? ''),
+      userAId: json['userAId'] is Map
+          ? json['userAId']['_id']
+          : (json['userAId'] ?? ''),
+      userBId: json['userBId'] is Map
+          ? json['userBId']['_id']
+          : (json['userBId'] ?? ''),
       matchedAt: json['matchedAt'] != null
-        ? DateTime.parse(json['matchedAt'])
-        : DateTime.now(),
+          ? DateTime.parse(json['matchedAt'])
+          : DateTime.now(),
       post: json['postId'] is Map ? json['postId'] : null,
       userA: json['userAId'] is Map ? json['userAId'] : null,
       userB: json['userBId'] is Map ? json['userBId'] : null,
     );
   }
 }
-
