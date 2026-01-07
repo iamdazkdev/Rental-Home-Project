@@ -32,7 +32,7 @@ class AppConstants {
   ];
 
   // Alias for propertyTypes (for consistency with web)
-  static const List<String> types = propertyTypes;
+  // static const List<String> types = propertyTypes;
 
   // Amenities
   static const List<String> amenities = [

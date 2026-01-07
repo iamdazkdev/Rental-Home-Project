@@ -12,7 +12,7 @@ class ApiConstants {
 
   // ⚠️ UPDATE THIS WITH YOUR MACHINE'S IP ADDRESS
   // Run: ipconfig getifaddr en0 (macOS) or ipconfig (Windows)
-  static const String _devBaseUrlDevice = 'http://192.168.1.180:3001'; // Real device
+  static const String _devBaseUrlDevice = 'http://192.168.1.37:3001'; // Real device
 
   // Production URL
   static const String _prodBaseUrl = 'https://api.yourapp.com';

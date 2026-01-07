@@ -188,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 // Property Types
-                ...AppConstants.types.map((type) {
+                ...AppConstants.propertyTypes.map((type) {
                   final isSelected = type == _selectedType;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),

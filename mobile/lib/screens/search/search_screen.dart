@@ -541,7 +541,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: AppConstants.types.map((type) {
+                        children: AppConstants.propertyTypes.map((type) {
                           final isSelected = _type == type;
                           return ChoiceChip(
                             label: Text(type),

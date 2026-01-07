@@ -9,9 +9,9 @@ class BookingConfirmationScreen extends StatelessWidget {
   final BookingModel booking;
 
   const BookingConfirmationScreen({
-    Key? key,
+    super.key,
     required this.booking,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
