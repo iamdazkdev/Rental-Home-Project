@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../config/app_theme.dart';
 import '../../models/roommate.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/roommate_service.dart';
 import '../../utils/price_formatter.dart';
-import 'roommate_post_detail_screen.dart';
 import 'create_roommate_post_screen.dart';
+import 'roommate_post_detail_screen.dart';
 
 class MyRoommatePostsScreen extends StatefulWidget {
   const MyRoommatePostsScreen({super.key});
@@ -69,12 +70,57 @@ class _MyRoommatePostsScreenState extends State<MyRoommatePostsScreen> {
 
     if (result['success']) {
       _loadPosts();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Post closed successfully')),
       );
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message'] ?? 'Failed to close post')),
+      );
+    }
+  }
+
+  Future<void> _activatePost(String postId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Activate Post?'),
+        content: const Text(
+          'Do you want to reopen this post? It will be visible to others again.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text('Activate'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    final result = await _roommateService.activatePost(postId);
+
+    if (result['success']) {
+      _loadPosts();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Post activated successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] ?? 'Failed to activate post')),
       );
     }
   }
@@ -121,6 +167,7 @@ class _MyRoommatePostsScreenState extends State<MyRoommatePostsScreen> {
                           );
                         },
                         onClose: () => _closePost(_posts[index].id),
+                        onActivate: () => _activatePost(_posts[index].id),
                       );
                     },
                   ),
@@ -183,11 +230,13 @@ class _PostCard extends StatelessWidget {
   final RoommatePost post;
   final VoidCallback onTap;
   final VoidCallback onClose;
+  final VoidCallback onActivate;
 
   const _PostCard({
     required this.post,
     required this.onTap,
     required this.onClose,
+    required this.onActivate,
   });
 
   @override
@@ -211,7 +260,11 @@ class _PostCard extends StatelessWidget {
                   const Spacer(),
                   PopupMenuButton<String>(
                     onSelected: (value) {
-                      if (value == 'close') onClose();
+                      if (value == 'close') {
+                        onClose();
+                      } else if (value == 'activate') {
+                        onActivate();
+                      }
                     },
                     itemBuilder: (context) => [
                       if (post.status.value == 'ACTIVE')
@@ -222,6 +275,17 @@ class _PostCard extends StatelessWidget {
                               Icon(Icons.close, color: Colors.red),
                               SizedBox(width: 8),
                               Text('Close Post'),
+                            ],
+                          ),
+                        ),
+                      if (post.status.value == 'CLOSED')
+                        const PopupMenuItem(
+                          value: 'activate',
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle, color: Colors.green),
+                              SizedBox(width: 8),
+                              Text('Activate Post'),
                             ],
                           ),
                         ),
@@ -347,4 +411,3 @@ class _PostCard extends StatelessWidget {
     );
   }
 }
-

@@ -292,6 +292,16 @@
               }
             }
 
+            &.btn-activate {
+              background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+              color: white;
+
+              &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(17, 153, 142, 0.4);
+              }
+            }
+
             &.btn-delete {
               background: #f8d7da;
               color: #721c24;
