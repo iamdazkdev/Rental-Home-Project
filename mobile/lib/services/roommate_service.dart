@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import '../config/api_config.dart';
 import '../models/roommate.dart';
 import 'storage_service.dart';
@@ -25,7 +27,8 @@ class RoommateService {
 
       final queryParams = <String, String>{};
       if (city != null && city.isNotEmpty) queryParams['city'] = city;
-      if (postType != null && postType.isNotEmpty) queryParams['postType'] = postType;
+      if (postType != null && postType.isNotEmpty)
+        queryParams['postType'] = postType;
       if (budgetMin != null) queryParams['budgetMin'] = budgetMin.toString();
       if (budgetMax != null) queryParams['budgetMax'] = budgetMax.toString();
       if (genderPreference != null && genderPreference.isNotEmpty) {
@@ -34,7 +37,8 @@ class RoommateService {
 
       // Use /search endpoint like web client
       final uri = Uri.parse('${ApiConfig.baseUrl}/roommate/posts/search')
-        .replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
+          .replace(
+              queryParameters: queryParams.isNotEmpty ? queryParams : null);
 
       debugPrint('🔍 Searching roommate posts: $uri');
       debugPrint('📋 Query params: $queryParams');
@@ -155,9 +159,8 @@ class RoommateService {
         return {
           'success': true,
           'message': data['message'] ?? 'Post created successfully',
-          'post': data['post'] != null
-            ? RoommatePost.fromJson(data['post'])
-            : null,
+          'post':
+              data['post'] != null ? RoommatePost.fromJson(data['post']) : null,
         };
       } else {
         final error = json.decode(response.body);
@@ -200,7 +203,8 @@ class RoommateService {
   }
 
   /// Update a post
-  Future<Map<String, dynamic>> updatePost(String postId, Map<String, dynamic> updates) async {
+  Future<Map<String, dynamic>> updatePost(
+      String postId, Map<String, dynamic> updates) async {
     try {
       final token = await _storageService.getToken();
 
@@ -217,9 +221,8 @@ class RoommateService {
         return {
           'success': true,
           'message': data['message'] ?? 'Post updated',
-          'post': data['post'] != null
-            ? RoommatePost.fromJson(data['post'])
-            : null,
+          'post':
+              data['post'] != null ? RoommatePost.fromJson(data['post']) : null,
         };
       } else {
         final error = json.decode(response.body);
@@ -242,7 +245,8 @@ class RoommateService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/roommate/posts/$postId/close');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/roommate/posts/$postId/close');
 
       final response = await http.put(
         uri,
@@ -264,6 +268,43 @@ class RoommateService {
       }
     } catch (e) {
       debugPrint('❌ Error closing post: $e');
+      return {
+        'success': false,
+        'message': 'An error occurred: ${e.toString()}',
+      };
+    }
+  }
+
+  /// Activate (reopen) a closed post
+  Future<Map<String, dynamic>> activatePost(String postId) async {
+    try {
+      final token = await _storageService.getToken();
+
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/roommate/posts/$postId/activate');
+
+      debugPrint('🔄 Activating post: $postId');
+
+      final response = await http.put(
+        uri,
+        headers: ApiConfig.headers(token: token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Post activated',
+        };
+      } else {
+        final error = json.decode(response.body);
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to activate post',
+        };
+      }
+    } catch (e) {
+      debugPrint('❌ Error activating post: $e');
       return {
         'success': false,
         'message': 'An error occurred: ${e.toString()}',
@@ -312,8 +353,8 @@ class RoommateService {
           'success': true,
           'message': data['message'] ?? 'Request sent successfully',
           'request': data['request'] != null
-            ? RoommateRequest.fromJson(data['request'])
-            : null,
+              ? RoommateRequest.fromJson(data['request'])
+              : null,
         };
       } else {
         final error = json.decode(response.body);
@@ -336,7 +377,8 @@ class RoommateService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/roommate/requests/received/$userId');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/roommate/requests/received/$userId');
 
       final response = await http.get(
         uri,
@@ -360,7 +402,8 @@ class RoommateService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/roommate/requests/sent/$userId');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/roommate/requests/sent/$userId');
 
       final response = await http.get(
         uri,
@@ -391,9 +434,9 @@ class RoommateService {
     }
   }
 
-
   /// Respond to a request (accept or reject)
-  Future<Map<String, dynamic>> respondToRequest(String requestId, String status) async {
+  Future<Map<String, dynamic>> respondToRequest(
+      String requestId, String status) async {
     if (status == 'ACCEPTED') {
       return acceptRequest(requestId);
     } else if (status == 'REJECTED') {
@@ -411,7 +454,8 @@ class RoommateService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/roommate/requests/$requestId/accept');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/roommate/requests/$requestId/accept');
 
       debugPrint('✅ Accepting request: $requestId');
 
@@ -426,8 +470,8 @@ class RoommateService {
           'success': true,
           'message': data['message'] ?? 'Request accepted',
           'match': data['match'] != null
-            ? RoommateMatch.fromJson(data['match'])
-            : null,
+              ? RoommateMatch.fromJson(data['match'])
+              : null,
         };
       } else {
         final error = json.decode(response.body);
@@ -450,7 +494,8 @@ class RoommateService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/roommate/requests/$requestId/reject');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/roommate/requests/$requestId/reject');
 
       final response = await http.put(
         uri,
@@ -505,4 +550,3 @@ class RoommateService {
     }
   }
 }
-

@@ -40,6 +40,7 @@ class _RoommateSearchScreenState extends State<RoommateSearchScreen> {
     );
 
     // Filter out current user's own posts
+    if (!mounted) return;
     final user = context.read<AuthProvider>().user;
     final filteredPosts =
         user != null ? posts.where((p) => p.userId != user.id).toList() : posts;
