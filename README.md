@@ -850,7 +850,7 @@ This project is licensed under the **ISC License**.
 
 ## 📞 Support
 
-For support, email support@rentalhome.com or join our Discord channel.
+For support, email anhaaa2305@gmail.com or join our Discord channel.
 
 ---
 
