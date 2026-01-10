@@ -93,5 +93,4 @@ build/
 # Documentation files (except README.md)
 *.md
 !README.md
-!docs/**/*.md
 
