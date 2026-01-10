@@ -11,7 +11,6 @@ import '../room_rental/host_agreements_screen.dart';
 import '../room_rental/host_rental_requests_screen.dart';
 import '../room_rental/my_agreements_screen.dart';
 import '../room_rental/my_rental_requests_screen.dart';
-import '../room_rental/room_rental_search_screen.dart';
 import '../roommate/my_roommate_posts_screen.dart';
 import '../roommate/my_roommate_requests_screen.dart';
 import '../roommate/roommate_search_screen.dart';
@@ -166,20 +165,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                     children: [
                       _buildSubsectionTitle('Tenant'),
-                      _MenuItem(
-                        icon: Icons.search,
-                        title: 'Browse Rooms',
-                        subtitle: 'Find available rooms',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const RoomRentalSearchScreen(),
-                            ),
-                          );
-                        },
-                      ),
+                      // _MenuItem(
+                      //   icon: Icons.search,
+                      //   title: 'Browse Rooms',
+                      //   subtitle: 'Find available rooms',
+                      //   onTap: () {
+                      //     Navigator.push(
+                      //       context,
+                      //       MaterialPageRoute(
+                      //         builder: (context) =>
+                      //             const RoomRentalSearchScreen(),
+                      //       ),
+                      //     );
+                      //   },
+                      // ),
                       _MenuItem(
                         icon: Icons.send_outlined,
                         title: 'My Requests',
