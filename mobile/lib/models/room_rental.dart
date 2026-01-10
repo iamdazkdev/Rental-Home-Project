@@ -9,6 +9,7 @@ enum RentalRequestStatus {
   cancelled('CANCELLED');
 
   final String value;
+
   const RentalRequestStatus(this.value);
 
   static RentalRequestStatus fromString(String? status) {
@@ -34,6 +35,7 @@ enum RentalAgreementStatus {
   terminated('TERMINATED');
 
   final String value;
+
   const RentalAgreementStatus(this.value);
 
   static RentalAgreementStatus fromString(String? status) {
@@ -58,6 +60,7 @@ enum RentalStatus {
   completed('COMPLETED');
 
   final String value;
+
   const RentalStatus(this.value);
 
   static RentalStatus fromString(String? status) {
@@ -83,6 +86,7 @@ enum RentalPaymentStatus {
   paid('PAID');
 
   final String value;
+
   const RentalPaymentStatus(this.value);
 
   static RentalPaymentStatus fromString(String? status) {
@@ -162,25 +166,30 @@ class RentalRequest {
   factory RentalRequest.fromJson(Map<String, dynamic> json) {
     return RentalRequest(
       id: json['_id'] ?? json['id'] ?? '',
-      roomId: json['roomId'] is Map ? json['roomId']['_id'] : (json['roomId'] ?? ''),
-      tenantId: json['tenantId'] is Map ? json['tenantId']['_id'] : (json['tenantId'] ?? ''),
-      hostId: json['hostId'] is Map ? json['hostId']['_id'] : (json['hostId'] ?? ''),
+      roomId: json['roomId'] is Map
+          ? json['roomId']['_id']
+          : (json['roomId'] ?? ''),
+      tenantId: json['tenantId'] is Map
+          ? json['tenantId']['_id']
+          : (json['tenantId'] ?? ''),
+      hostId: json['hostId'] is Map
+          ? json['hostId']['_id']
+          : (json['hostId'] ?? ''),
       message: json['message'] ?? '',
       moveInDate: json['moveInDate'] != null
-        ? DateTime.parse(json['moveInDate'])
-        : DateTime.now(),
+          ? DateTime.parse(json['moveInDate'])
+          : DateTime.now(),
       intendedStayDuration: json['intendedStayDuration'] ?? 1,
       status: RentalRequestStatus.fromString(json['status']),
       rejectionReason: json['rejectionReason'],
       reviewedAt: json['reviewedAt'] != null
-        ? DateTime.parse(json['reviewedAt'])
-        : null,
+          ? DateTime.parse(json['reviewedAt'])
+          : null,
       createdAt: json['createdAt'] != null
-        ? DateTime.parse(json['createdAt'])
-        : DateTime.now(),
-      updatedAt: json['updatedAt'] != null
-        ? DateTime.parse(json['updatedAt'])
-        : null,
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
       room: json['roomId'] is Map ? json['roomId'] : null,
       tenant: json['tenantId'] is Map ? json['tenantId'] : null,
       host: json['hostId'] is Map ? json['hostId'] : null,
@@ -200,8 +209,11 @@ class RentalRequest {
   }
 
   bool get isPending => status == RentalRequestStatus.requested;
+
   bool get isApproved => status == RentalRequestStatus.approved;
+
   bool get isRejected => status == RentalRequestStatus.rejected;
+
   bool get isCancelled => status == RentalRequestStatus.cancelled;
 }
 
@@ -274,30 +286,49 @@ class RentalAgreement {
   });
 
   factory RentalAgreement.fromJson(Map<String, dynamic> json) {
+    // Helper to parse houseRules - can be String or List
+    List<String> parseHouseRules(dynamic rules) {
+      if (rules == null) return [];
+      if (rules is String) {
+        // If it's a string, split by newlines or return as single item
+        if (rules.isEmpty) return [];
+        return rules.split('\n').where((r) => r.trim().isNotEmpty).toList();
+      }
+      if (rules is List) {
+        return rules.map((r) => r.toString()).toList();
+      }
+      return [];
+    }
+
     return RentalAgreement(
       id: json['_id'] ?? json['id'] ?? '',
-      roomId: json['roomId'] is Map ? json['roomId']['_id'] : (json['roomId'] ?? ''),
-      tenantId: json['tenantId'] is Map ? json['tenantId']['_id'] : (json['tenantId'] ?? ''),
-      hostId: json['hostId'] is Map ? json['hostId']['_id'] : (json['hostId'] ?? ''),
+      roomId: json['roomId'] is Map
+          ? json['roomId']['_id']
+          : (json['roomId'] ?? ''),
+      tenantId: json['tenantId'] is Map
+          ? json['tenantId']['_id']
+          : (json['tenantId'] ?? ''),
+      hostId: json['hostId'] is Map
+          ? json['hostId']['_id']
+          : (json['hostId'] ?? ''),
       rentalRequestId: json['rentalRequestId'] ?? '',
       rentAmount: (json['rentAmount'] ?? 0).toDouble(),
       depositAmount: (json['depositAmount'] ?? 0).toDouble(),
       paymentMethod: json['paymentMethod'] ?? 'CASH',
       noticePeriod: json['noticePeriod'] ?? 30,
-      houseRules: List<String>.from(json['houseRules'] ?? []),
+      houseRules: parseHouseRules(json['houseRules']),
       status: RentalAgreementStatus.fromString(json['status']),
       agreedByTenantAt: json['agreedByTenantAt'] != null
-        ? DateTime.parse(json['agreedByTenantAt'])
-        : null,
+          ? DateTime.parse(json['agreedByTenantAt'])
+          : null,
       agreedByHostAt: json['agreedByHostAt'] != null
-        ? DateTime.parse(json['agreedByHostAt'])
-        : null,
+          ? DateTime.parse(json['agreedByHostAt'])
+          : null,
       createdAt: json['createdAt'] != null
-        ? DateTime.parse(json['createdAt'])
-        : DateTime.now(),
-      updatedAt: json['updatedAt'] != null
-        ? DateTime.parse(json['updatedAt'])
-        : null,
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
       room: json['roomId'] is Map ? json['roomId'] : null,
       tenant: json['tenantId'] is Map ? json['tenantId'] : null,
       host: json['hostId'] is Map ? json['hostId'] : null,
@@ -305,8 +336,11 @@ class RentalAgreement {
   }
 
   bool get isDraft => status == RentalAgreementStatus.draft;
+
   bool get isActive => status == RentalAgreementStatus.active;
+
   bool get isTerminated => status == RentalAgreementStatus.terminated;
+
   bool get isFullyAgreed => agreedByTenantAt != null && agreedByHostAt != null;
 }
 
@@ -344,21 +378,19 @@ class RentalPayment {
       paymentType: json['paymentType'] ?? 'MONTHLY',
       method: json['method'] ?? 'CASH',
       status: RentalPaymentStatus.fromString(json['status']),
-      paidAt: json['paidAt'] != null
-        ? DateTime.parse(json['paidAt'])
-        : null,
-      dueDate: json['dueDate'] != null
-        ? DateTime.parse(json['dueDate'])
-        : null,
+      paidAt: json['paidAt'] != null ? DateTime.parse(json['paidAt']) : null,
+      dueDate: json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null,
       notes: json['notes'],
       createdAt: json['createdAt'] != null
-        ? DateTime.parse(json['createdAt'])
-        : DateTime.now(),
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
     );
   }
 
   bool get isPaid => status == RentalPaymentStatus.paid;
-  bool get isUnpaid => status == RentalPaymentStatus.unpaid;
-  bool get isOverdue => dueDate != null && dueDate!.isBefore(DateTime.now()) && !isPaid;
-}
 
+  bool get isUnpaid => status == RentalPaymentStatus.unpaid;
+
+  bool get isOverdue =>
+      dueDate != null && dueDate!.isBefore(DateTime.now()) && !isPaid;
+}

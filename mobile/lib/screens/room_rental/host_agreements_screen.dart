@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../config/app_theme.dart';
 import '../../models/room_rental.dart';
 import '../../providers/auth_provider.dart';
@@ -41,32 +42,56 @@ class _HostAgreementsScreenState extends State<HostAgreementsScreen> {
 
   List<RentalAgreement> get _filteredAgreements {
     if (_selectedFilter == 'all') return _agreements;
-    return _agreements.where((a) => a.status.value.toLowerCase() == _selectedFilter).toList();
+    return _agreements
+        .where((a) => a.status.value.toLowerCase() == _selectedFilter)
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Rental Agreements'),
+        title: const Text(
+          'Rental Agreements',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppTheme.primaryColor,
+                AppTheme.primaryColor.withValues(alpha: 0.8)
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
       body: Column(
         children: [
-          // Filter Tabs
+          // Filter Tabs with improved design
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildFilterChip('All', 'all'),
-                  _buildFilterChip('Draft', 'draft'),
-                  _buildFilterChip('Active', 'active'),
-                  _buildFilterChip('Terminated', 'terminated'),
+                  _buildFilterChip('All', 'all', Icons.list_alt),
+                  _buildFilterChip('Draft', 'draft', Icons.pending_outlined),
+                  _buildFilterChip(
+                      'Active', 'active', Icons.check_circle_outline),
+                  _buildFilterChip(
+                      'Terminated', 'terminated', Icons.block_outlined),
                 ],
               ),
             ),
           ),
+
+          const Divider(height: 1),
 
           // Content
           Expanded(
@@ -76,6 +101,7 @@ class _HostAgreementsScreenState extends State<HostAgreementsScreen> {
                     ? _buildEmptyState()
                     : RefreshIndicator(
                         onRefresh: _loadAgreements,
+                        color: AppTheme.primaryColor,
                         child: ListView.builder(
                           padding: const EdgeInsets.all(16),
                           itemCount: _filteredAgreements.length,
@@ -94,40 +120,164 @@ class _HostAgreementsScreenState extends State<HostAgreementsScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label, String value) {
+  Widget _buildFilterChip(String label, String value, IconData icon) {
     final isSelected = _selectedFilter == value;
+    final count = value == 'all'
+        ? _agreements.length
+        : _agreements
+            .where((a) => a.status.value.toLowerCase() == value)
+            .length;
+
+    // Define colors for each filter type
+    Color chipColor;
+    Color selectedBgColor;
+    switch (value) {
+      case 'all':
+        chipColor = AppTheme.primaryColor;
+        selectedBgColor = AppTheme.primaryColor;
+        break;
+      case 'draft':
+        chipColor = Colors.orange.shade600;
+        selectedBgColor = Colors.orange.shade600;
+        break;
+      case 'active':
+        chipColor = Colors.green.shade600;
+        selectedBgColor = Colors.green.shade600;
+        break;
+      case 'terminated':
+        chipColor = Colors.grey.shade600;
+        selectedBgColor = Colors.grey.shade600;
+        break;
+      default:
+        chipColor = AppTheme.primaryColor;
+        selectedBgColor = AppTheme.primaryColor;
+    }
+
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: FilterChip(
-        label: Text(label),
+        avatar: Icon(
+          icon,
+          size: 18,
+          color: isSelected ? Colors.white : chipColor,
+        ),
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? Colors.white : chipColor,
+              ),
+            ),
+            if (count > 0) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.3)
+                      : chipColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  count.toString(),
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : chipColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
         selected: isSelected,
         onSelected: (selected) {
           setState(() => _selectedFilter = value);
         },
-        selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-        checkmarkColor: AppTheme.primaryColor,
+        selectedColor: selectedBgColor,
+        checkmarkColor: Colors.white,
+        backgroundColor: chipColor.withValues(alpha: 0.1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color:
+                isSelected ? selectedBgColor : chipColor.withValues(alpha: 0.5),
+            width: isSelected ? 2 : 1.5,
+          ),
+        ),
+        elevation: isSelected ? 3 : 0,
+        shadowColor: isSelected ? chipColor.withValues(alpha: 0.4) : null,
       ),
     );
   }
 
   Widget _buildEmptyState() {
+    String message;
+    IconData iconData;
+
+    switch (_selectedFilter) {
+      case 'draft':
+        message = 'No draft agreements';
+        iconData = Icons.pending_outlined;
+        break;
+      case 'active':
+        message = 'No active agreements';
+        iconData = Icons.check_circle_outline;
+        break;
+      case 'terminated':
+        message = 'No terminated agreements';
+        iconData = Icons.block_outlined;
+        break;
+      default:
+        message = 'No rental agreements yet';
+        iconData = Icons.description_outlined;
+    }
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.description_outlined, size: 80, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          const Text(
-            'No agreements',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Rental agreements will appear here after approving requests',
-            style: TextStyle(color: Colors.grey[600]),
-            textAlign: TextAlign.center,
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                iconData,
+                size: 80,
+                color: AppTheme.primaryColor.withValues(alpha: 0.5),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              message,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _selectedFilter == 'all'
+                  ? 'Rental agreements will appear here\nafter approving tenant requests'
+                  : 'Filter your agreements using the tabs above',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -151,9 +301,12 @@ class _HostAgreementsScreenState extends State<HostAgreementsScreen> {
             const SizedBox(height: 12),
             const Text('By confirming, you agree to:'),
             const SizedBox(height: 8),
-            _buildTermItem('Rent out the room at ${PriceFormatter.formatPriceInteger(agreement.rentAmount)}/month'),
-            _buildTermItem('Collect deposit of ${PriceFormatter.formatPriceInteger(agreement.depositAmount)}'),
-            _buildTermItem('Follow the ${agreement.noticePeriod}-day notice period'),
+            _buildTermItem(
+                'Rent out the room at ${PriceFormatter.formatPriceInteger(agreement.rentAmount)}/month'),
+            _buildTermItem(
+                'Collect deposit of ${PriceFormatter.formatPriceInteger(agreement.depositAmount)}'),
+            _buildTermItem(
+                'Follow the ${agreement.noticePeriod}-day notice period'),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
@@ -221,10 +374,12 @@ class _HostAgreementsScreenState extends State<HostAgreementsScreen> {
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   value: paymentType,
-                  decoration: const InputDecoration(border: OutlineInputBorder()),
+                  decoration:
+                      const InputDecoration(border: OutlineInputBorder()),
                   items: const [
                     DropdownMenuItem(value: 'DEPOSIT', child: Text('Deposit')),
-                    DropdownMenuItem(value: 'MONTHLY', child: Text('Monthly Rent')),
+                    DropdownMenuItem(
+                        value: 'MONTHLY', child: Text('Monthly Rent')),
                   ],
                   onChanged: (value) {
                     setDialogState(() => paymentType = value!);
@@ -286,7 +441,8 @@ class _HostAgreementsScreenState extends State<HostAgreementsScreen> {
 
     if (confirmed != true) return;
 
-    final amount = double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
+    final amount =
+        double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
 
     final result = await _roomRentalService.recordCashPayment(
       agreementId: agreement.id,
@@ -335,227 +491,424 @@ class _HostAgreementCard extends StatelessWidget {
     required this.onRecordPayment,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    agreement.roomTitle ?? 'Rental Agreement',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                _buildStatusBadge(),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-            const Divider(),
-            const SizedBox(height: 12),
-
-            // Tenant Info
-            const Text('Tenant:', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Colors.grey[200],
-                  child: const Icon(Icons.person, size: 24),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  agreement.tenantName ?? 'Tenant',
-                  style: const TextStyle(fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Financial Info
-            Row(
-              children: [
-                Expanded(
-                  child: _buildInfoTile('Monthly Rent', PriceFormatter.formatPriceInteger(agreement.rentAmount)),
-                ),
-                Expanded(
-                  child: _buildInfoTile('Deposit', PriceFormatter.formatPriceInteger(agreement.depositAmount)),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Payment Method & Notice
-            Row(
-              children: [
-                Expanded(
-                  child: _buildInfoTile('Payment', _formatPaymentMethod(agreement.paymentMethod)),
-                ),
-                Expanded(
-                  child: _buildInfoTile('Notice Period', '${agreement.noticePeriod} days'),
-                ),
-              ],
-            ),
-
-            // Signature Status for Draft
-            if (agreement.status.value.toLowerCase() == 'draft') ...[
-              const SizedBox(height: 16),
-              _buildSignatureStatus(),
-            ],
-
-            // Actions
-            const SizedBox(height: 16),
-
-            // Confirm button when tenant has signed
-            if (agreement.status.value.toLowerCase() == 'draft' &&
-                agreement.agreedByTenantAt != null &&
-                agreement.agreedByHostAt == null)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => onConfirm(agreement),
-                  icon: const Icon(Icons.check),
-                  label: const Text('Confirm Agreement'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-
-            // Record Payment for Active agreements
-            if (agreement.status.value.toLowerCase() == 'active')
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () => onRecordPayment(agreement),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Record Cash Payment'),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoTile(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
-      ],
-    );
-  }
-
-  Widget _buildStatusBadge() {
-    Color color;
-    String label;
-
+  Color _getStatusColor() {
     switch (agreement.status.value.toLowerCase()) {
       case 'draft':
-        color = Colors.orange;
-        label = 'Pending Signatures';
-        break;
+        return Colors.orange;
       case 'active':
-        color = Colors.green;
-        label = 'Active';
-        break;
+        return Colors.green;
       case 'terminated':
-        color = Colors.grey;
-        label = 'Terminated';
-        break;
+        return Colors.grey;
       default:
-        color = Colors.grey;
-        label = agreement.status.value;
+        return Colors.grey;
     }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12),
-      ),
-    );
   }
 
-  Widget _buildSignatureStatus() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
+  IconData _getStatusIcon() {
+    switch (agreement.status.value.toLowerCase()) {
+      case 'draft':
+        return Icons.pending_outlined;
+      case 'active':
+        return Icons.check_circle_outline;
+      case 'terminated':
+        return Icons.block_outlined;
+      default:
+        return Icons.description_outlined;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = _getStatusColor();
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      shadowColor: Colors.black12,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: statusColor.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Signature Status:', style: TextStyle(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(
-                agreement.agreedByTenantAt != null ? Icons.check_circle : Icons.pending,
-                size: 16,
-                color: agreement.agreedByTenantAt != null ? Colors.green : Colors.orange,
+          // Header with gradient
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  statusColor.withValues(alpha: 0.15),
+                  statusColor.withValues(alpha: 0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              const SizedBox(width: 8),
-              Text(
-                'Tenant: ${agreement.agreedByTenantAt != null ? "Signed" : "Pending"}',
-                style: const TextStyle(fontSize: 13),
-              ),
-            ],
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Row(
+              children: [
+                // Status Icon
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _getStatusIcon(),
+                    color: statusColor,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Title and Status
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        agreement.roomTitle ?? 'Rental Agreement',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      _buildStatusBadge(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(
-                agreement.agreedByHostAt != null ? Icons.check_circle : Icons.pending,
-                size: 16,
-                color: agreement.agreedByHostAt != null ? Colors.green : Colors.orange,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Host: ${agreement.agreedByHostAt != null ? "Confirmed" : "Pending"}',
-                style: const TextStyle(fontSize: 13),
-              ),
-            ],
+
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Tenant Info
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.person_rounded,
+                          size: 24, color: Colors.blue),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Tenant',
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey[600]),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            agreement.tenantName ?? 'Tenant',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Financial Details Grid
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[200]!),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildInfoRow(
+                              Icons.attach_money_rounded,
+                              'Monthly Rent',
+                              PriceFormatter.formatPriceInteger(
+                                  agreement.rentAmount),
+                              Colors.green,
+                            ),
+                          ),
+                          Container(
+                              width: 1, height: 40, color: Colors.grey[300]),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildInfoRow(
+                              Icons.account_balance_wallet_rounded,
+                              'Deposit',
+                              PriceFormatter.formatPriceInteger(
+                                  agreement.depositAmount),
+                              Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(height: 1),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildInfoRow(
+                              Icons.payment_rounded,
+                              'Payment',
+                              _formatPaymentMethod(agreement.paymentMethod),
+                              Colors.purple,
+                            ),
+                          ),
+                          Container(
+                              width: 1, height: 40, color: Colors.grey[300]),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildInfoRow(
+                              Icons.event_rounded,
+                              'Notice',
+                              '${agreement.noticePeriod} days',
+                              Colors.blue,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Signature Status for Draft
+                if (agreement.status.value.toLowerCase() == 'draft') ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.orange.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.edit_note_rounded,
+                                size: 18, color: Colors.orange),
+                            SizedBox(width: 8),
+                            Text(
+                              'Signature Status',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        _buildSignatureRow(
+                          'Tenant',
+                          agreement.agreedByTenantAt != null,
+                        ),
+                        const SizedBox(height: 4),
+                        _buildSignatureRow(
+                          'Host (You)',
+                          agreement.agreedByHostAt != null,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Actions
+                if (agreement.status.value.toLowerCase() == 'draft' &&
+                    agreement.agreedByTenantAt != null &&
+                    agreement.agreedByHostAt == null) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => onConfirm(agreement),
+                      icon: const Icon(Icons.check_circle_rounded, size: 20),
+                      label: const Text(
+                        'Confirm & Activate Agreement',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
+                    ),
+                  ),
+                ],
+
+                // Record Payment for Active
+                if (agreement.status.value.toLowerCase() == 'active') ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => onRecordPayment(agreement),
+                      icon: const Icon(Icons.add_circle_outline_rounded,
+                          size: 20),
+                      label: const Text(
+                        'Record Cash Payment',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.primaryColor,
+                        side: BorderSide(
+                            color: AppTheme.primaryColor, width: 1.5),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildInfoRow(IconData icon, String label, String value, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: color),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSignatureRow(String party, bool signed) {
+    return Row(
+      children: [
+        Icon(
+          signed ? Icons.check_circle_rounded : Icons.pending_outlined,
+          size: 16,
+          color: signed ? Colors.green : Colors.orange,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          '$party: ',
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        ),
+        Text(
+          signed ? 'Signed ✓' : 'Pending',
+          style: TextStyle(
+            fontSize: 13,
+            color: signed ? Colors.green : Colors.orange,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusBadge() {
+    Color color = _getStatusColor();
+    String label;
+
+    switch (agreement.status.value.toLowerCase()) {
+      case 'draft':
+        label = 'Pending Signatures';
+        break;
+      case 'active':
+        label = 'Active';
+        break;
+      case 'terminated':
+        label = 'Terminated';
+        break;
+      default:
+        label = agreement.status.value;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color, width: 1.5),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
   String _formatPaymentMethod(String method) {
-    switch (method.toLowerCase()) {
-      case 'online':
+    switch (method.toUpperCase()) {
+      case 'ONLINE':
         return 'Online';
-      case 'cash':
+      case 'CASH':
         return 'Cash';
-      case 'mixed':
+      case 'MIXED':
         return 'Mixed';
       default:
         return method;
     }
   }
 }
-
