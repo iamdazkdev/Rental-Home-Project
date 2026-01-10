@@ -48,6 +48,43 @@ class RoomRentalService {
     }
   }
 
+  /// Get available entire place listings
+  Future<List<Listing>> getAvailableEntirePlaces({
+    String? city,
+    double? minPrice,
+    double? maxPrice,
+  }) async {
+    try {
+      final token = await _storageService.getToken();
+
+      final queryParams = <String, String>{};
+      if (city != null) queryParams['city'] = city;
+      if (minPrice != null) queryParams['minPrice'] = minPrice.toString();
+      if (maxPrice != null) queryParams['maxPrice'] = maxPrice.toString();
+
+      final uri = Uri.parse('${ApiConfig.baseUrl}/listing').replace(
+          queryParameters: queryParams.isNotEmpty ? queryParams : null);
+
+      debugPrint('🏡 Fetching entire place listings: $uri');
+
+      final response = await http.get(
+        uri,
+        headers: ApiConfig.headers(token: token),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        // Filter only Entire Place type
+        final listings = data.map((json) => Listing.fromJson(json)).toList();
+        return listings.where((l) => l.type == 'Entire Place').toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('❌ Error fetching entire places: $e');
+      return [];
+    }
+  }
+
   /// Get room detail by ID
   Future<Listing?> getRoomDetail(String roomId) async {
     try {

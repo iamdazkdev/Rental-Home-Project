@@ -8,6 +8,7 @@ import '../../models/listing.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/listing_service.dart';
 import '../listings/listing_detail_screen.dart';
+import 'edit_property_screen.dart';
 
 class MyPropertiesScreen extends StatefulWidget {
   const MyPropertiesScreen({super.key});
@@ -57,15 +58,20 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
     try {
       final listings = await _listingService.getMyListings(user.id);
 
+      // Filter only Entire Place listings (exclude Room(s))
+      final entirePlaceListings =
+          listings.where((l) => l.type == 'Entire Place').toList();
+
       setState(() {
-        _allListings = listings;
-        _activeListings = listings.where((l) => l.isActive ?? true).toList();
+        _allListings = entirePlaceListings;
+        _activeListings =
+            entirePlaceListings.where((l) => l.isActive ?? true).toList();
         _inactiveListings =
-            listings.where((l) => !(l.isActive ?? true)).toList();
+            entirePlaceListings.where((l) => !(l.isActive ?? true)).toList();
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('❌ Error loading properties: $e');
+      debugPrint('❌ Error loading entire place listings: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -142,17 +148,24 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
   }
 
   void _navigateToEdit(Listing listing) {
-    // TODO: Navigate to edit listing screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Edit feature coming soon')),
-    );
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPropertyScreen(propertyId: listing.id),
+      ),
+    ).then((updated) {
+      // Reload properties if changes were saved
+      if (updated == true) {
+        _loadMyProperties();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Properties'),
+        title: const Text('My Entire Place Listings'),
         bottom: TabBar(
           controller: _tabController,
           tabs: [
@@ -168,7 +181,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
         },
         backgroundColor: AppTheme.primaryColor,
         icon: const Icon(Icons.add),
-        label: const Text('Add Property'),
+        label: const Text('Add Entire Place'),
       ),
     );
   }
@@ -186,7 +199,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
             Icon(Icons.home_work_outlined, size: 80, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
-              'No properties yet',
+              'No entire place listings yet',
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.grey[600],
@@ -195,7 +208,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              'Start by adding your first property',
+              'Start by listing your first entire place rental',
               style: TextStyle(fontSize: 14, color: Colors.grey[500]),
             ),
             const SizedBox(height: 24),
@@ -204,7 +217,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
                 Navigator.pushNamed(context, '/create-listing');
               },
               icon: const Icon(Icons.add),
-              label: const Text('Add Property'),
+              label: const Text('Add Entire Place'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,
                 foregroundColor: Colors.white,

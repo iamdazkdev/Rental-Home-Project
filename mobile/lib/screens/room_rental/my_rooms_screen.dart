@@ -7,6 +7,7 @@ import '../../models/listing.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/listing_service.dart';
 import '../../utils/price_formatter.dart';
+import 'edit_room_screen.dart';
 
 class MyRoomsScreen extends StatefulWidget {
   const MyRoomsScreen({super.key});
@@ -93,6 +94,7 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
                     itemBuilder: (context, index) {
                       return _RoomCard(
                         room: _filteredRooms[index],
+                        onEdit: _editRoom,
                         onDelete: _deleteRoom,
                       );
                     },
@@ -192,14 +194,31 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
     );
     _loadRooms();
   }
+
+  void _editRoom(Listing room) {
+    // Navigate to edit room screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditRoomScreen(roomId: room.id),
+      ),
+    ).then((updated) {
+      // Reload rooms if changes were saved
+      if (updated == true) {
+        _loadRooms();
+      }
+    });
+  }
 }
 
 class _RoomCard extends StatelessWidget {
   final Listing room;
+  final Function(Listing) onEdit;
   final Function(Listing) onDelete;
 
   const _RoomCard({
     required this.room,
+    required this.onEdit,
     required this.onDelete,
   });
 
@@ -340,9 +359,7 @@ class _RoomCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                          // Navigate to edit
-                        },
+                        onPressed: () => onEdit(room),
                         icon: const Icon(Icons.edit_outlined, size: 18),
                         label: const Text('Edit'),
                         style: OutlinedButton.styleFrom(
