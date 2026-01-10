@@ -1,0 +1,2577 @@
+{
+  "info": {
+    "name": "Rental Home Platform API",
+    "description": "Complete API collection for Rental Home Platform - Entire Place Rental, Room Rental, and Roommate Matching",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "rental-home-api"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "listingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookingId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "firstName",
+                  "value": "John",
+                  "type": "text"
+                },
+                {
+                  "key": "lastName",
+                  "value": "Doe",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "john.doe@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text"
+                },
+                {
+                  "key": "profileImage",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('authToken', jsonData.token);",
+                  "    pm.collectionVariables.set('userId', jsonData.user._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset_token_here\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"newpassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "firstName",
+                  "value": "John",
+                  "type": "text"
+                },
+                {
+                  "key": "lastName",
+                  "value": "Doe Updated",
+                  "type": "text"
+                },
+                {
+                  "key": "profileImage",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/{{userId}}/update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "{{userId}}",
+                "update"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Reservations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/{{userId}}/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "{{userId}}",
+                "reservations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Trips",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/{{userId}}/trips",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "{{userId}}",
+                "trips"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Properties",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/{{userId}}/properties",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "{{userId}}",
+                "properties"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add to Wishlist",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/user/{{userId}}/{{listingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "{{userId}}",
+                "{{listingId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Identity Verification",
+      "item": [
+        {
+          "name": "Check Verification Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/identity-verification/{{userId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identity-verification",
+                "{{userId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit Verification",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "fullName",
+                  "value": "John Doe",
+                  "type": "text"
+                },
+                {
+                  "key": "phoneNumber",
+                  "value": "+84123456789",
+                  "type": "text"
+                },
+                {
+                  "key": "dateOfBirth",
+                  "value": "1990-01-01",
+                  "type": "text"
+                },
+                {
+                  "key": "idCardFront",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "idCardBack",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/identity-verification/submit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identity-verification",
+                "submit"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Verification",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "fullName",
+                  "value": "John Doe Updated",
+                  "type": "text"
+                },
+                {
+                  "key": "phoneNumber",
+                  "value": "+84987654321",
+                  "type": "text"
+                },
+                {
+                  "key": "dateOfBirth",
+                  "value": "1990-01-01",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/identity-verification/{{userId}}/update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identity-verification",
+                "{{userId}}",
+                "update"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Verifications (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/identity-verification/all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identity-verification",
+                "all"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Verification (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/identity-verification/:verificationId/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identity-verification",
+                ":verificationId",
+                "approve"
+              ],
+              "variable": [
+                {
+                  "key": "verificationId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject Verification (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejectionReason\": \"Documents are not clear\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/identity-verification/:verificationId/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "identity-verification",
+                ":verificationId",
+                "reject"
+              ],
+              "variable": [
+                {
+                  "key": "verificationId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listings",
+      "item": [
+        {
+          "name": "Get All Listings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/listing",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "listing"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Listing by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/listing/{{listingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "listing",
+                "{{listingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Listing",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "creator",
+                  "value": "{{userId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "category",
+                  "value": "Beachfront",
+                  "type": "text"
+                },
+                {
+                  "key": "type",
+                  "value": "An entire place",
+                  "type": "text"
+                },
+                {
+                  "key": "streetAddress",
+                  "value": "123 Beach Road",
+                  "type": "text"
+                },
+                {
+                  "key": "aptSuite",
+                  "value": "Apt 5",
+                  "type": "text"
+                },
+                {
+                  "key": "city",
+                  "value": "Da Nang",
+                  "type": "text"
+                },
+                {
+                  "key": "province",
+                  "value": "Da Nang",
+                  "type": "text"
+                },
+                {
+                  "key": "country",
+                  "value": "Vietnam",
+                  "type": "text"
+                },
+                {
+                  "key": "guestCount",
+                  "value": "4",
+                  "type": "text"
+                },
+                {
+                  "key": "bedroomCount",
+                  "value": "2",
+                  "type": "text"
+                },
+                {
+                  "key": "bedCount",
+                  "value": "3",
+                  "type": "text"
+                },
+                {
+                  "key": "bathroomCount",
+                  "value": "2",
+                  "type": "text"
+                },
+                {
+                  "key": "amenities",
+                  "value": "[\"Wifi\",\"TV\",\"Kitchen\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "title",
+                  "value": "Beautiful Beachfront Villa",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Amazing villa with ocean view",
+                  "type": "text"
+                },
+                {
+                  "key": "highlight",
+                  "value": "Ocean View",
+                  "type": "text"
+                },
+                {
+                  "key": "highlightDesc",
+                  "value": "Stunning ocean view from every room",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "1500000",
+                  "type": "text"
+                },
+                {
+                  "key": "listingPhotos",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/listing/create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "listing",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Listing",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Updated Beautiful Villa",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "1800000",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/listing/{{listingId}}/update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "listing",
+                "{{listingId}}",
+                "update"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Listing",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/listing/{{listingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "listing",
+                "{{listingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Toggle Listing Visibility",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/listing/{{listingId}}/toggle-visibility",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "listing",
+                "{{listingId}}",
+                "toggle-visibility"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PROCESS 1: Entire Place Booking",
+      "item": [
+        {
+          "name": "Create Booking Intent",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"listingId\": \"{{listingId}}\",\n  \"customerId\": \"{{userId}}\",\n  \"hostId\": \"host_user_id\",\n  \"startDate\": \"2026-02-01\",\n  \"endDate\": \"2026-02-05\",\n  \"totalPrice\": 6000000,\n  \"paymentType\": \"full\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking-intent/create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking-intent",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check Availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking-intent/check-availability/{{listingId}}?startDate=2026-02-01&endDate=2026-02-05&userId={{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking-intent",
+                "check-availability",
+                "{{listingId}}"
+              ],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2026-02-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-02-05"
+                },
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create VNPay Payment URL",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tempOrderId\": \"INTENT_123456789\",\n  \"amount\": 6000000,\n  \"orderInfo\": \"Full payment for booking\",\n  \"returnUrl\": \"http://localhost:3000/payment-callback\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment/create-payment-url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment",
+                "create-payment-url"
+              ]
+            }
+          }
+        },
+        {
+          "name": "VNPay Return URL Handler",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/payment/vnpay-return",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment",
+                "vnpay-return"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking/user/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "user",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Booking Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancellationReason\": \"Change of plans\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}",
+                "cancel"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Booking (Host)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject Booking (Host)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejectionReason\": \"Property not available\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}",
+                "reject"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check-in",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}/check-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}",
+                "check-in"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check-out",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}/check-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}",
+                "check-out"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Extend Stay",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"additionalDays\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}/extension",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}",
+                "extension"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pay Remaining Amount",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"vnpay\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment-reminder/{{bookingId}}/pay-remaining",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment-reminder",
+                "{{bookingId}}",
+                "pay-remaining"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Confirm Cash Payment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payment-reminder/{{bookingId}}/confirm-cash",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment-reminder",
+                "{{bookingId}}",
+                "confirm-cash"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PROCESS 2: Room Rental",
+      "item": [
+        {
+          "name": "Create Room Listing",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "hostId",
+                  "value": "{{userId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "title",
+                  "value": "Cozy Room in Shared House",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Comfortable room with shared facilities",
+                  "type": "text"
+                },
+                {
+                  "key": "monthlyRent",
+                  "value": "3000000",
+                  "type": "text"
+                },
+                {
+                  "key": "depositAmount",
+                  "value": "3000000",
+                  "type": "text"
+                },
+                {
+                  "key": "availabilityStatus",
+                  "value": "AVAILABLE",
+                  "type": "text"
+                },
+                {
+                  "key": "city",
+                  "value": "Ho Chi Minh",
+                  "type": "text"
+                },
+                {
+                  "key": "province",
+                  "value": "Ho Chi Minh",
+                  "type": "text"
+                },
+                {
+                  "key": "roomSize",
+                  "value": "20",
+                  "type": "text"
+                },
+                {
+                  "key": "amenities",
+                  "value": "[\"Wifi\",\"Air Conditioner\"]",
+                  "type": "text"
+                },
+                {
+                  "key": "roomPhotos",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/room-rental/rooms/create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental",
+                "rooms",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Room Rentals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/room-rental/rooms/search?city=Ho Chi Minh&minPrice=2000000&maxPrice=5000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental",
+                "rooms",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "Ho Chi Minh"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "2000000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "5000000"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Room Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/room-rental/rooms/:roomId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental",
+                "rooms",
+                ":roomId"
+              ],
+              "variable": [
+                {
+                  "key": "roomId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit Rental Request",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": \"room_id_here\",\n  \"tenantId\": \"{{userId}}\",\n  \"message\": \"I am interested in renting this room\",\n  \"moveInDate\": \"2026-03-01\",\n  \"intendedStayDuration\": 6\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/room-rental/request",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental",
+                "request"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Host Rental Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/room-rental/requests/host/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental",
+                "requests",
+                "host",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Tenant Rental Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/room-rental/requests/tenant/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental",
+                "requests",
+                "tenant",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve Rental Request",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hostId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/room-rental/requests/:requestId/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental",
+                "requests",
+                ":requestId",
+                "approve"
+              ],
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject Rental Request",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hostId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/room-rental/requests/:requestId/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental",
+                "requests",
+                ":requestId",
+                "reject"
+              ],
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Rental Agreement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/room-rental/agreements/:agreementId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental",
+                "agreements",
+                ":agreementId"
+              ],
+              "variable": [
+                {
+                  "key": "agreementId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sign Agreement (Tenant)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/room-rental/agreements/:agreementId/sign-tenant",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental",
+                "agreements",
+                ":agreementId",
+                "sign-tenant"
+              ],
+              "variable": [
+                {
+                  "key": "agreementId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sign Agreement (Host)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hostId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/room-rental/agreements/:agreementId/sign-host",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental",
+                "agreements",
+                ":agreementId",
+                "sign-host"
+              ],
+              "variable": [
+                {
+                  "key": "agreementId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pay Deposit",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"{{userId}}\",\n  \"method\": \"ONLINE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/room-rental/agreements/:agreementId/pay-deposit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental",
+                "agreements",
+                ":agreementId",
+                "pay-deposit"
+              ],
+              "variable": [
+                {
+                  "key": "agreementId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Confirm Move-in",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirmedBy\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/room-rental-advanced/rentals/:rentalId/move-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental-advanced",
+                "rentals",
+                ":rentalId",
+                "move-in"
+              ],
+              "variable": [
+                {
+                  "key": "rentalId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit Termination Notice",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"initiatedBy\": \"{{userId}}\",\n  \"reason\": \"Moving to another city\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/room-rental-advanced/rentals/:rentalId/terminate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental-advanced",
+                "rentals",
+                ":rentalId",
+                "terminate"
+              ],
+              "variable": [
+                {
+                  "key": "rentalId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Monthly Payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/room-rental-advanced/payments/tenant/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental-advanced",
+                "payments",
+                "tenant",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pay Monthly Rent",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"ONLINE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/room-rental-advanced/payments/:paymentId/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "room-rental-advanced",
+                "payments",
+                ":paymentId",
+                "pay"
+              ],
+              "variable": [
+                {
+                  "key": "paymentId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PROCESS 3: Roommate",
+      "item": [
+        {
+          "name": "Create Roommate Post",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "postType",
+                  "value": "SEEKER",
+                  "type": "text"
+                },
+                {
+                  "key": "title",
+                  "value": "Looking for roommate in Da Nang",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Friendly person looking for a roommate",
+                  "type": "text"
+                },
+                {
+                  "key": "city",
+                  "value": "Da Nang",
+                  "type": "text"
+                },
+                {
+                  "key": "province",
+                  "value": "Da Nang",
+                  "type": "text"
+                },
+                {
+                  "key": "budgetMin",
+                  "value": "2000000",
+                  "type": "text"
+                },
+                {
+                  "key": "budgetMax",
+                  "value": "4000000",
+                  "type": "text"
+                },
+                {
+                  "key": "moveInDate",
+                  "value": "2026-03-01",
+                  "type": "text"
+                },
+                {
+                  "key": "genderPreference",
+                  "value": "ANY",
+                  "type": "text"
+                },
+                {
+                  "key": "lifestyle",
+                  "value": "{\"sleepSchedule\":\"FLEXIBLE\",\"smoking\":\"NO\",\"pets\":\"NEGOTIABLE\",\"cleanliness\":\"MODERATE\"}",
+                  "type": "text"
+                },
+                {
+                  "key": "preferredContact",
+                  "value": "CHAT",
+                  "type": "text"
+                },
+                {
+                  "key": "photos",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roommate/posts/create",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roommate",
+                "posts",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Roommate Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roommate/posts/search?city=Da Nang&postType=PROVIDER&budgetMin=2000000&budgetMax=5000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roommate",
+                "posts",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "Da Nang"
+                },
+                {
+                  "key": "postType",
+                  "value": "PROVIDER"
+                },
+                {
+                  "key": "budgetMin",
+                  "value": "2000000"
+                },
+                {
+                  "key": "budgetMax",
+                  "value": "5000000"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Roommate Post Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roommate/posts/:postId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roommate",
+                "posts",
+                ":postId"
+              ],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Roommate Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roommate/posts/user/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roommate",
+                "posts",
+                "user",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Roommate Post",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated title\",\n  \"budgetMax\": 5000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roommate/posts/:postId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roommate",
+                "posts",
+                ":postId"
+              ],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Close Roommate Post",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roommate/posts/:postId/close",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roommate",
+                "posts",
+                ":postId",
+                "close"
+              ],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send Roommate Request",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"postId\": \"post_id_here\",\n  \"senderId\": \"{{userId}}\",\n  \"receiverId\": \"receiver_user_id\",\n  \"message\": \"Hi! I would like to be your roommate\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roommate/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roommate",
+                "requests"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Sent Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roommate/requests/sent/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roommate",
+                "requests",
+                "sent",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Received Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roommate/requests/received/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roommate",
+                "requests",
+                "received",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Accept Roommate Request",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roommate/requests/:requestId/accept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roommate",
+                "requests",
+                ":requestId",
+                "accept"
+              ],
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject Roommate Request",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roommate/requests/:requestId/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roommate",
+                "requests",
+                ":requestId",
+                "reject"
+              ],
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Matches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roommate/matches/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roommate",
+                "matches",
+                "{{userId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"listingId\": \"{{listingId}}\",\n  \"customerId\": \"{{userId}}\",\n  \"rating\": 5,\n  \"comment\": \"Amazing place! Highly recommend.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reviews"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Reviews by Listing",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reviews/listing/{{listingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reviews",
+                "listing",
+                "{{listingId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Host Review",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hostId\": \"host_user_id\",\n  \"guestId\": \"{{userId}}\",\n  \"bookingId\": \"{{bookingId}}\",\n  \"rating\": 5,\n  \"comment\": \"Great host!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/host-reviews",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "host-reviews"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Host Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/host-reviews/host/:hostId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "host-reviews",
+                "host",
+                ":hostId"
+              ],
+              "variable": [
+                {
+                  "key": "hostId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "Get Conversations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/messages/conversations/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "messages",
+                "conversations",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/messages/:conversationId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "messages",
+                ":conversationId"
+              ],
+              "variable": [
+                {
+                  "key": "conversationId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senderId\": \"{{userId}}\",\n  \"receiverId\": \"receiver_user_id\",\n  \"content\": \"Hello!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "messages"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark as Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/messages/:conversationId/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "messages",
+                ":conversationId",
+                "read"
+              ],
+              "variable": [
+                {
+                  "key": "conversationId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/messages/unread/count/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "messages",
+                "unread",
+                "count",
+                "{{userId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notifications/:notificationId/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                ":notificationId",
+                "read"
+              ],
+              "variable": [
+                {
+                  "key": "notificationId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{userId}}/unread/count",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notifications",
+                "{{userId}}",
+                "unread",
+                "count"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Static Data",
+      "item": [
+        {
+          "name": "Get All Static Data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/static-data",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "static-data"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Property Types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/property-types",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "property-types"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Facilities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/facilities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "facilities"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "stats"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Listings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/listings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "listings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Category Name\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories/:categoryId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                ":categoryId"
+              ],
+              "variable": [
+                {
+                  "key": "categoryId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Facility",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Facility Name\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/facilities/:facilityId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "facilities",
+                ":facilityId"
+              ],
+              "variable": [
+                {
+                  "key": "facilityId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Search Listings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search?city=Da Nang&category=Beachfront&minPrice=1000000&maxPrice=5000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "Da Nang"
+                },
+                {
+                  "key": "category",
+                  "value": "Beachfront"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "1000000"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "5000000"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Utilities",
+      "item": [
+        {
+          "name": "Upload Image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "upload"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+
