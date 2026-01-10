@@ -29,6 +29,22 @@ class ChatCubit extends Cubit<ChatState> {
 
   Future<void> loadMessages(String conversationId) async {
     try {
+      // Skip fetching if conversation is temporary (new conversation not yet created)
+      if (conversationId.startsWith('temp_')) {
+        // Keep conversations in state when loading messages
+        if (state is ChatConversationsLoaded) {
+          final conversations =
+              (state as ChatConversationsLoaded).conversations;
+          emit(ChatMessagesLoaded(
+            messages: [], // Empty messages for new conversation
+            conversations: conversations,
+          ));
+        } else {
+          emit(ChatMessagesLoaded(messages: [])); // Empty messages
+        }
+        return;
+      }
+
       final messages = await _messageRepository.getMessages(conversationId);
 
       // Keep conversations in state when loading messages

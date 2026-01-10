@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../config/api_config.dart';
 import '../../models/message.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/chat_service.dart';
-import '../../utils/auth_storage.dart';
 
 class ChatScreen extends StatefulWidget {
   final String conversationId;
@@ -35,6 +36,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = true;
   bool _isSending = false;
   String? _currentUserId;
+  String? _realConversationId; // Track real conversation ID after first message
   IO.Socket? _socket;
 
   @override
@@ -50,7 +52,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _loadCurrentUser() async {
-    final user = await AuthStorage.getUser();
+    print('🔄 Loading current user...');
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+    print('👤 Current user loaded: ${user?.id ?? "NULL"}');
     setState(() {
       _currentUserId = user?.id;
     });
@@ -59,6 +64,18 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _loadMessages() async {
     try {
       setState(() => _isLoading = true);
+
+      // Skip fetching if conversation is temporary (new conversation not yet created)
+      if (widget.conversationId.startsWith('temp_')) {
+        print('ℹ️ Skipping message fetch for temporary conversation');
+        if (mounted) {
+          setState(() {
+            _messages = [];
+            _isLoading = false;
+          });
+        }
+        return;
+      }
 
       final messages = await _chatService.getMessages(widget.conversationId);
 
@@ -110,7 +127,13 @@ class _ChatScreenState extends State<ChatScreen> {
         print('📨 Received message via socket: $data');
         final message = _chatService.parseSocketMessage(data);
 
-        if (message.conversationId == widget.conversationId) {
+        // Accept message if it matches either widget conversationId or real conversationId
+        final isForThisConversation =
+            message.conversationId == widget.conversationId ||
+                (_realConversationId != null &&
+                    message.conversationId == _realConversationId);
+
+        if (isForThisConversation) {
           setState(() {
             _messages.add(message);
           });
@@ -118,7 +141,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
           // Mark as read
           if (_currentUserId != null) {
-            _chatService.markAsRead(widget.conversationId, _currentUserId!);
+            _chatService.markAsRead(message.conversationId, _currentUserId!);
           }
         }
       });
@@ -148,7 +171,19 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _sendMessage() async {
+    print('🔔 Send button pressed!');
+    print('   _currentUserId: $_currentUserId');
+    print('   _isSending: $_isSending');
+    print('   messageText length: ${_messageController.text.trim().length}');
+
     if (_messageController.text.trim().isEmpty || _currentUserId == null) {
+      print('❌ Send aborted:');
+      if (_messageController.text.trim().isEmpty) {
+        print('   - Message is empty');
+      }
+      if (_currentUserId == null) {
+        print('   - Current user ID is null');
+      }
       return;
     }
 
@@ -158,6 +193,13 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       setState(() => _isSending = true);
 
+      print('📤 ChatScreen - Sending message:');
+      print('   conversationId: ${widget.conversationId}');
+      print('   senderId: $_currentUserId');
+      print('   receiverId: ${widget.otherUserId}');
+      print('   listingId: ${widget.listingId}');
+      print('   text: $messageText');
+
       final message = await _chatService.sendMessage(
         conversationId: widget.conversationId,
         senderId: _currentUserId!,
@@ -165,6 +207,14 @@ class _ChatScreenState extends State<ChatScreen> {
         text: messageText,
         listingId: widget.listingId,
       );
+
+      // Save real conversation ID from first message (if it was temporary)
+      if (_realConversationId == null && message.conversationId.isNotEmpty) {
+        setState(() {
+          _realConversationId = message.conversationId;
+        });
+        print('✅ Real conversation ID: $_realConversationId');
+      }
 
       // Emit via socket for real-time delivery
       _socket?.emit(

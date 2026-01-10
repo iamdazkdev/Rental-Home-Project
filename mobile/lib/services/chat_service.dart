@@ -14,6 +14,8 @@ class ChatService {
   // Get authorization header
   Future<Map<String, String>> _getHeaders() async {
     final token = await _storage.read(key: 'auth_token');
+    print(
+        '🔑 Auth token: ${token != null ? "Present (${token.substring(0, 20)}...)" : "Missing"}');
     return {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
@@ -139,21 +141,27 @@ class ChatService {
     String? listingId,
   }) async {
     try {
-      print('📤 Sending message to conversation: $conversationId');
+      print('📤 Sending message from $senderId to $receiverId');
+
+      final requestBody = {
+        'senderId': senderId,
+        'receiverId': receiverId,
+        'message': text,
+        'messageType': 'text',
+        if (listingId != null && listingId.isNotEmpty) 'listingId': listingId,
+      };
+
+      print('📡 Request URL: $baseUrl/messages/messages');
+      print('📦 Request body: ${json.encode(requestBody)}');
 
       final response = await http.post(
-        Uri.parse('$baseUrl/messages'),
+        Uri.parse('$baseUrl/messages/messages'),
         headers: await _getHeaders(),
-        body: json.encode({
-          'conversationId': conversationId,
-          'senderId': senderId,
-          'receiverId': receiverId,
-          'text': text,
-          if (listingId != null) 'listingId': listingId,
-        }),
+        body: json.encode(requestBody),
       );
 
       print('📥 Send message response: ${response.statusCode}');
+      print('📄 Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
@@ -162,7 +170,8 @@ class ChatService {
         return message;
       } else {
         print('❌ Failed to send message: ${response.body}');
-        throw Exception('Failed to send message');
+        throw Exception(
+            'Failed to send message: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       print('❌ Error sending message: $e');
