@@ -326,7 +326,7 @@ const Navbar = () => {
                                                             onClick={() => setDropdownMenu(false)}
                                                         >
                                                             <Home sx={{fontSize: 18}}/>
-                                                            <span>Properties</span>
+                                                            <span>Entire Place Listings</span>
                                                         </Link>
                                                         <Link
                                                             to="/reservations"
