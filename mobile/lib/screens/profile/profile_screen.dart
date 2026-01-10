@@ -7,10 +7,15 @@ import '../bookings/booking_history_screen.dart';
 import '../host/booking_requests_screen.dart';
 import '../messages/messages_screen.dart';
 import '../properties/my_properties_screen.dart';
+import '../room_rental/host_active_rentals_screen.dart';
 import '../room_rental/host_agreements_screen.dart';
+import '../room_rental/host_payments_screen.dart';
 import '../room_rental/host_rental_requests_screen.dart';
 import '../room_rental/my_agreements_screen.dart';
+import '../room_rental/my_payments_screen.dart';
 import '../room_rental/my_rental_requests_screen.dart';
+import '../room_rental/my_rentals_screen.dart';
+import '../room_rental/my_rooms_screen.dart';
 import '../roommate/my_roommate_posts_screen.dart';
 import '../roommate/my_roommate_requests_screen.dart';
 import '../roommate/roommate_search_screen.dart';
@@ -206,8 +211,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           );
                         },
                       ),
+                      _MenuItem(
+                        icon: Icons.home_outlined,
+                        title: 'My Rentals',
+                        subtitle: 'Currently renting rooms',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MyRentalsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      _MenuItem(
+                        icon: Icons.payment_outlined,
+                        title: 'Payments',
+                        subtitle: 'Payment history',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MyPaymentsScreen(),
+                            ),
+                          );
+                        },
+                      ),
                       const SizedBox(height: 8),
                       _buildSubsectionTitle('Host'),
+                      _MenuItem(
+                        icon: Icons.home_work_outlined,
+                        title: 'My Rooms',
+                        subtitle: 'Manage your room listings',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MyRoomsScreen(),
+                            ),
+                          );
+                        },
+                      ),
                       _MenuItem(
                         icon: Icons.inbox_outlined,
                         title: 'Rental Requests',
@@ -232,6 +276,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             MaterialPageRoute(
                               builder: (context) =>
                                   const HostAgreementsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      _MenuItem(
+                        icon: Icons.home_filled,
+                        title: 'Active Rentals',
+                        subtitle: 'Currently rented rooms',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const HostActiveRentalsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      _MenuItem(
+                        icon: Icons.account_balance_wallet_outlined,
+                        title: 'Payments',
+                        subtitle: 'Track revenue & payments',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HostPaymentsScreen(),
                             ),
                           );
                         },

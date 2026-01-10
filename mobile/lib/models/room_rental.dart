@@ -394,3 +394,84 @@ class RentalPayment {
   bool get isOverdue =>
       dueDate != null && dueDate!.isBefore(DateTime.now()) && !isPaid;
 }
+
+/// Active Rental model for tracking current rentals
+class ActiveRental {
+  final String id;
+  final String agreementId;
+  final String roomId;
+  final String tenantId;
+  final String hostId;
+  final double monthlyRent;
+  final DateTime? nextPaymentDate;
+  final String status; // ACTIVE, TERMINATED
+  final DateTime createdAt;
+
+  // Populated fields
+  final dynamic room;
+  final dynamic tenant;
+  final dynamic host;
+
+  String? get roomTitle {
+    if (room is Map) {
+      return room['title'] ?? 'Room';
+    }
+    return null;
+  }
+
+  String? get tenantName {
+    if (tenant is Map) {
+      return '${tenant['firstName'] ?? ''} ${tenant['lastName'] ?? ''}'.trim();
+    }
+    return null;
+  }
+
+  String? get hostName {
+    if (host is Map) {
+      return '${host['firstName'] ?? ''} ${host['lastName'] ?? ''}'.trim();
+    }
+    return null;
+  }
+
+  ActiveRental({
+    required this.id,
+    required this.agreementId,
+    required this.roomId,
+    required this.tenantId,
+    required this.hostId,
+    required this.monthlyRent,
+    this.nextPaymentDate,
+    required this.status,
+    required this.createdAt,
+    this.room,
+    this.tenant,
+    this.host,
+  });
+
+  factory ActiveRental.fromJson(Map<String, dynamic> json) {
+    return ActiveRental(
+      id: json['_id'] ?? json['id'] ?? '',
+      agreementId: json['agreementId'] ?? '',
+      roomId: json['roomId'] is Map
+          ? json['roomId']['_id']
+          : (json['roomId'] ?? ''),
+      tenantId: json['tenantId'] is Map
+          ? json['tenantId']['_id']
+          : (json['tenantId'] ?? ''),
+      hostId: json['hostId'] is Map
+          ? json['hostId']['_id']
+          : (json['hostId'] ?? ''),
+      monthlyRent: (json['monthlyRent'] ?? 0).toDouble(),
+      nextPaymentDate: json['nextPaymentDate'] != null
+          ? DateTime.parse(json['nextPaymentDate'])
+          : null,
+      status: json['status'] ?? 'ACTIVE',
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+      room: json['roomId'] is Map ? json['roomId'] : null,
+      tenant: json['tenantId'] is Map ? json['tenantId'] : null,
+      host: json['hostId'] is Map ? json['hostId'] : null,
+    );
+  }
+}

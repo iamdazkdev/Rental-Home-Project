@@ -1,9 +1,11 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import '../config/api_config.dart';
-import '../models/room_rental.dart';
 import '../models/listing.dart';
+import '../models/room_rental.dart';
 import 'storage_service.dart';
 
 /// Service for Room Rental operations
@@ -25,8 +27,8 @@ class RoomRentalService {
       if (minPrice != null) queryParams['minPrice'] = minPrice.toString();
       if (maxPrice != null) queryParams['maxPrice'] = maxPrice.toString();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/rooms')
-        .replace(queryParameters: queryParams.isNotEmpty ? queryParams : null);
+      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/rooms').replace(
+          queryParameters: queryParams.isNotEmpty ? queryParams : null);
 
       debugPrint('🏠 Fetching available rooms: $uri');
 
@@ -114,8 +116,8 @@ class RoomRentalService {
           'success': true,
           'message': data['message'] ?? 'Request submitted successfully',
           'request': data['request'] != null
-            ? RentalRequest.fromJson(data['request'])
-            : null,
+              ? RentalRequest.fromJson(data['request'])
+              : null,
         };
       } else {
         final error = json.decode(response.body);
@@ -139,7 +141,8 @@ class RoomRentalService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/requests/tenant/$userId');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/room-rental/requests/tenant/$userId');
 
       final response = await http.get(
         uri,
@@ -163,7 +166,8 @@ class RoomRentalService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/requests/host/$hostId');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/room-rental/requests/host/$hostId');
 
       final response = await http.get(
         uri,
@@ -183,11 +187,13 @@ class RoomRentalService {
   }
 
   /// Approve a rental request (host)
-  Future<Map<String, dynamic>> approveRequest(String requestId, String hostId) async {
+  Future<Map<String, dynamic>> approveRequest(
+      String requestId, String hostId) async {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/requests/$requestId/approve');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}/room-rental/requests/$requestId/approve');
 
       debugPrint('✅ Approving request: $requestId');
 
@@ -203,8 +209,8 @@ class RoomRentalService {
           'success': true,
           'message': data['message'] ?? 'Request approved',
           'agreement': data['agreement'] != null
-            ? RentalAgreement.fromJson(data['agreement'])
-            : null,
+              ? RentalAgreement.fromJson(data['agreement'])
+              : null,
         };
       } else {
         final error = json.decode(response.body);
@@ -223,11 +229,13 @@ class RoomRentalService {
   }
 
   /// Reject a rental request (host)
-  Future<Map<String, dynamic>> rejectRequest(String requestId, String reason) async {
+  Future<Map<String, dynamic>> rejectRequest(
+      String requestId, String reason) async {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/requests/$requestId/reject');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}/room-rental/requests/$requestId/reject');
 
       debugPrint('❌ Rejecting request: $requestId');
 
@@ -264,7 +272,8 @@ class RoomRentalService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/requests/$requestId/cancel');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}/room-rental/requests/$requestId/cancel');
 
       final response = await http.put(
         uri,
@@ -300,7 +309,8 @@ class RoomRentalService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/agreements/tenant/$userId');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}/room-rental/agreements/tenant/$userId');
 
       final response = await http.get(
         uri,
@@ -310,7 +320,9 @@ class RoomRentalService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> agreements = data['agreements'] ?? data ?? [];
-        return agreements.map((json) => RentalAgreement.fromJson(json)).toList();
+        return agreements
+            .map((json) => RentalAgreement.fromJson(json))
+            .toList();
       }
       return [];
     } catch (e) {
@@ -324,7 +336,8 @@ class RoomRentalService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/agreements/host/$hostId');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/room-rental/agreements/host/$hostId');
 
       final response = await http.get(
         uri,
@@ -334,7 +347,9 @@ class RoomRentalService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> agreements = data['agreements'] ?? data ?? [];
-        return agreements.map((json) => RentalAgreement.fromJson(json)).toList();
+        return agreements
+            .map((json) => RentalAgreement.fromJson(json))
+            .toList();
       }
       return [];
     } catch (e) {
@@ -348,7 +363,8 @@ class RoomRentalService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/agreements/$agreementId/accept-tenant');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}/room-rental/agreements/$agreementId/accept-tenant');
 
       debugPrint('✅ Accepting agreement: $agreementId');
 
@@ -363,8 +379,8 @@ class RoomRentalService {
           'success': true,
           'message': data['message'] ?? 'Agreement accepted',
           'agreement': data['agreement'] != null
-            ? RentalAgreement.fromJson(data['agreement'])
-            : null,
+              ? RentalAgreement.fromJson(data['agreement'])
+              : null,
         };
       } else {
         final error = json.decode(response.body);
@@ -387,7 +403,8 @@ class RoomRentalService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/agreements/$agreementId/confirm-host');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}/room-rental/agreements/$agreementId/confirm-host');
 
       final response = await http.put(
         uri,
@@ -400,8 +417,8 @@ class RoomRentalService {
           'success': true,
           'message': data['message'] ?? 'Agreement confirmed',
           'agreement': data['agreement'] != null
-            ? RentalAgreement.fromJson(data['agreement'])
-            : null,
+              ? RentalAgreement.fromJson(data['agreement'])
+              : null,
         };
       } else {
         final error = json.decode(response.body);
@@ -426,7 +443,8 @@ class RoomRentalService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/payments/agreement/$agreementId');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}/room-rental/payments/agreement/$agreementId');
 
       final response = await http.get(
         uri,
@@ -455,7 +473,8 @@ class RoomRentalService {
     try {
       final token = await _storageService.getToken();
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/room-rental/payments/record-cash');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/room-rental/payments/record-cash');
 
       final response = await http.post(
         uri,
@@ -474,8 +493,8 @@ class RoomRentalService {
           'success': true,
           'message': data['message'] ?? 'Payment recorded',
           'payment': data['payment'] != null
-            ? RentalPayment.fromJson(data['payment'])
-            : null,
+              ? RentalPayment.fromJson(data['payment'])
+              : null,
         };
       } else {
         final error = json.decode(response.body);
@@ -492,5 +511,104 @@ class RoomRentalService {
       };
     }
   }
-}
 
+  /// Get tenant's active rentals
+  Future<List<ActiveRental>> getMyRentals(String tenantId) async {
+    try {
+      final token = await _storageService.getToken();
+
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}/room-rental/rentals/tenant/$tenantId');
+
+      final response = await http.get(
+        uri,
+        headers: ApiConfig.headers(token: token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> rentals = data['rentals'] ?? [];
+        return rentals.map((json) => ActiveRental.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('❌ Error fetching my rentals: $e');
+      return [];
+    }
+  }
+
+  /// Get tenant's payment history
+  Future<List<RentalPayment>> getMyPayments(String tenantId) async {
+    try {
+      final token = await _storageService.getToken();
+
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}/room-rental/payments/tenant/$tenantId');
+
+      final response = await http.get(
+        uri,
+        headers: ApiConfig.headers(token: token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> payments = data['payments'] ?? [];
+        return payments.map((json) => RentalPayment.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('❌ Error fetching my payments: $e');
+      return [];
+    }
+  }
+
+  /// Get host's active rentals
+  Future<List<ActiveRental>> getHostActiveRentals(String hostId) async {
+    try {
+      final token = await _storageService.getToken();
+
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/room-rental/rentals/host/$hostId');
+
+      final response = await http.get(
+        uri,
+        headers: ApiConfig.headers(token: token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> rentals = data['rentals'] ?? [];
+        return rentals.map((json) => ActiveRental.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('❌ Error fetching host rentals: $e');
+      return [];
+    }
+  }
+
+  /// Get host's payment history
+  Future<List<RentalPayment>> getHostPayments(String hostId) async {
+    try {
+      final token = await _storageService.getToken();
+
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/room-rental/payments/host/$hostId');
+
+      final response = await http.get(
+        uri,
+        headers: ApiConfig.headers(token: token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> payments = data['payments'] ?? [];
+        return payments.map((json) => RentalPayment.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('❌ Error fetching host payments: $e');
+      return [];
+    }
+  }
+}
