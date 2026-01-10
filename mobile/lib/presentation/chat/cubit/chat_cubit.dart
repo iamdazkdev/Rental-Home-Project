@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/repositories/message_repository.dart';
+import '../../../models/conversation.dart';
 import '../../../models/message.dart';
 import 'chat_state.dart';
 
@@ -59,17 +60,22 @@ class ChatCubit extends Cubit<ChatState> {
       );
 
       if (result != null) {
-        emit(ChatMessageSent(message: result));
+        // Get current messages and conversations from state
+        List<MessageModel> currentMessages = [];
+        List<ConversationModel>? conversations;
 
-        // Add message to current list
         if (state is ChatMessagesLoaded) {
-          final currentMessages = (state as ChatMessagesLoaded).messages;
-          final conversations = (state as ChatMessagesLoaded).conversations;
-          emit(ChatMessagesLoaded(
-            messages: [...currentMessages, result],
-            conversations: conversations,
-          ));
+          currentMessages = (state as ChatMessagesLoaded).messages;
+          conversations = (state as ChatMessagesLoaded).conversations;
+        } else if (state is ChatConversationsLoaded) {
+          conversations = (state as ChatConversationsLoaded).conversations;
         }
+
+        // Emit updated state with new message
+        emit(ChatMessagesLoaded(
+          messages: [...currentMessages, result],
+          conversations: conversations,
+        ));
       }
     } catch (e) {
       emit(ChatError(message: e.toString()));

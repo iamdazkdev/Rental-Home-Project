@@ -166,13 +166,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
             }
 
             // Get conversations and messages from state
-            final conversations = state is ChatConversationsLoaded
-                ? state.conversations
-                : state is ChatMessagesLoaded
-                    ? (state as dynamic).conversations ?? []
-                    : [];
+            final List<ConversationModel> conversations =
+                state is ChatConversationsLoaded
+                    ? state.conversations
+                    : state is ChatMessagesLoaded
+                        ? (state as ChatMessagesLoaded).conversations ??
+                            <ConversationModel>[]
+                        : <ConversationModel>[];
 
-            final messages =
+            final List<MessageModel> messages =
                 state is ChatMessagesLoaded ? state.messages : <MessageModel>[];
 
             return Row(

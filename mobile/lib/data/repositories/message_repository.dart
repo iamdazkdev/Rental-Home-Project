@@ -62,7 +62,7 @@ class MessageRepository {
       }
 
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/messages/send'),
+        Uri.parse('${ApiConfig.baseUrl}/messages/messages'),
         headers: ApiConfig.headers(token: token),
         body: json.encode(body),
       );
