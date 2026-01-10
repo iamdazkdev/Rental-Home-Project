@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import '../config/api_config.dart';
 import '../models/listing.dart';
 import 'storage_service.dart';
@@ -18,8 +20,9 @@ class WishlistService {
         return {'success': false, 'message': 'Not authenticated'};
       }
 
-      // PATCH /user/:userId/:listingId
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.wishlist}/${user.id}/$listingId');
+      // PATCH /user/:userId/wishlist/:listingId
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/user/${user.id}/wishlist/$listingId');
       final response = await http.patch(
         uri,
         headers: ApiConfig.headers(token: token),
@@ -37,6 +40,7 @@ class WishlistService {
         };
       } else {
         final error = json.decode(response.body);
+        debugPrint('❌ Wishlist error: ${error['message']}');
         return {
           'success': false,
           'message': error['message'] ?? 'Failed to update wishlist',
@@ -62,7 +66,8 @@ class WishlistService {
       // Get user's wishlist IDs from their profile
       // Backend doesn't have separate wishlist GET endpoint, wishlist is part of user object
       // We'll need to get listings and filter by user's wishList array
-      final listingsUri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.listings}');
+      final listingsUri =
+          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.listings}');
       final response = await http.get(
         listingsUri,
         headers: ApiConfig.headers(token: token),
@@ -88,4 +93,3 @@ class WishlistService {
     }
   }
 }
-
