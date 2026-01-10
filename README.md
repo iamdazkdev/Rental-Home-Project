@@ -1,6 +1,7 @@
 # 🏠 Rental Home Platform
 
-A comprehensive multi-platform rental solution supporting **Entire Place Rentals**, **Room Rentals**, and **Roommate Matching**. Built with React.js (Web), Flutter (Mobile), Node.js (Backend), and MongoDB.
+A comprehensive multi-platform rental solution supporting **Entire Place Rentals**, **Room Rentals**, and **Roommate
+Matching**. Built with React.js (Web), Flutter (Mobile), Node.js (Backend), and MongoDB.
 
 ![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20Mobile-blue?style=for-the-badge)
 ![Version](https://img.shields.io/badge/version-2.0.0-success?style=for-the-badge)
@@ -60,9 +61,9 @@ This platform serves three distinct rental processes:
 - **Search & Discovery** with filters (dates, location, price, amenities)
 - **Booking Widget** with real-time availability
 - **Payment Options**:
-  - VNPay Full Payment (100%)
-  - VNPay Deposit (30%) + Cash
-  - Cash on Check-in
+    - VNPay Full Payment (100%)
+    - VNPay Deposit (30%) + Cash
+    - Cash on Check-in
 - **BookingIntent** system prevents concurrent bookings
 - **Booking lifecycle**: Pending → Approved → Check-in → Check-out → Completed
 - **Payment reminders** for partial payments
@@ -428,74 +429,74 @@ Production: https://your-domain.com/api
 
 ### Authentication Endpoints
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/auth/register` | Register new user | No |
-| POST | `/auth/login` | User login | No |
-| POST | `/auth/forgot-password` | Request password reset | No |
-| POST | `/auth/reset-password` | Reset password | No |
-| GET | `/auth/verify-token` | Verify JWT token | Yes |
+| Method | Endpoint                | Description            | Auth Required |
+|--------|-------------------------|------------------------|---------------|
+| POST   | `/auth/register`        | Register new user      | No            |
+| POST   | `/auth/login`           | User login             | No            |
+| POST   | `/auth/forgot-password` | Request password reset | No            |
+| POST   | `/auth/reset-password`  | Reset password         | No            |
+| GET    | `/auth/verify-token`    | Verify JWT token       | Yes           |
 
 ### Entire Place Booking Endpoints
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/entire-place/search` | Search entire place listings | No |
-| GET | `/entire-place/listing/:id` | Get listing details | No |
-| POST | `/booking-intent/create` | Create booking intent (lock) | Yes |
-| POST | `/booking-intent/confirm` | Confirm booking after payment | Yes |
-| GET | `/booking-intent/check-availability/:listingId` | Check availability | No |
-| POST | `/payment/create-payment-url` | Generate VNPay payment URL | Yes |
-| GET | `/payment/vnpay-callback` | VNPay callback handler | No |
+| Method | Endpoint                                        | Description                   | Auth Required |
+|--------|-------------------------------------------------|-------------------------------|---------------|
+| GET    | `/entire-place/search`                          | Search entire place listings  | No            |
+| GET    | `/entire-place/listing/:id`                     | Get listing details           | No            |
+| POST   | `/booking-intent/create`                        | Create booking intent (lock)  | Yes           |
+| POST   | `/booking-intent/confirm`                       | Confirm booking after payment | Yes           |
+| GET    | `/booking-intent/check-availability/:listingId` | Check availability            | No            |
+| POST   | `/payment/create-payment-url`                   | Generate VNPay payment URL    | Yes           |
+| GET    | `/payment/vnpay-callback`                       | VNPay callback handler        | No            |
 
 ### Room Rental Endpoints
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/room-rental/search` | Search room rentals | No |
-| POST | `/room-rental/request` | Submit rental request | Yes |
-| PUT | `/room-rental/requests/:id/approve` | Host approves request | Yes |
-| POST | `/room-rental/agreement/sign` | Sign digital agreement | Yes |
-| GET | `/room-rental/my-rentals` | Get user's rentals | Yes |
+| Method | Endpoint                            | Description            | Auth Required |
+|--------|-------------------------------------|------------------------|---------------|
+| GET    | `/room-rental/search`               | Search room rentals    | No            |
+| POST   | `/room-rental/request`              | Submit rental request  | Yes           |
+| PUT    | `/room-rental/requests/:id/approve` | Host approves request  | Yes           |
+| POST   | `/room-rental/agreement/sign`       | Sign digital agreement | Yes           |
+| GET    | `/room-rental/my-rentals`           | Get user's rentals     | Yes           |
 
 ### Roommate Endpoints
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/roommate/posts` | Create roommate post | Yes |
-| GET | `/roommate/search` | Search roommate posts | No |
-| POST | `/roommate/requests` | Send roommate request | Yes |
-| PUT | `/roommate/requests/:id/accept` | Accept request | Yes |
-| PUT | `/roommate/posts/:id/close` | Close post | Yes |
+| Method | Endpoint                        | Description           | Auth Required |
+|--------|---------------------------------|-----------------------|---------------|
+| POST   | `/roommate/posts`               | Create roommate post  | Yes           |
+| GET    | `/roommate/search`              | Search roommate posts | No            |
+| POST   | `/roommate/requests`            | Send roommate request | Yes           |
+| PUT    | `/roommate/requests/:id/accept` | Accept request        | Yes           |
+| PUT    | `/roommate/posts/:id/close`     | Close post            | Yes           |
 
 ### Admin Endpoints
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/admin/dashboard/stats` | Get system statistics | Admin |
-| GET | `/admin/users` | Get all users | Admin |
-| PUT | `/admin/users/:id/suspend` | Suspend user | Admin |
-| GET | `/admin/verifications` | Get identity verifications | Admin |
-| PUT | `/admin/verifications/:id/approve` | Approve verification | Admin |
+| Method | Endpoint                           | Description                | Auth Required |
+|--------|------------------------------------|----------------------------|---------------|
+| GET    | `/admin/dashboard/stats`           | Get system statistics      | Admin         |
+| GET    | `/admin/users`                     | Get all users              | Admin         |
+| PUT    | `/admin/users/:id/suspend`         | Suspend user               | Admin         |
+| GET    | `/admin/verifications`             | Get identity verifications | Admin         |
+| PUT    | `/admin/verifications/:id/approve` | Approve verification       | Admin         |
 
 ### Request Example
 
 ```javascript
 // Create Booking Intent
 const response = await fetch('http://localhost:3001/booking-intent/create', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  },
-  body: JSON.stringify({
-    listingId: '507f1f77bcf86cd799439011',
-    startDate: '2025-01-15',
-    endDate: '2025-01-20',
-    guests: 2,
-    paymentMethod: 'vnpay',
-    paymentType: 'full'
-  })
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({
+        listingId: '507f1f77bcf86cd799439011',
+        startDate: '2025-01-15',
+        endDate: '2025-01-20',
+        guests: 2,
+        paymentMethod: 'vnpay',
+        paymentType: 'full'
+    })
 });
 
 const data = await response.json();
@@ -672,8 +673,6 @@ Comprehensive documentation is available in the `docs/` folder:
 - **[BUSINESS_ANALYSIS.md](docs/BUSINESS_ANALYSIS.md)** - Detailed business logic and rules
 - **[USE_CASES_CURRENT.md](docs/USE_CASES_CURRENT.md)** - All use cases with pre/post conditions
 - **[SEQUENCE_DIAGRAMS.md](docs/SEQUENCE_DIAGRAMS.md)** - Mermaid sequence diagrams
-- **[COMPARISON.md](docs/COMPARISON.md)** - Old vs New flow comparison
-- **[PROJECT_REPORT.md](docs/PROJECT_REPORT.md)** - Final project report
 
 ---
 
@@ -731,6 +730,49 @@ Three payment options for Entire Place:
 - **Environment variable protection** (no secrets in code)
 - **Admin-only routes** with middleware
 - **Socket.io authentication** required for chat
+
+---
+
+## ⚠️ Known Issues & Fixes
+
+### ✅ Fixed Issues
+
+**1. Message Send 404 Error (Mobile)**
+
+- **Status:** ✅ FIXED
+- **Issue:** Mobile app was calling wrong endpoint `/messages/send`
+- **Fix:** Updated to `/messages/messages` in `MessageRepository` and `ChatService`
+- **Files:** `mobile/lib/data/repositories/message_repository.dart`, `mobile/lib/services/chat_service.dart`
+
+**2. Messages Not Showing After Send**
+
+- **Status:** ✅ FIXED
+- **Issue:** UI not updating after message sent successfully
+- **Fix:** Updated `ChatCubit.sendMessage()` to always emit `ChatMessagesLoaded` state
+- **Files:** `mobile/lib/presentation/chat/cubit/chat_cubit.dart`
+
+**3. Type Casting Error in MessagesScreen**
+
+- **Status:** ✅ FIXED
+- **Issue:** `List<dynamic>` not compatible with `List<ConversationModel>`
+- **Fix:** Added explicit type declarations
+- **Files:** `mobile/lib/screens/messages/messages_screen.dart`
+
+**4. Contact Host 404 Error**
+
+- **Status:** ✅ FIXED
+- **Issue:** Trying to fetch messages for temporary conversation ID
+- **Fix:** Skip API call for `temp_` conversation IDs in `ChatScreen` and `ChatCubit`
+- **Files:** `mobile/lib/screens/messages/chat_screen.dart`, `mobile/lib/presentation/chat/cubit/chat_cubit.dart`
+
+**5. Cannot Send from Contact Host**
+
+- **Status:** ✅ FIXED
+- **Issue:** `_currentUserId` was null - using `AuthStorage` instead of `AuthProvider`
+- **Fix:** Updated `ChatScreen` to use `AuthProvider` for current user
+- **Files:** `mobile/lib/screens/messages/chat_screen.dart`
+
+For detailed fix documentation, see `docs/FIX_SEND_MESSAGE_ENDPOINT.md`
 
 ---
 
