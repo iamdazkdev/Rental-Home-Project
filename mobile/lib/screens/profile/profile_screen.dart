@@ -3,22 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../../config/app_theme.dart';
 import '../../providers/auth_provider.dart';
-import '../bookings/booking_history_screen.dart';
-import '../host/booking_requests_screen.dart';
+import '../hubs/entire_place_hub_screen.dart';
+import '../hubs/room_rental_hub_screen.dart';
+import '../hubs/roommate_hub_screen.dart';
 import '../messages/messages_screen.dart';
-import '../properties/my_properties_screen.dart';
-import '../room_rental/host_active_rentals_screen.dart';
-import '../room_rental/host_agreements_screen.dart';
-import '../room_rental/host_payments_screen.dart';
-import '../room_rental/host_rental_requests_screen.dart';
-import '../room_rental/my_agreements_screen.dart';
-import '../room_rental/my_payments_screen.dart';
-import '../room_rental/my_rental_requests_screen.dart';
-import '../room_rental/my_rentals_screen.dart';
-import '../room_rental/my_rooms_screen.dart';
-import '../roommate/my_roommate_posts_screen.dart';
-import '../roommate/my_roommate_requests_screen.dart';
-import '../roommate/roommate_search_screen.dart';
 import '../wishlist/wishlist_screen.dart';
 import 'edit_profile_screen.dart';
 
@@ -30,11 +18,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Collapsible sections state
-  bool _entirePlaceExpanded = false;
-  bool _roomRentalExpanded = false;
-  bool _roommateExpanded = false;
-
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -88,294 +71,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildQuickAccessCards(context),
                   const SizedBox(height: 24),
 
-                  // Entire Place Rental Section
-                  _buildCollapsibleSection(
-                    title: '🏡 Entire Place Rental',
-                    isExpanded: _entirePlaceExpanded,
-                    onToggle: () {
-                      setState(() {
-                        _entirePlaceExpanded = !_entirePlaceExpanded;
-                      });
-                    },
-                    children: [
-                      _buildSubsectionTitle('Guest'),
-                      _MenuItem(
-                        icon: Icons.history,
-                        title: 'Booking History',
-                        subtitle: 'View your bookings & trips',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const BookingHistoryScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _buildSubsectionTitle('Host'),
-                      _MenuItem(
-                        icon: Icons.home_work_outlined,
-                        title: 'Entire Place Listings',
-                        subtitle: 'Manage entire place rentals',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MyPropertiesScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _MenuItem(
-                        icon: Icons.event_note,
-                        title: 'Booking Requests',
-                        subtitle: 'Manage guest requests',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const BookingRequestsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                  // Main Sections Title
+                  Text(
+                    'Services',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
+                    ),
                   ),
+                  const SizedBox(height: 12),
 
-                  const SizedBox(height: 8),
-                  const Divider(),
-
-                  // Room Rental Section
-                  _buildCollapsibleSection(
-                    title: '🏠 Room Rental',
-                    isExpanded: _roomRentalExpanded,
-                    onToggle: () {
-                      setState(() {
-                        _roomRentalExpanded = !_roomRentalExpanded;
-                      });
-                    },
-                    children: [
-                      _buildSubsectionTitle('Tenant'),
-                      // _MenuItem(
-                      //   icon: Icons.search,
-                      //   title: 'Browse Rooms',
-                      //   subtitle: 'Find available rooms',
-                      //   onTap: () {
-                      //     Navigator.push(
-                      //       context,
-                      //       MaterialPageRoute(
-                      //         builder: (context) =>
-                      //             const RoomRentalSearchScreen(),
-                      //       ),
-                      //     );
-                      //   },
-                      // ),
-                      _MenuItem(
-                        icon: Icons.send_outlined,
-                        title: 'My Requests',
-                        subtitle: 'Your room requests',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const MyRentalRequestsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _MenuItem(
-                        icon: Icons.description_outlined,
-                        title: 'My Agreements',
-                        subtitle: 'Your rental agreements',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MyAgreementsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _MenuItem(
-                        icon: Icons.home_outlined,
-                        title: 'My Rentals',
-                        subtitle: 'Currently renting rooms',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MyRentalsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _MenuItem(
-                        icon: Icons.payment_outlined,
-                        title: 'Payments',
-                        subtitle: 'Payment history',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MyPaymentsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      _buildSubsectionTitle('Host'),
-                      _MenuItem(
-                        icon: Icons.home_work_outlined,
-                        title: 'My Rooms',
-                        subtitle: 'Manage your room listings',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MyRoomsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _MenuItem(
-                        icon: Icons.inbox_outlined,
-                        title: 'Rental Requests',
-                        subtitle: 'Incoming rental requests',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const HostRentalRequestsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _MenuItem(
-                        icon: Icons.handshake_outlined,
-                        title: 'Agreements',
-                        subtitle: 'Manage tenant agreements',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const HostAgreementsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _MenuItem(
-                        icon: Icons.home_filled,
-                        title: 'Active Rentals',
-                        subtitle: 'Currently rented rooms',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const HostActiveRentalsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _MenuItem(
-                        icon: Icons.account_balance_wallet_outlined,
-                        title: 'Payments',
-                        subtitle: 'Track revenue & payments',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const HostPaymentsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-                  const Divider(),
-
-                  // Roommate Section
-                  _buildCollapsibleSection(
-                    title: '👥 Find Roommate',
-                    isExpanded: _roommateExpanded,
-                    onToggle: () {
-                      setState(() {
-                        _roommateExpanded = !_roommateExpanded;
-                      });
-                    },
-                    children: [
-                      _MenuItem(
-                        icon: Icons.people_outline,
-                        title: 'Find Roommates',
-                        subtitle: 'Search roommate posts',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const RoommateSearchScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _MenuItem(
-                        icon: Icons.article_outlined,
-                        title: 'My Posts',
-                        subtitle: 'Your roommate posts',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const MyRoommatePostsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _MenuItem(
-                        icon: Icons.mail_outline,
-                        title: 'My Requests',
-                        subtitle: 'View and manage requests',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const MyRoommateRequestsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-                  const Divider(),
-
-                  // Settings
-                  _MenuItem(
-                    icon: Icons.settings_outlined,
-                    title: 'Settings',
-                    subtitle: 'Account settings',
+                  // Entire Place Rental
+                  _buildNavigationCard(
+                    context,
+                    emoji: '🏡',
+                    title: 'Entire Place Rental',
+                    subtitle: 'Short-term rentals & bookings',
+                    color: Colors.blue,
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const EditProfileScreen(),
+                          builder: (context) => const EntirePlaceHubScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Room Rental
+                  _buildNavigationCard(
+                    context,
+                    emoji: '🏠',
+                    title: 'Room Rental',
+                    subtitle: 'Long-term room rentals',
+                    color: Colors.green,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RoomRentalHubScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Find Roommate
+                  _buildNavigationCard(
+                    context,
+                    emoji: '👥',
+                    title: 'Find Roommate',
+                    subtitle: 'Find & connect with roommates',
+                    color: Colors.orange,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RoommateHubScreen(),
                         ),
                       );
                     },
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 32),
 
                   // Logout Button
                   OutlinedButton.icon(
@@ -421,6 +181,93 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildNavigationCard(
+    BuildContext context, {
+    required String emoji,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color.withValues(alpha: 0.1),
+              color.withValues(alpha: 0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: color.withValues(alpha: 0.3),
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: color.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: Text(
+                emoji,
+                style: const TextStyle(fontSize: 28),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.arrow_forward_ios,
+                color: color,
+                size: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -692,122 +539,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildSubsectionTitle(String title) {
-    return Container(
-      margin: const EdgeInsets.only(top: 12, bottom: 8, left: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        title.toUpperCase(),
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.primaryColor,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCollapsibleSection({
-    required String title,
-    required bool isExpanded,
-    required VoidCallback onToggle,
-    required List<Widget> children,
-  }) {
-    // Extract emoji and text from title
-    final parts = title.split(' ');
-    final emoji = parts.first;
-    final text = parts.skip(1).join(' ');
-
-    // Assign color based on section
-    Color sectionColor = AppTheme.primaryColor;
-    if (title.contains('Entire Place')) {
-      sectionColor = Colors.blue;
-    } else if (title.contains('Room Rental')) {
-      sectionColor = Colors.green;
-    } else if (title.contains('Roommate')) {
-      sectionColor = Colors.orange;
-    }
-
-    return Column(
-      children: [
-        InkWell(
-          onTap: onToggle,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  sectionColor.withValues(alpha: 0.1),
-                  sectionColor.withValues(alpha: 0.05),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: sectionColor.withValues(alpha: 0.3),
-                width: 2,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: sectionColor.withValues(alpha: 0.3),
-                      width: 2,
-                    ),
-                  ),
-                  child: Text(
-                    emoji,
-                    style: const TextStyle(fontSize: 24),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    text,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: sectionColor.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isExpanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    color: sectionColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (isExpanded) ...[
-          const SizedBox(height: 8),
-          ...children,
-        ],
-      ],
     );
   }
 }

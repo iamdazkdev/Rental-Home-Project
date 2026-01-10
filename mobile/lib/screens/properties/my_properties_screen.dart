@@ -58,18 +58,31 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
     try {
       final listings = await _listingService.getMyListings(user.id);
 
+      debugPrint('📊 Total listings fetched: ${listings.length}');
+      for (var listing in listings) {
+        debugPrint(
+            '  - ${listing.title}: type="${listing.type}", isActive=${listing.isActive}');
+      }
+
       // Filter only Entire Place listings (exclude Room(s))
-      final entirePlaceListings =
-          listings.where((l) => l.type == 'Entire Place').toList();
+      // Check for both "Entire Place" and "An entire place" to be safe
+      final entirePlaceListings = listings.where((l) {
+        final type = l.type.toLowerCase();
+        return type.contains('entire') || type == 'entire place';
+      }).toList();
+
+      debugPrint('🏡 Entire Place listings: ${entirePlaceListings.length}');
 
       setState(() {
         _allListings = entirePlaceListings;
-        _activeListings =
-            entirePlaceListings.where((l) => l.isActive ?? true).toList();
+        _activeListings = entirePlaceListings.where((l) => l.isActive).toList();
         _inactiveListings =
-            entirePlaceListings.where((l) => !(l.isActive ?? true)).toList();
+            entirePlaceListings.where((l) => !l.isActive).toList();
         _isLoading = false;
       });
+
+      debugPrint(
+          '✅ Active: ${_activeListings.length}, Inactive: ${_inactiveListings.length}');
     } catch (e) {
       debugPrint('❌ Error loading entire place listings: $e');
       setState(() => _isLoading = false);

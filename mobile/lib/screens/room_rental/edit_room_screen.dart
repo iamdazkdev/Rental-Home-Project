@@ -113,21 +113,66 @@ class _EditRoomScreenState extends State<EditRoomScreen> {
     setState(() => _isSaving = true);
 
     try {
-      // TODO: Call API to update listing
-      // For now, just show success message
-      await Future.delayed(const Duration(seconds: 1));
+      // Prepare listing data
+      final listingData = {
+        'title': _titleController.text,
+        'description': _descriptionController.text,
+        'type': 'Room(s)', // Room type is always Room(s)
+        'price': int.parse(_priceController.text),
+        'streetAddress': _streetAddressController.text,
+        'aptSuite': _aptSuiteController.text,
+        'city': _cityController.text,
+        'province': _provinceController.text,
+        'country': _countryController.text,
+        'bedroomCount': _bedroomCount,
+        'bedCount': _bedCount,
+        'bathroomCount': _bathroomCount,
+        'guestCount': _guestCount,
+        'amenities': _selectedAmenities,
+      };
+
+      debugPrint('📝 Updating room: ${widget.roomId}');
+      debugPrint('📊 Data being sent:');
+      debugPrint('   - Title: ${listingData['title']}');
+      debugPrint('   - Type: ${listingData['type']}');
+      debugPrint('   - Price: ${listingData['price']}');
+      debugPrint('   - Bedrooms: ${listingData['bedroomCount']} 🛏️');
+      debugPrint('   - Beds: ${listingData['bedCount']} 🛌');
+      debugPrint('   - Bathrooms: ${listingData['bathroomCount']} 🚿');
+      debugPrint('   - Guests: ${listingData['guestCount']} 👥');
+      debugPrint('   - Amenities: ${listingData['amenities']}');
+
+      final result = await _listingService.updateListing(
+        widget.roomId,
+        listingData,
+        null, // No new images for now
+      );
+
+      debugPrint('✅ Update result: ${result['success']}');
+      if (result['message'] != null) {
+        debugPrint('   Message: ${result['message']}');
+      }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Room updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context, true); // Return true to indicate success
+        if (result['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Room updated successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context, true); // Return true to indicate success
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ ${result['message'] ?? 'Failed to update'}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
-      debugPrint('Error updating room: $e');
+      debugPrint('❌ Error updating room: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

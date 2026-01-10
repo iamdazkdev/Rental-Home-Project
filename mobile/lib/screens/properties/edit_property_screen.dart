@@ -122,22 +122,66 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
     setState(() => _isSaving = true);
 
     try {
-      // TODO: Implement API call to update listing
-      // final result = await _listingService.updateListing(...);
+      // Prepare listing data
+      final listingData = {
+        'title': _titleController.text,
+        'description': _descriptionController.text,
+        'type': _propertyType,
+        'price': int.parse(_priceController.text),
+        'streetAddress': _streetAddressController.text,
+        'aptSuite': _aptSuiteController.text,
+        'city': _cityController.text,
+        'province': _provinceController.text,
+        'country': _countryController.text,
+        'bedroomCount': _bedroomCount,
+        'bedCount': _bedCount,
+        'bathroomCount': _bathroomCount,
+        'guestCount': _guestCount,
+        'amenities': _selectedAmenities,
+      };
 
-      await Future.delayed(const Duration(seconds: 1)); // Simulate API call
+      debugPrint('📝 Updating property: ${widget.propertyId}');
+      debugPrint('📊 Data being sent:');
+      debugPrint('   - Title: ${listingData['title']}');
+      debugPrint('   - Type: ${listingData['type']}');
+      debugPrint('   - Price: ${listingData['price']}');
+      debugPrint('   - Bedrooms: ${listingData['bedroomCount']} 🛏️');
+      debugPrint('   - Beds: ${listingData['bedCount']} 🛌');
+      debugPrint('   - Bathrooms: ${listingData['bathroomCount']} 🚿');
+      debugPrint('   - Guests: ${listingData['guestCount']} 👥');
+      debugPrint('   - Amenities: ${listingData['amenities']}');
+
+      final result = await _listingService.updateListing(
+        widget.propertyId,
+        listingData,
+        null, // No new images for now
+      );
+
+      debugPrint('✅ Update result: ${result['success']}');
+      if (result['message'] != null) {
+        debugPrint('   Message: ${result['message']}');
+      }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Property updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context, true);
+        if (result['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Property updated successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context, true); // Return true to trigger reload
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('❌ ${result['message'] ?? 'Failed to update'}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
-      debugPrint('Error updating property: $e');
+      debugPrint('❌ Error updating property: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
