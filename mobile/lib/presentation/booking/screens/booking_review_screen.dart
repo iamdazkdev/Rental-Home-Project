@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:rental_home/core/constants/api_constants.dart';
 
-import '../../../data/models/listing_model.dart';
+import '../../../models/listing.dart';
 import '../cubit/booking_cubit.dart';
 import '../cubit/booking_state.dart';
 import 'vnpay_payment_screen.dart';
@@ -101,7 +102,7 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
                       const SizedBox(height: 24),
                       _buildTermsCheckbox(),
                       const SizedBox(height: 24),
-                      _buildConfirmButton(isLoading),
+                      SafeArea(child: _buildConfirmButton(isLoading)),
                     ],
                   ),
                 );
@@ -305,7 +306,9 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(8),
-          color: isSelected ? const Color(0xFF4CAF50).withOpacity(0.1) : null,
+          color: isSelected
+              ? const Color(0xFF4CAF50).withAlpha((255 * 0.1).round())
+              : null,
         ),
         child: Row(
           children: [
@@ -388,7 +391,7 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
   Widget _buildConfirmButton(bool isLoading) {
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 56,
       child: ElevatedButton(
         onPressed:
             (!_agreedToTerms || isLoading) ? null : _handleConfirmBooking,
@@ -441,7 +444,7 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
   void _initiatePayment(BuildContext context, intent) {
     // Use localhost returnUrl for mobile webview (same as web)
     // After VNPay redirects, we'll detect URL change and handle it
-    final returnUrl = 'http://192.168.1.180:3000/entire-place/vnpay-callback';
+    final returnUrl = '${ApiConstants.baseUrl}/entire-place/vnpay-callback';
 
     context.read<BookingCubit>().initiateVNPayPayment(
           intent: intent,
@@ -466,10 +469,14 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
       ),
     );
 
+    debugPrint('📥 Received result from VNPay screen: $result');
+
     // Reset processing state when returning
     setState(() => _isProcessingPayment = false);
 
-    if (result != null && mounted) {
+    if (result != null) {
+      debugPrint('✅ Result is not null, processing...');
+
       if (result['success'] == true) {
         // Payment successful - create booking from payment
         final tempOrderIdFromResult = result['tempOrderId'] as String;
@@ -495,15 +502,27 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
         debugPrint('❌ Payment failed with code: $responseCode');
 
         // User already saw the error screen, just stay on review screen
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Payment failed. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
-    } else if (mounted) {
+    } else {
+      debugPrint('⚠️ Result is null - user closed payment screen');
+
       // User closed the payment screen without completing
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Payment was cancelled'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment was cancelled'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     }
   }
 

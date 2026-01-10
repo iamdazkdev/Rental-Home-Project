@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
 import '../../config/app_theme.dart';
+import '../../models/listing.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/listing_service.dart';
-import '../../models/listing.dart';
-import '../../utils/price_formatter.dart';
+import '../listings/listing_detail_screen.dart';
 
 class MyPropertiesScreen extends StatefulWidget {
   const MyPropertiesScreen({super.key});
@@ -14,36 +16,27 @@ class MyPropertiesScreen extends StatefulWidget {
   State<MyPropertiesScreen> createState() => _MyPropertiesScreenState();
 }
 
-class _MyPropertiesScreenState extends State<MyPropertiesScreen> with SingleTickerProviderStateMixin {
+class _MyPropertiesScreenState extends State<MyPropertiesScreen>
+    with SingleTickerProviderStateMixin {
   final ListingService _listingService = ListingService();
   late TabController _tabController;
 
-  List<Listing> _properties = [];
+  List<Listing> _allListings = [];
+  List<Listing> _activeListings = [];
+  List<Listing> _inactiveListings = [];
   bool _isLoading = true;
-  String _filterMode = 'all'; // 'all', 'active', 'inactive'
+
+  // Format price helper
+  String formatPrice(double price) {
+    final formatter = NumberFormat('#,###', 'vi_VN');
+    return '${formatter.format(price)} VND';
+  }
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        setState(() {
-          switch (_tabController.index) {
-            case 0:
-              _filterMode = 'all';
-              break;
-            case 1:
-              _filterMode = 'active';
-              break;
-            case 2:
-              _filterMode = 'inactive';
-              break;
-          }
-        });
-      }
-    });
-    _loadProperties();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadMyProperties();
   }
 
   @override
@@ -52,82 +45,65 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> with SingleTick
     super.dispose();
   }
 
-  Future<void> _loadProperties() async {
-    final user = context.read<AuthProvider>().user;
-    if (user == null) return;
-
+  Future<void> _loadMyProperties() async {
     setState(() => _isLoading = true);
 
-    final properties = await _listingService.getUserProperties(user.id);
+    final user = context.read<AuthProvider>().user;
+    if (user == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
 
-    setState(() {
-      _properties = properties;
-      _isLoading = false;
-    });
-  }
+    try {
+      final listings = await _listingService.getMyListings(user.id);
 
-  List<Listing> get _filteredProperties {
-    switch (_filterMode) {
-      case 'active':
-        return _properties.where((p) => !p.isHidden).toList();
-      case 'inactive':
-        return _properties.where((p) => p.isHidden).toList();
-      default:
-        return _properties;
+      setState(() {
+        _allListings = listings;
+        _activeListings = listings.where((l) => l.isActive ?? true).toList();
+        _inactiveListings =
+            listings.where((l) => !(l.isActive ?? true)).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('❌ Error loading properties: $e');
+      setState(() => _isLoading = false);
     }
   }
 
-  int get _totalProperties => _properties.length;
-  int get _activeProperties => _properties.where((p) => !p.isHidden).length;
-  int get _inactiveProperties => _properties.where((p) => p.isHidden).length;
+  Future<void> _toggleListingStatus(Listing listing) async {
+    try {
+      final newStatus = !(listing.isActive ?? true);
+      final success = await _listingService.updateListingStatus(
+        listing.id,
+        newStatus,
+      );
 
-  Future<void> _toggleVisibility(Listing listing) async {
-    final willBeHidden = !listing.isHidden;
-
-    final result = await _listingService.toggleListingVisibility(
-      listing.id,
-      willBeHidden,
-    );
-
-    if (mounted) {
-      if (result['success']) {
-        await _loadProperties();
-        if (willBeHidden) {
-          _tabController.animateTo(2);
-          setState(() => _filterMode = 'inactive');
-        } else {
-          _tabController.animateTo(1);
-          setState(() => _filterMode = 'active');
-        }
-        if (!mounted) return;
+      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              willBeHidden
-                ? 'Property hidden successfully. Showing in "Inactive" tab.'
-                : 'Property is now visible. Showing in "Active" tab.',
+              newStatus ? '✅ Listing activated' : '📴 Listing deactivated',
             ),
-            backgroundColor: AppTheme.successColor,
-            duration: const Duration(seconds: 3),
+            backgroundColor: newStatus ? Colors.green : Colors.orange,
           ),
         );
-      } else {
+        await _loadMyProperties();
+      }
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Failed to update visibility'),
-            backgroundColor: AppTheme.errorColor,
-          ),
+          SnackBar(content: Text('Error: ${e.toString()}')),
         );
       }
     }
   }
 
-  Future<void> _deleteProperty(Listing listing) async {
+  Future<void> _deleteListing(Listing listing) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Property'),
-        content: const Text('Are you sure you want to delete this property?'),
+        title: const Text('Delete Listing'),
+        content: Text('Are you sure you want to delete "${listing.title}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -135,7 +111,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> with SingleTick
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Delete'),
           ),
         ],
@@ -143,27 +119,33 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> with SingleTick
     );
 
     if (confirm == true) {
-      final result = await _listingService.deleteListing(listing.id);
+      try {
+        final success = await _listingService.deleteListing(listing.id);
 
-      if (mounted) {
-        if (result['success']) {
+        if (success == true && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Property deleted successfully'),
-              backgroundColor: AppTheme.successColor,
+            const SnackBar(
+              content: Text('✅ Listing deleted successfully'),
+              backgroundColor: Colors.green,
             ),
           );
-          _loadProperties();
-        } else {
+          await _loadMyProperties();
+        }
+      } catch (e) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Failed to delete property'),
-              backgroundColor: AppTheme.errorColor,
-            ),
+            SnackBar(content: Text('Error: ${e.toString()}')),
           );
         }
       }
     }
+  }
+
+  void _navigateToEdit(Listing listing) {
+    // TODO: Navigate to edit listing screen
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Edit feature coming soon')),
+    );
   }
 
   @override
@@ -171,405 +153,299 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> with SingleTick
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Properties'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              // TODO: Navigate to CreateListingScreen when implemented
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Create listing feature coming soon!'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-          ),
-        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            Tab(text: 'All ($_totalProperties)'),
-            Tab(text: 'Active ($_activeProperties)'),
-            Tab(text: 'Inactive ($_inactiveProperties)'),
+            Tab(text: 'Active (${_activeListings.length})'),
+            Tab(text: 'Inactive (${_inactiveListings.length})'),
           ],
         ),
       ),
-      body: Column(
-        children: [
-          // Statistics Cards
-          if (_properties.isNotEmpty) _buildStatisticsCards(),
-
-          // Content
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _filteredProperties.isEmpty
-                    ? _buildEmptyState()
-                    : RefreshIndicator(
-                        onRefresh: _loadProperties,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _filteredProperties.length,
-                          itemBuilder: (context, index) {
-                            return _PropertyCard(
-                              listing: _filteredProperties[index],
-                              onToggleVisibility: () => _toggleVisibility(_filteredProperties[index]),
-                              onDelete: () => _deleteProperty(_filteredProperties[index]),
-                              onEdit: () => _editProperty(_filteredProperties[index]),
-                            );
-                          },
-                        ),
-                      ),
-          ),
-        ],
+      body: _buildBody(),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.pushNamed(context, '/create-listing');
+        },
+        backgroundColor: AppTheme.primaryColor,
+        icon: const Icon(Icons.add),
+        label: const Text('Add Property'),
       ),
     );
   }
 
-  Widget _buildStatisticsCards() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: Colors.grey[50],
-      child: Row(
-        children: [
-          Expanded(
-            child: _StatCard(
-              icon: Icons.home_work,
-              label: 'Total',
-              value: _totalProperties.toString(),
-              color: AppTheme.primaryColor,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _StatCard(
-              icon: Icons.visibility,
-              label: 'Active',
-              value: _activeProperties.toString(),
-              color: AppTheme.successColor,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _StatCard(
-              icon: Icons.visibility_off,
-              label: 'Hidden',
-              value: _inactiveProperties.toString(),
-              color: AppTheme.warningColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    String title;
-    String subtitle;
-    IconData icon;
-
-    switch (_filterMode) {
-      case 'active':
-        title = 'No Active Properties';
-        subtitle = 'You have no visible properties at the moment';
-        icon = Icons.visibility;
-        break;
-      case 'inactive':
-        title = 'No Hidden Properties';
-        subtitle = 'All your properties are currently visible';
-        icon = Icons.visibility_off;
-        break;
-      default:
-        title = 'No Properties Yet';
-        subtitle = 'Create your first listing to get started';
-        icon = Icons.home_work_outlined;
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
     }
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 80,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: const TextStyle(color: Colors.grey),
-            textAlign: TextAlign.center,
-          ),
-          if (_filterMode == 'all') ...[
+    if (_allListings.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.home_work_outlined, size: 80, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'No properties yet',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Start by adding your first property',
+              style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
-                // TODO: Navigate to CreateListingScreen when implemented
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Create listing feature coming soon!'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+                Navigator.pushNamed(context, '/create-listing');
               },
               icon: const Icon(Icons.add),
-              label: const Text('Create Listing'),
+              label: const Text('Add Property'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
             ),
           ],
-        ],
-      ),
-    );
-  }
-
-  void _editProperty(Listing listing) {
-    // TODO: Navigate to edit screen with listing data
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Property'),
-        content: const Text(
-          'Edit listing feature is coming soon!\n\n'
-          'You will be able to:\n'
-          '• Update property details\n'
-          '• Change photos\n'
-          '• Modify pricing\n'
-          '• Update amenities',
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
+      );
+    }
+
+    return TabBarView(
+      controller: _tabController,
+      children: [
+        _buildListingsList(_activeListings),
+        _buildListingsList(_inactiveListings),
+      ],
+    );
+  }
+
+  Widget _buildListingsList(List<Listing> listings) {
+    if (listings.isEmpty) {
+      return Center(
+        child: Text(
+          'No listings in this category',
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadMyProperties,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: listings.length,
+        itemBuilder: (context, index) => _buildListingCard(listings[index]),
       ),
     );
   }
-}
 
-// Statistics Card Widget
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
+  Widget _buildListingCard(Listing listing) {
+    final isActive = listing.isActive ?? true;
 
-  const _StatCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PropertyCard extends StatelessWidget {
-  final Listing listing;
-  final VoidCallback onToggleVisibility;
-  final VoidCallback onDelete;
-  final VoidCallback onEdit;
-
-  const _PropertyCard({
-    required this.listing,
-    required this.onToggleVisibility,
-    required this.onDelete,
-    required this.onEdit,
-  });
-
-  @override
-  Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image
-          if (listing.photoUrls.isNotEmpty)
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ListingDetailScreen(listingId: listing.id),
+            ),
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image with status badge
             Stack(
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: CachedNetworkImage(
-                    imageUrl: listing.photoUrls.first,
-                    height: 180,
+                if (listing.mainPhoto != null)
+                  CachedNetworkImage(
+                    imageUrl: listing.mainPhoto!,
+                    height: 160,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
-                      color: AppTheme.backgroundColor,
+                      height: 160,
+                      color: Colors.grey[300],
                       child: const Center(child: CircularProgressIndicator()),
                     ),
                     errorWidget: (context, url, error) => Container(
-                      color: AppTheme.backgroundColor,
-                      child: const Icon(Icons.home_work_outlined, size: 60),
+                      height: 160,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.home_work, size: 50),
+                    ),
+                  )
+                else
+                  Container(
+                    height: 160,
+                    color: Colors.grey[300],
+                    child: const Center(
+                      child: Icon(Icons.home_work, size: 50),
                     ),
                   ),
-                ),
-                // Status badges
+
+                // Status Badge
                 Positioned(
                   top: 12,
                   right: 12,
-                  child: Row(
-                    children: [
-                      if (listing.isHidden)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.orange,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.visibility_off, size: 14, color: Colors.white),
-                              SizedBox(width: 4),
-                              Text(
-                                'Hidden',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      if (!listing.isAvailable)
-                        Container(
-                          margin: const EdgeInsets.only(left: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            'Booked',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                    ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isActive ? Colors.green : Colors.grey,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      isActive ? 'Active' : 'Inactive',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
 
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  listing.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, size: 16, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        '${listing.city}, ${listing.province}',
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  PriceFormatter.formatPriceInteger(listing.price),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 16),
-                // Actions
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: onEdit,
-                        icon: const Icon(Icons.edit, size: 18),
-                        label: const Text('Edit'),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: onToggleVisibility,
-                        icon: Icon(
-                          listing.isHidden ? Icons.visibility : Icons.visibility_off,
-                          size: 18,
+            // Details
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title and Type
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          listing.title,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        label: Text(listing.isHidden ? 'Show' : 'Hide'),
                       ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          listing.type,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Location
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on,
+                          size: 16, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          listing.shortAddress,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Price
+                  Text(
+                    '${formatPrice(listing.price)}/${listing.priceType ?? 'night'}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryColor,
                     ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: onDelete,
-                      icon: const Icon(Icons.delete_outline, color: AppTheme.errorColor),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _navigateToEdit(listing),
+                          icon: const Icon(Icons.edit, size: 16),
+                          label: const Text('Edit'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.primaryColor,
+                            side:
+                                const BorderSide(color: AppTheme.primaryColor),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _toggleListingStatus(listing),
+                          icon: Icon(
+                            isActive ? Icons.visibility_off : Icons.visibility,
+                            size: 16,
+                          ),
+                          label: Text(isActive ? 'Hide' : 'Show'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor:
+                                isActive ? Colors.orange : Colors.green,
+                            side: BorderSide(
+                              color: isActive ? Colors.orange : Colors.green,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () => _deleteListing(listing),
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        tooltip: 'Delete',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
-

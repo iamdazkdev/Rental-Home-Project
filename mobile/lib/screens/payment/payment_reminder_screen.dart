@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/models/booking_model.dart';
+import '../../models/booking.dart';
 import '../../presentation/booking/cubit/booking_cubit.dart';
 import '../../presentation/booking/cubit/booking_state.dart';
 import '../../utils/date_formatter.dart';

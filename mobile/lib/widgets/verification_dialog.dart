@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../config/app_theme.dart';
-import '../data/models/identity_verification_model.dart';
+import '../models/identity_verification.dart';
 import '../services/identity_verification_service.dart';
 
 /// Widget to check identity verification status and prompt user if needed
 class VerificationRequiredDialog extends StatelessWidget {
-  final IdentityVerification? verification;
+  final IdentityVerificationModel? verification;
   final VoidCallback onVerifyNow;
   final VoidCallback onCancel;
 
@@ -29,7 +30,8 @@ class VerificationRequiredDialog extends StatelessWidget {
 
     if (verification == null) {
       title = 'Identity Verification Required';
-      message = 'To proceed with this action, you need to verify your identity first. '
+      message =
+          'To proceed with this action, you need to verify your identity first. '
           'This helps us maintain a safe community for all users.';
       icon = Icons.verified_user_outlined;
       iconColor = AppTheme.primaryColor;
@@ -124,10 +126,10 @@ Future<bool> checkVerificationAndPrompt({
   }
 
   // Parse verification data
-  IdentityVerification? verification;
+  IdentityVerificationModel? verification;
   if (result['verification'] != null) {
     try {
-      verification = IdentityVerification.fromJson(result['verification']);
+      verification = IdentityVerificationModel.fromJson(result['verification']);
     } catch (e) {
       // Ignore parsing errors
     }
@@ -183,7 +185,8 @@ class VerificationStatusBanner extends StatelessWidget {
         bgColor = Colors.red.withValues(alpha: 0.1);
         textColor = Colors.red[700]!;
         icon = Icons.error_outline;
-        message = rejectionReason ?? 'Verification rejected. Please update your info.';
+        message = rejectionReason ??
+            'Verification rejected. Please update your info.';
         break;
       case VerificationStatus.approved:
         bgColor = Colors.green.withValues(alpha: 0.1);
@@ -219,4 +222,3 @@ class VerificationStatusBanner extends StatelessWidget {
     );
   }
 }
-

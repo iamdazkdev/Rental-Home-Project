@@ -31,6 +31,7 @@ dependencies:
   # Network & API
   http: ^1.1.2
   dio: ^5.4.0
+  socket_io_client: ^2.0.3+1
 
   # Local Storage
   shared_preferences: ^2.2.2
@@ -49,8 +50,6 @@ dependencies:
   geolocator: ^10.1.0
   geocoding: ^2.1.1
 
-  # Chat & Real-time
-  socket_io_client: ^2.0.3+1
 
   # Utils
   url_launcher: ^6.2.2

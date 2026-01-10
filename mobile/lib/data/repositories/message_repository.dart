@@ -1,36 +1,77 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import '../../config/api_config.dart';
+import '../../models/conversation.dart';
+import '../../models/message.dart';
 import '../../services/storage_service.dart';
-import '../models/message_model.dart';
 
 class MessageRepository {
   final StorageService _storageService = StorageService();
 
+  /// Get all conversations for a user
+  Future<List<ConversationModel>> getConversations(String userId) async {
+    try {
+      final token = await _storageService.getToken();
+
+      debugPrint('📞 Fetching conversations for user: $userId');
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/messages/conversations/$userId'),
+        headers: ApiConfig.headers(token: token),
+      );
+
+      debugPrint('📥 Conversations response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final List data = json.decode(response.body);
+        debugPrint('✅ Found ${data.length} conversations');
+        return data.map((json) => ConversationModel.fromJson(json)).toList();
+      }
+
+      return [];
+    } catch (e) {
+      debugPrint('❌ Error getting conversations: $e');
+      return [];
+    }
+  }
+
   /// Send a message
   Future<MessageModel?> sendMessage({
-    required String conversationId,
     required String senderId,
     required String receiverId,
     required String text,
+    String? listingId,
   }) async {
     try {
       final token = await _storageService.getToken();
 
+      debugPrint('📤 Sending message from $senderId to $receiverId');
+
+      final body = {
+        'senderId': senderId,
+        'receiverId': receiverId,
+        'message': text,
+        'messageType': 'text',
+      };
+
+      if (listingId != null) {
+        body['listingId'] = listingId;
+      }
+
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/messages'),
+        Uri.parse('${ApiConfig.baseUrl}/messages/send'),
         headers: ApiConfig.headers(token: token),
-        body: json.encode({
-          'conversationId': conversationId,
-          'senderId': senderId,
-          'receiverId': receiverId,
-          'text': text,
-        }),
+        body: json.encode(body),
       );
+
+      debugPrint('📥 Send message response: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
+        debugPrint('✅ Message sent successfully');
         return MessageModel.fromJson(data['message'] ?? data);
       }
 
@@ -45,14 +86,21 @@ class MessageRepository {
   Future<List<MessageModel>> getMessages(String conversationId) async {
     try {
       final token = await _storageService.getToken();
+      final userId = await _storageService.getUserId();
+
+      debugPrint('📨 Fetching messages for conversation: $conversationId');
 
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/messages/$conversationId'),
+        Uri.parse(
+            '${ApiConfig.baseUrl}/messages/messages/$conversationId?userId=$userId'),
         headers: ApiConfig.headers(token: token),
       );
 
+      debugPrint('📥 Messages response: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final List data = json.decode(response.body);
+        debugPrint('✅ Found ${data.length} messages');
         return data.map((json) => MessageModel.fromJson(json)).toList();
       }
 
@@ -84,17 +132,24 @@ class MessageRepository {
   Future<String?> getOrCreateConversation({
     required String userId1,
     required String userId2,
+    String? listingId,
   }) async {
     try {
       final token = await _storageService.getToken();
 
+      final body = {
+        'userId1': userId1,
+        'userId2': userId2,
+      };
+
+      if (listingId != null) {
+        body['listingId'] = listingId;
+      }
+
       final response = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/conversations'),
         headers: ApiConfig.headers(token: token),
-        body: json.encode({
-          'userId1': userId1,
-          'userId2': userId2,
-        }),
+        body: json.encode(body),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -109,4 +164,3 @@ class MessageRepository {
     }
   }
 }
-

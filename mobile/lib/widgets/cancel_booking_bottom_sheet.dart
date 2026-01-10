@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/booking_service.dart';
 
+import '../services/booking_service.dart';
 
 class CancelBookingBottomSheet extends StatefulWidget {
   final Map<String, dynamic> booking;
@@ -67,7 +67,8 @@ class _CancelBookingBottomSheetState extends State<CancelBookingBottomSheet> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message'] ?? 'Booking cancelled successfully'),
+            content:
+                Text(result['message'] ?? 'Booking cancelled successfully'),
             backgroundColor: Colors.green,
           ),
         );
@@ -347,7 +348,8 @@ class _CancelBookingBottomSheetState extends State<CancelBookingBottomSheet> {
                       maxLines: 4,
                       maxLength: 500,
                       decoration: InputDecoration(
-                        hintText: 'Please provide your reason for cancelling...',
+                        hintText:
+                            'Please provide your reason for cancelling...',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(color: Colors.grey[300]!),
@@ -370,55 +372,57 @@ class _CancelBookingBottomSheetState extends State<CancelBookingBottomSheet> {
           ),
 
           // Footer Buttons
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              border: Border(top: BorderSide(color: Colors.grey[200]!)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _isSubmitting
-                        ? null
-                        : () => Navigator.of(context).pop(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+          SafeArea(
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                border: Border(top: BorderSide(color: Colors.grey[200]!)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _isSubmitting
+                          ? null
+                          : () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        side: BorderSide(color: Colors.grey[300]!),
                       ),
-                      side: BorderSide(color: Colors.grey[300]!),
+                      child: const Text('Keep Booking'),
                     ),
-                    child: const Text('Keep Booking'),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isSubmitting ? null : _handleCancel,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: const Color(0xFFf44336),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _isSubmitting ? null : _handleCancel,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: const Color(0xFFf44336),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text('Cancel Booking'),
                     ),
-                    child: _isSubmitting
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Text('Yes, Cancel Booking'),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -428,7 +432,8 @@ class _CancelBookingBottomSheetState extends State<CancelBookingBottomSheet> {
 }
 
 // Helper function to show the bottom sheet
-void showCancelBookingSheet(BuildContext context, Map<String, dynamic> booking) {
+void showCancelBookingSheet(
+    BuildContext context, Map<String, dynamic> booking) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -439,4 +444,3 @@ void showCancelBookingSheet(BuildContext context, Map<String, dynamic> booking) 
     ),
   );
 }
-

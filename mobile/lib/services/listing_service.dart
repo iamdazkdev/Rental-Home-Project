@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import '../config/api_config.dart';
 import '../models/listing.dart';
 import 'storage_service.dart';
@@ -22,7 +24,8 @@ class ListingService {
       final response = await http.get(uri, headers: ApiConfig.headers());
 
       debugPrint('📥 Response status: ${response.statusCode}');
-      debugPrint('📦 Response body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}...');
+      debugPrint(
+          '📦 Response body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}...');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -41,7 +44,8 @@ class ListingService {
   // Get listing details
   Future<Listing?> getListingDetails(String listingId) async {
     try {
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.listingDetails}/$listingId');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.listingDetails}/$listingId');
       final response = await http.get(uri, headers: ApiConfig.headers());
 
       if (response.statusCode == 200) {
@@ -74,11 +78,16 @@ class ListingService {
       if (query != null && query.isNotEmpty) params['query'] = query;
       if (category != null && category != 'All') params['category'] = category;
       if (type != null) params['type'] = type;
-      if (minPrice != null && minPrice > 0) params['minPrice'] = minPrice.toString();
-      if (maxPrice != null && maxPrice < 10000) params['maxPrice'] = maxPrice.toString();
-      if (minGuests != null && minGuests > 0) params['minGuests'] = minGuests.toString();
-      if (minBedrooms != null && minBedrooms > 0) params['minBedrooms'] = minBedrooms.toString();
-      if (minBathrooms != null && minBathrooms > 0) params['minBathrooms'] = minBathrooms.toString();
+      if (minPrice != null && minPrice > 0)
+        params['minPrice'] = minPrice.toString();
+      if (maxPrice != null && maxPrice < 10000)
+        params['maxPrice'] = maxPrice.toString();
+      if (minGuests != null && minGuests > 0)
+        params['minGuests'] = minGuests.toString();
+      if (minBedrooms != null && minBedrooms > 0)
+        params['minBedrooms'] = minBedrooms.toString();
+      if (minBathrooms != null && minBathrooms > 0)
+        params['minBathrooms'] = minBathrooms.toString();
       if (amenities != null && amenities.isNotEmpty) {
         params['amenities'] = amenities.join(',');
       }
@@ -87,7 +96,8 @@ class ListingService {
           .map((e) => '${e.key}=${Uri.encodeComponent(e.value.toString())}')
           .join('&');
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.search}${queryParams.isNotEmpty ? '?$queryParams' : ''}');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.search}${queryParams.isNotEmpty ? '?$queryParams' : ''}');
 
       debugPrint('🔍 Search URL: $uri');
 
@@ -109,7 +119,8 @@ class ListingService {
   }
 
   // Create listing
-  Future<Map<String, dynamic>> createListing(Map<String, dynamic> listingData, List<String> imagePaths) async {
+  Future<Map<String, dynamic>> createListing(
+      Map<String, dynamic> listingData, List<String> imagePaths) async {
     try {
       final token = await _storageService.getToken();
       if (token == null) {
@@ -131,7 +142,8 @@ class ListingService {
 
       // Add images
       for (var imagePath in imagePaths) {
-        request.files.add(await http.MultipartFile.fromPath('listingPhotos', imagePath));
+        request.files
+            .add(await http.MultipartFile.fromPath('listingPhotos', imagePath));
       }
 
       final streamedResponse = await request.send();
@@ -171,7 +183,8 @@ class ListingService {
         return {'success': false, 'message': 'Not authenticated'};
       }
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.listings}/$listingId');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.listings}/$listingId');
       var request = http.MultipartRequest('PUT', uri);
       request.headers.addAll(ApiConfig.multipartHeaders(token: token));
 
@@ -187,7 +200,8 @@ class ListingService {
       // Add new images if any
       if (newImagePaths != null) {
         for (var imagePath in newImagePaths) {
-          request.files.add(await http.MultipartFile.fromPath('listingPhotos', imagePath));
+          request.files.add(
+              await http.MultipartFile.fromPath('listingPhotos', imagePath));
         }
       }
 
@@ -222,7 +236,8 @@ class ListingService {
         return {'success': false, 'message': 'Not authenticated'};
       }
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.listings}/$listingId');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.listings}/$listingId');
       final response = await http.delete(
         uri,
         headers: ApiConfig.headers(token: token),
@@ -249,7 +264,8 @@ class ListingService {
   }
 
   // Toggle listing visibility
-  Future<Map<String, dynamic>> toggleListingVisibility(String listingId, bool willBeHidden) async {
+  Future<Map<String, dynamic>> toggleListingVisibility(
+      String listingId, bool willBeHidden) async {
     try {
       final token = await _storageService.getToken();
       if (token == null) {
@@ -258,7 +274,8 @@ class ListingService {
 
       // PATCH /properties/:listingId/toggle-visibility
       // Backend toggles isActive automatically (no body needed)
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.properties}/$listingId/toggle-visibility');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.properties}/$listingId/toggle-visibility');
       final response = await http.patch(
         uri,
         headers: ApiConfig.headers(token: token),
@@ -272,7 +289,8 @@ class ListingService {
         debugPrint('✅ Visibility toggled: ${data['message']}');
         return {
           'success': true,
-          'message': data['message'] ?? (willBeHidden ? 'Listing hidden' : 'Listing visible'),
+          'message': data['message'] ??
+              (willBeHidden ? 'Listing hidden' : 'Listing visible'),
         };
       } else {
         final error = json.decode(response.body);
@@ -294,7 +312,8 @@ class ListingService {
   Future<List<Listing>> getUserProperties(String userId) async {
     try {
       // Include hidden properties by adding query parameter
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.properties}/$userId/properties?includeHidden=true');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.properties}/$userId/properties?includeHidden=true');
       final token = await _storageService.getToken();
 
       debugPrint('🔍 Fetching user properties: $uri');
@@ -312,7 +331,8 @@ class ListingService {
 
         // Debug log to check isHidden status
         for (var item in data) {
-          debugPrint('  Property: ${item['title']}, isHidden: ${item['isHidden']}, isActive: ${item['isActive']}');
+          debugPrint(
+              '  Property: ${item['title']}, isHidden: ${item['isHidden']}, isActive: ${item['isActive']}');
         }
 
         return data.map((json) => Listing.fromJson(json)).toList();
@@ -322,6 +342,46 @@ class ListingService {
     } catch (e) {
       debugPrint('❌ Error fetching user properties: $e');
       return [];
+    }
+  }
+
+  // Get my listings (same as getUserProperties but uses current user)
+  Future<List<Listing>> getMyListings(String userId) async {
+    return getUserProperties(userId);
+  }
+
+  // Update listing status (active/inactive)
+  Future<bool> updateListingStatus(String listingId, bool isActive) async {
+    try {
+      final token = await _storageService.getToken();
+      if (token == null) {
+        debugPrint('❌ Not authenticated');
+        return false;
+      }
+
+      final uri = Uri.parse('${ApiConfig.baseUrl}/listing/$listingId/status');
+
+      debugPrint('🔍 Updating listing status: $uri');
+      debugPrint('📤 New status: $isActive');
+
+      final response = await http.patch(
+        uri,
+        headers: ApiConfig.headers(token: token),
+        body: json.encode({'isActive': isActive}),
+      );
+
+      debugPrint('📥 Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        debugPrint('✅ Listing status updated');
+        return true;
+      } else {
+        debugPrint('❌ Failed to update listing status: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('❌ Error updating listing status: $e');
+      return false;
     }
   }
 }

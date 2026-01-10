@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
-import '../../data/models/booking_model.dart';
+import '../../models/booking.dart';
 import '../../presentation/booking/cubit/booking_cubit.dart';
 import '../../utils/date_formatter.dart';
 import '../../utils/price_formatter.dart';

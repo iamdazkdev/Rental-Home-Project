@@ -82,14 +82,27 @@ class BookingIntent {
   });
 
   bool get isLocked => status == BookingIntentStatus.locked;
+
   bool get isPaid => status == BookingIntentStatus.paid;
+
   bool get isExpired => status == BookingIntentStatus.expired;
+
   bool get isCancelled => status == BookingIntentStatus.cancelled;
+
   bool get isFailed => status == BookingIntentStatus.failed;
 
   bool get isActive => isLocked && DateTime.now().isBefore(expiresAt);
 
   Duration get remainingTime => expiresAt.difference(DateTime.now());
+
+  // Alias for compatibility
+  Duration get timeRemaining => remainingTime;
+
+  // Check if intent is still valid (not expired)
+  bool get isValid => isActive && !isExpired;
+
+  // Check if this is a full payment (not deposit)
+  bool get isFullPayment => paymentType == 'full';
 
   double get effectivePaymentAmount {
     if (paymentType == 'deposit') {
@@ -124,7 +137,8 @@ class BookingIntent {
           : json['listingId']?['_id'] ?? '',
       bookingType: json['bookingType'] ?? 'entire_place',
       startDate: parseDate(json['startDate']) ?? DateTime.now(),
-      endDate: parseDate(json['endDate']) ?? DateTime.now().add(const Duration(days: 1)),
+      endDate: parseDate(json['endDate']) ??
+          DateTime.now().add(const Duration(days: 1)),
       totalPrice: (json['totalPrice'] ?? 0).toDouble(),
       status: BookingIntentStatus.fromString(json['status'] ?? 'locked'),
       paymentMethod: json['paymentMethod'] ?? 'vnpay',
@@ -134,7 +148,8 @@ class BookingIntent {
       depositAmount: (json['depositAmount'] ?? 0).toDouble(),
       remainingAmount: (json['remainingAmount'] ?? 0).toDouble(),
       lockedAt: parseDate(json['lockedAt']) ?? DateTime.now(),
-      expiresAt: parseDate(json['expiresAt']) ?? DateTime.now().add(const Duration(minutes: 10)),
+      expiresAt: parseDate(json['expiresAt']) ??
+          DateTime.now().add(const Duration(minutes: 10)),
       paidAt: parseDate(json['paidAt']),
       cancelledAt: parseDate(json['cancelledAt']),
       transactionId: json['transactionId'],
@@ -176,6 +191,7 @@ enum BookingIntentStatus {
   failed('failed');
 
   final String value;
+
   const BookingIntentStatus(this.value);
 
   static BookingIntentStatus fromString(String status) {
@@ -196,3 +212,5 @@ enum BookingIntentStatus {
   }
 }
 
+/// Type alias for backward compatibility with state management code
+typedef BookingIntentModel = BookingIntent;

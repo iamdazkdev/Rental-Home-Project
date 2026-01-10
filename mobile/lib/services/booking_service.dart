@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import '../config/api_config.dart';
 import '../models/booking.dart';
 import 'storage_service.dart';
@@ -32,13 +34,27 @@ class BookingService {
       final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookings}/create');
 
       debugPrint('🔍 Create booking URL: $uri');
-      debugPrint('📦 Booking data: listingId=$listingId, start=$startDate, end=$endDate');
+      debugPrint(
+          '📦 Booking data: listingId=$listingId, start=$startDate, end=$endDate');
       debugPrint('💳 Payment: method=$paymentMethod, type=$paymentType');
 
       // Format dates to match web format: "Wed Dec 24 2025"
       // This matches JavaScript's Date.toDateString()
       final weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
 
       String formatToDateString(DateTime date) {
         final weekday = weekdays[date.weekday % 7];
@@ -89,7 +105,8 @@ class BookingService {
       );
 
       debugPrint('📥 Create booking response: ${response.statusCode}');
-      debugPrint('📦 Response body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+      debugPrint(
+          '📦 Response body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
@@ -120,15 +137,16 @@ class BookingService {
   Future<List<Booking>> getUserTrips(String userId) async {
     try {
       final token = await _storageService.getToken();
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.trips}/$userId/trips');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.trips}/$userId/trips');
       final response = await http.get(
         uri,
         headers: ApiConfig.headers(token: token),
       );
-  
+
       debugPrint('🔍 Get trips URL: $uri');
       debugPrint('📥 Trips response: ${response.statusCode}');
-  
+
       // Accept both 200 and 202 status codes
       if (response.statusCode == 200 || response.statusCode == 202) {
         final responseBody = response.body;
@@ -158,7 +176,8 @@ class BookingService {
           return bookings;
         } catch (e) {
           debugPrint('❌ Error decoding trips JSON: $e');
-          debugPrint('Response: ${responseBody.substring(0, responseBody.length > 500 ? 500 : responseBody.length)}');
+          debugPrint(
+              'Response: ${responseBody.substring(0, responseBody.length > 500 ? 500 : responseBody.length)}');
           return [];
         }
       }
@@ -171,12 +190,66 @@ class BookingService {
     }
   }
 
+  // Get user booking history (ALL bookings including cancelled/completed)
+  Future<List<Booking>> getUserBookingHistory(String userId) async {
+    try {
+      final token = await _storageService.getToken();
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}/entire-place-booking/user/$userId');
+      final response = await http.get(
+        uri,
+        headers: ApiConfig.headers(token: token),
+      );
+
+      debugPrint('🔍 Get booking history URL: $uri');
+      debugPrint('📥 Booking history response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final responseBody = response.body;
+        debugPrint('📦 Response body length: ${responseBody.length}');
+
+        if (responseBody.isEmpty || responseBody == '[]') {
+          debugPrint('ℹ️ No booking history found');
+          return [];
+        }
+
+        try {
+          final List<dynamic> data = json.decode(responseBody);
+          debugPrint('✅ Found ${data.length} bookings in history');
+
+          final bookings = <Booking>[];
+          for (var i = 0; i < data.length; i++) {
+            try {
+              bookings.add(Booking.fromJson(data[i]));
+            } catch (e) {
+              debugPrint('⚠️ Error parsing booking at index $i: $e');
+            }
+          }
+
+          debugPrint(
+              '✅ Successfully parsed ${bookings.length} bookings from history');
+          return bookings;
+        } catch (e) {
+          debugPrint('❌ Error decoding booking history JSON: $e');
+          return [];
+        }
+      }
+
+      debugPrint('❌ Unexpected status code: ${response.statusCode}');
+      return [];
+    } catch (e) {
+      debugPrint('❌ Error fetching booking history: $e');
+      return [];
+    }
+  }
+
   // Get host reservations
   Future<List<Booking>> getHostReservations(String userId) async {
     try {
       final token = await _storageService.getToken();
       // Correct endpoint: /booking/host/:hostId
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookings}/host/$userId');
+      final uri =
+          Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookings}/host/$userId');
       final response = await http.get(
         uri,
         headers: ApiConfig.headers(token: token),
@@ -212,10 +285,12 @@ class BookingService {
       }
 
       // PATCH /booking/:bookingId/checkout
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/checkout');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/checkout');
 
       debugPrint('🔍 Checkout URL: $uri');
-      debugPrint('📦 Reviews: home=${homeReview != null}, host=${hostReview != null}');
+      debugPrint(
+          '📦 Reviews: home=${homeReview != null}, host=${hostReview != null}');
 
       final response = await http.patch(
         uri,
@@ -265,7 +340,8 @@ class BookingService {
       }
 
       // POST /booking/:bookingId/extension
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/extension');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/extension');
 
       debugPrint('🔍 Extend stay URL: $uri');
       debugPrint('📦 Extension days: $additionalDays');
@@ -274,7 +350,8 @@ class BookingService {
         uri,
         headers: ApiConfig.headers(token: token),
         body: json.encode({
-          'additionalDays': additionalDays, // Changed from extensionDays to match server
+          'additionalDays': additionalDays,
+          // Changed from extensionDays to match server
         }),
       );
 
@@ -312,7 +389,8 @@ class BookingService {
       }
 
       // PATCH /booking/:bookingId/accept
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/accept');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/accept');
 
       debugPrint('🔍 Accept booking URL: $uri');
 
@@ -349,7 +427,8 @@ class BookingService {
   }
 
   // Reject booking (host)
-  Future<Map<String, dynamic>> rejectBooking(String bookingId, {String? reason}) async {
+  Future<Map<String, dynamic>> rejectBooking(String bookingId,
+      {String? reason}) async {
     try {
       final token = await _storageService.getToken();
       if (token == null) {
@@ -357,7 +436,8 @@ class BookingService {
       }
 
       // PATCH /booking/:bookingId/reject
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/reject');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/reject');
 
       debugPrint('🔍 Reject booking URL: $uri');
       debugPrint('📦 Rejection reason: $reason');
@@ -396,7 +476,8 @@ class BookingService {
   }
 
   // Cancel booking (guest)
-  Future<Map<String, dynamic>> cancelBooking(String bookingId, {String? cancellationReason}) async {
+  Future<Map<String, dynamic>> cancelBooking(String bookingId,
+      {String? cancellationReason}) async {
     try {
       final token = await _storageService.getToken();
       final user = await _storageService.getUser();
@@ -406,7 +487,8 @@ class BookingService {
       }
 
       // PATCH /booking/:bookingId/cancel
-      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/cancel');
+      final uri = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.bookings}/$bookingId/cancel');
 
       debugPrint('🔍 Cancel booking URL: $uri');
       debugPrint('📦 Cancellation reason: $cancellationReason');
@@ -416,7 +498,8 @@ class BookingService {
         headers: ApiConfig.headers(token: token),
         body: json.encode({
           'customerId': user.id,
-          if (cancellationReason != null) 'cancellationReason': cancellationReason,
+          if (cancellationReason != null)
+            'cancellationReason': cancellationReason,
         }),
       );
 
@@ -444,6 +527,4 @@ class BookingService {
       };
     }
   }
-
 }
-

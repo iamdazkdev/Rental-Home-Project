@@ -1,20 +1,20 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart' as carousel;
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../config/app_theme.dart';
+import '../../models/conversation.dart';
 import '../../models/listing.dart';
 import '../../models/review.dart';
-import '../../models/conversation.dart';
+import '../../presentation/booking/widgets/booking_widget.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/listing_service.dart';
 import '../../services/review_service.dart';
-import '../../providers/auth_provider.dart';
-import '../../config/app_theme.dart';
-import '../../utils/price_formatter.dart';
 import '../../utils/amenity_icons.dart';
+import '../../utils/price_formatter.dart';
 import '../host/host_profile_screen.dart';
-import '../messages/messages_screen.dart';
-import '../../data/models/listing_model.dart';
-import '../../presentation/booking/widgets/booking_widget.dart';
+import '../messages/chat_screen.dart';
 
 class ListingDetailScreen extends StatefulWidget {
   final String listingId;
@@ -53,12 +53,17 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     double avgRating = 0.0;
 
     if (listing != null) {
-      reviews = await _reviewService.getListingReviews(widget.listingId);
-      if (reviews.isNotEmpty) {
-        final ratings = reviews.map((r) => r.homeRating).where((r) => r > 0);
-        if (ratings.isNotEmpty) {
-          avgRating = ratings.reduce((a, b) => a + b) / ratings.length;
+      try {
+        // Fetch reviews
+        reviews = await _reviewService.getListingReviews(widget.listingId);
+
+        // Calculate average rating
+        if (reviews.isNotEmpty) {
+          avgRating = reviews.map((r) => r.rating).reduce((a, b) => a + b) /
+              reviews.length;
         }
+      } catch (e) {
+        debugPrint('Error loading reviews: $e');
       }
     }
 
@@ -73,8 +78,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   void _showBookingBottomSheet(BuildContext context) {
     if (_listing == null) return;
 
-    // Convert Listing to ListingModel
-    final listingModel = ListingModel.fromListing(_listing!);
+    // ListingModel is a type alias of Listing, so no conversion needed
+    final listingModel = _listing!;
 
     showModalBottomSheet(
       context: context,
@@ -162,7 +167,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     right: 0,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: _listing!.photoUrls.asMap().entries.map((entry) {
+                      children:
+                          _listing!.photoUrls.asMap().entries.map((entry) {
                         return Container(
                           width: 8,
                           height: 8,
@@ -214,7 +220,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         children: [
                           Text(
                             PriceFormatter.formatPriceInteger(_listing!.price),
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
                                   color: AppTheme.primaryColor,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -234,9 +243,12 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildStatItem(Icons.people_outline, '${_listing!.guestCount} guests'),
-                      _buildStatItem(Icons.bed_outlined, '${_listing!.bedroomCount} bedrooms'),
-                      _buildStatItem(Icons.bathtub_outlined, '${_listing!.bathroomCount} bathrooms'),
+                      _buildStatItem(Icons.people_outline,
+                          '${_listing!.guestCount} guests'),
+                      _buildStatItem(Icons.bed_outlined,
+                          '${_listing!.bedroomCount} bedrooms'),
+                      _buildStatItem(Icons.bathtub_outlined,
+                          '${_listing!.bathroomCount} bathrooms'),
                     ],
                   ),
 
@@ -289,7 +301,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   const SizedBox(height: 24),
 
                   // Host Bio and Profile (for Room/Shared Room only)
-                  if (_listing!.type == 'Room(s)' || _listing!.type == 'A Shared Room') ...[
+                  if (_listing!.type == 'Room(s)' ||
+                      _listing!.type == 'A Shared Room') ...[
                     _buildHostBioAndProfile(),
                     const SizedBox(height: 24),
                   ],
@@ -309,7 +322,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       childAspectRatio: 3.5,
                       crossAxisSpacing: 12,
@@ -319,7 +333,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     itemBuilder: (context, index) {
                       final amenity = _listing!.amenities[index];
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: AppTheme.backgroundColor,
                           borderRadius: BorderRadius.circular(8),
@@ -357,88 +372,100 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
 
       // Action Buttons (only if not own listing)
       bottomNavigationBar: !isOwnListing
-          ? Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  // Contact Host Button
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        // Get host name from creator data
-                        final firstName = _listing!.creatorData?['firstName'] ?? '';
-                        final lastName = _listing!.creatorData?['lastName'] ?? '';
+          ? SafeArea(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    // Contact Host Button
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          // Get host name from creator data
+                          final firstName =
+                              _listing!.creatorData?['firstName'] ?? '';
+                          final lastName =
+                              _listing!.creatorData?['lastName'] ?? '';
 
-                        // Sort user IDs to match backend conversation ID generation
-                        final userId = user!.id;
-                        final hostId = _listing!.creator;
-                        final sortedIds = [userId, hostId]..sort();
+                          // Sort user IDs to match backend conversation ID generation
+                          final userId = user!.id;
+                          final hostId = _listing!.creator;
+                          final sortedIds = [userId, hostId]..sort();
 
-                        // Generate conversation ID matching backend logic
-                        final conversationId = _listing!.id.isNotEmpty
-                            ? 'temp_${sortedIds[0]}_${sortedIds[1]}_${_listing!.id}'
-                            : 'temp_${sortedIds[0]}_${sortedIds[1]}';
+                          // Generate conversation ID matching backend logic
+                          final conversationId = _listing!.id.isNotEmpty
+                              ? 'temp_${sortedIds[0]}_${sortedIds[1]}_${_listing!.id}'
+                              : 'temp_${sortedIds[0]}_${sortedIds[1]}';
 
-                        // Create temporary conversation for contact host
-                        final tempConversation = Conversation(
-                          conversationId: conversationId,
-                          otherUser: {
-                            '_id': _listing!.creator,
-                            'firstName': firstName,
-                            'lastName': lastName,
-                            'profileImagePath': _listing!.creatorData?['profileImagePath'],
-                          },
-                          listing: {
-                            '_id': _listing!.id,
-                            'title': _listing!.title,
-                            'listingPhotoPaths': _listing!.listingPhotoPaths,
-                          },
-                          lastMessage: 'Start a conversation...',
-                          lastMessageAt: DateTime.now(),
-                          unreadCount: 0,
-                        );
+                          // Create temporary conversation for contact host
+                          final tempConversation = Conversation(
+                            id: conversationId,
+                            conversationId: conversationId,
+                            otherUser: OtherUser(
+                              id: _listing!.creator,
+                              firstName: firstName,
+                              lastName: lastName,
+                              profileImagePath:
+                                  _listing!.creatorData?['profileImagePath'],
+                            ),
+                            listing: ListingInfo(
+                              id: _listing!.id,
+                              title: _listing!.title,
+                              listingPhotoPaths: _listing!.listingPhotoPaths,
+                            ),
+                            lastMessage: 'Start a conversation...',
+                            lastMessageAt: DateTime.now(),
+                            unreadCount: 0,
+                          );
 
-                        // Navigate to chat screen
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatScreen(conversation: tempConversation),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.chat_bubble_outline),
-                      label: const Text('Contact Host'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(color: AppTheme.primaryColor),
-                        foregroundColor: AppTheme.primaryColor,
+                          // Navigate to chat screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatScreen(
+                                conversationId: tempConversation.id,
+                                otherUserId: _listing!.creator,
+                                otherUserName: _listing!.hostName,
+                                otherUserAvatar: _listing!.hostProfileImage,
+                                listingId: _listing!.id,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.chat_bubble_outline),
+                        label: const Text('Contact Host'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: AppTheme.primaryColor),
+                          foregroundColor: AppTheme.primaryColor,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Book Now Button
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _showBookingBottomSheet(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                    const SizedBox(width: 12),
+                    // Book Now Button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _showBookingBottomSheet(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text('Reserve'),
                       ),
-                      child: const Text('Reserve'),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             )
           : null,
@@ -584,14 +611,16 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.edit_note, color: AppTheme.primaryColor, size: 20),
+                      Icon(Icons.edit_note,
+                          color: AppTheme.primaryColor, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'About Me',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryColor,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryColor,
+                                ),
                       ),
                     ],
                   ),
@@ -645,20 +674,26 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
             const SizedBox(height: 12),
 
             // Occupation
-            if (hostProfile['occupation'] != null && (hostProfile['occupation'] as String).isNotEmpty)
+            if (hostProfile['occupation'] != null &&
+                (hostProfile['occupation'] as String).isNotEmpty)
               _buildProfileSection('💼 Occupation', hostProfile['occupation']),
 
             // Hobbies
-            if (hostProfile['hobbies'] != null && (hostProfile['hobbies'] as String).isNotEmpty)
-              _buildProfileSection('🎨 Hobbies & Interests', hostProfile['hobbies']),
+            if (hostProfile['hobbies'] != null &&
+                (hostProfile['hobbies'] as String).isNotEmpty)
+              _buildProfileSection(
+                  '🎨 Hobbies & Interests', hostProfile['hobbies']),
 
             // House Rules
-            if (hostProfile['houseRules'] != null && (hostProfile['houseRules'] as String).isNotEmpty)
+            if (hostProfile['houseRules'] != null &&
+                (hostProfile['houseRules'] as String).isNotEmpty)
               _buildProfileSection('📋 House Rules', hostProfile['houseRules']),
 
             // Additional Info
-            if (hostProfile['additionalInfo'] != null && (hostProfile['additionalInfo'] as String).isNotEmpty)
-              _buildProfileSection('💬 Additional Information', hostProfile['additionalInfo']),
+            if (hostProfile['additionalInfo'] != null &&
+                (hostProfile['additionalInfo'] as String).isNotEmpty)
+              _buildProfileSection(
+                  '💬 Additional Information', hostProfile['additionalInfo']),
           ],
         ],
       ),
@@ -787,72 +822,103 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
       ),
-      child: Row(
+      child: Column(
         children: [
-          // Rating Stars
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.amber,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Row(
+          Row(
+            children: [
+              // Rating Stars
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
                   children: [
-                    const Icon(Icons.star, color: Colors.white, size: 20),
-                    const SizedBox(width: 4),
-                    Text(
-                      _averageRating.toStringAsFixed(1),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.white, size: 20),
+                        const SizedBox(width: 4),
+                        Text(
+                          _averageRating.toStringAsFixed(1),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Guest Reviews',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Row(
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ...List.generate(5, (index) {
-                      return Icon(
-                        index < _averageRating.round()
-                            ? Icons.star
-                            : Icons.star_border,
-                        color: Colors.amber,
-                        size: 16,
-                      );
-                    }),
-                    const SizedBox(width: 8),
                     Text(
-                      '${_listingReviews.length} review${_listingReviews.length != 1 ? 's' : ''}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.textSecondaryColor,
+                      'Guest Reviews',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
                     ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        ...List.generate(5, (index) {
+                          return Icon(
+                            index < _averageRating.round()
+                                ? Icons.star
+                                : Icons.star_border,
+                            color: Colors.amber,
+                            size: 16,
+                          );
+                        }),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${_listingReviews.length} review${_listingReviews.length != 1 ? 's' : ''}',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+
+          // View All Reviews Button
+          if (_listingReviews.length > 3) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/reviews-list',
+                    arguments: widget.listingId,
+                  );
+                },
+                icon: const Icon(Icons.rate_review, size: 18),
+                label: const Text('View All Reviews'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primaryColor,
+                  side: BorderSide(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
-

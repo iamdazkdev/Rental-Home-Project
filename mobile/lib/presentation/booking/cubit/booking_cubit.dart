@@ -1,9 +1,11 @@
 import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../core/enums/booking_enums.dart';
-import '../../../data/models/booking_intent_model.dart';
-import '../../../data/models/booking_model.dart';
 import '../../../data/repositories/booking_repository.dart';
+import '../../../models/booking.dart';
+import '../../../models/booking_intent.dart';
 import 'booking_state.dart';
 
 class BookingCubit extends Cubit<BookingState> {
@@ -70,7 +72,8 @@ class BookingCubit extends Cubit<BookingState> {
 
       if (intent == null) {
         emit(const BookingError(
-          message: 'Unable to reserve this listing. It may be booked by another user or unavailable for the selected dates.',
+          message:
+              'Unable to reserve this listing. It may be booked by another user or unavailable for the selected dates.',
           errorCode: 'LISTING_LOCKED',
           canRetry: true,
         ));
@@ -119,12 +122,15 @@ class BookingCubit extends Cubit<BookingState> {
     _isProcessing = true;
 
     try {
+      // Ensure tempOrderId is not null
+      final tempOrderId = intent.tempOrderId ?? intent.intentId;
+
       final orderInfo = intent.isFullPayment
-          ? 'Full payment - ${intent.tempOrderId}'
-          : 'Deposit ${intent.depositPercentage.toInt()}% - ${intent.tempOrderId}';
+          ? 'Full payment - $tempOrderId'
+          : 'Deposit ${intent.depositPercentage.toInt()}% - $tempOrderId';
 
       final paymentUrl = await _bookingRepository.createVNPayPaymentUrl(
-        tempOrderId: intent.tempOrderId,
+        tempOrderId: tempOrderId,
         amount: intent.paymentAmount,
         orderInfo: orderInfo,
         returnUrl: returnUrl,
@@ -133,7 +139,7 @@ class BookingCubit extends Cubit<BookingState> {
       if (paymentUrl != null) {
         emit(BookingPaymentProcessing(
           booking: BookingModel.empty(), // Will be created after payment
-          paymentId: intent.tempOrderId,
+          paymentId: tempOrderId,
           paymentUrl: paymentUrl,
         ));
         return paymentUrl;
@@ -189,7 +195,8 @@ class BookingCubit extends Cubit<BookingState> {
           _handleBookingStateTransition(booking);
         } else {
           emit(const BookingError(
-            message: 'Payment confirmed but booking creation failed. Please contact support.',
+            message:
+                'Payment confirmed but booking creation failed. Please contact support.',
           ));
         }
       } else {
@@ -212,7 +219,8 @@ class BookingCubit extends Cubit<BookingState> {
     required Map<String, dynamic> paymentData,
   }) async {
     // Convert Map<String, dynamic> to Map<String, String>
-    final queryParams = paymentData.map((key, value) => MapEntry(key, value.toString()));
+    final queryParams =
+        paymentData.map((key, value) => MapEntry(key, value.toString()));
 
     await handleVNPayCallback(
       tempOrderId: tempOrderId,
@@ -228,7 +236,8 @@ class BookingCubit extends Cubit<BookingState> {
       case BookingStatus.agreementRequired:
         emit(BookingAgreementRequired(
           booking: booking,
-          agreementId: '', // Will be populated when Room Rental agreement is available
+          agreementId: '',
+          // Will be populated when Room Rental agreement is available
           agreementUrl: null,
         ));
         break;
@@ -237,7 +246,9 @@ class BookingCubit extends Cubit<BookingState> {
       case BookingStatus.partiallyPaid:
         emit(BookingPaymentRequired(
           booking: booking,
-          amountDue: booking.remainingAmount > 0 ? booking.remainingAmount : booking.totalPrice,
+          amountDue: booking.remainingAmount > 0
+              ? booking.remainingAmount
+              : booking.totalPrice,
           depositAmount: booking.depositAmount,
           availablePaymentTypes: _getAvailablePaymentTypes(booking),
           paymentStatus: status == BookingStatus.partiallyPaid
@@ -483,13 +494,15 @@ class BookingCubit extends Cubit<BookingState> {
     int attempts = 0;
     const maxAttempts = 60; // 5 minutes with 5 second intervals
 
-    _paymentPollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+    _paymentPollingTimer =
+        Timer.periodic(const Duration(seconds: 5), (timer) async {
       attempts++;
 
       if (attempts >= maxAttempts) {
         timer.cancel();
         emit(const BookingError(
-          message: 'Payment verification timed out. Please check your booking status.',
+          message:
+              'Payment verification timed out. Please check your booking status.',
           canRetry: true,
         ));
         return;
@@ -555,7 +568,8 @@ class BookingCubit extends Cubit<BookingState> {
     try {
       if (paymentMethod == 'vnpay') {
         // Create VNPay payment URL for remaining amount
-        final result = await _bookingRepository.createRemainingPaymentUrl(bookingId);
+        final result =
+            await _bookingRepository.createRemainingPaymentUrl(bookingId);
 
         if (result != null && result['paymentUrl'] != null) {
           return {
@@ -638,7 +652,8 @@ class BookingCubit extends Cubit<BookingState> {
   }
 
   /// Get available actions for a booking based on its status
-  List<String> _getAvailableActions(BookingModel booking, BookingStatus status) {
+  List<String> _getAvailableActions(
+      BookingModel booking, BookingStatus status) {
     final actions = <String>[];
 
     switch (status) {
@@ -693,4 +708,3 @@ class BookingCubit extends Cubit<BookingState> {
     return super.close();
   }
 }
-

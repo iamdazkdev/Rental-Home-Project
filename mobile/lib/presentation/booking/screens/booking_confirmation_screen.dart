@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/enums/booking_enums.dart';
-import '../../../data/models/booking_model.dart';
+import '../../../models/booking.dart';
 
 /// Booking Confirmation Screen
 /// Shows booking details after successful payment/booking
@@ -227,7 +227,7 @@ class BookingConfirmationScreen extends StatelessWidget {
       children: [
         SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 56,
           child: ElevatedButton.icon(
             onPressed: () {
               Navigator.pushNamedAndRemoveUntil(
@@ -249,7 +249,7 @@ class BookingConfirmationScreen extends StatelessWidget {
         const SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 56,
           child: OutlinedButton.icon(
             onPressed: () {
               Navigator.pushNamedAndRemoveUntil(

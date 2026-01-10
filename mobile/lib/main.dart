@@ -1,27 +1,33 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-import 'dart:async';
-import 'package:app_links/app_links.dart';
+
 import 'config/app_theme.dart';
-import 'providers/auth_provider.dart';
-import 'services/storage_service.dart';
-import 'screens/splash_screen.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/auth/register_screen.dart';
-import 'screens/main_screen.dart';
-import 'screens/trips/trips_screen.dart';
-import 'screens/verification/identity_verification_screen.dart';
-import 'screens/payment/payment_reminder_screen.dart';
-import 'screens/bookings/extend_stay_screen.dart';
-import 'presentation/booking/screens/booking_review_screen.dart';
-import 'presentation/booking/screens/payment_callback_screen.dart';
-import 'presentation/booking/screens/booking_confirmation_screen.dart';
-import 'presentation/booking/cubit/booking_cubit.dart';
-import 'presentation/chat/cubit/chat_cubit.dart';
 import 'data/repositories/booking_repository.dart';
 import 'data/repositories/message_repository.dart';
-import 'data/models/booking_model.dart';
+import 'models/booking.dart';
+import 'presentation/booking/cubit/booking_cubit.dart';
+import 'presentation/booking/screens/booking_confirmation_screen.dart';
+import 'presentation/booking/screens/booking_review_screen.dart';
+import 'presentation/booking/screens/payment_callback_screen.dart';
+import 'presentation/chat/cubit/chat_cubit.dart';
+import 'providers/auth_provider.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/register_screen.dart';
+import 'screens/bookings/extend_stay_screen.dart';
+import 'screens/main_screen.dart';
+import 'screens/messages/chat_screen.dart';
+import 'screens/messages/conversations_screen.dart';
+import 'screens/payment/payment_reminder_screen.dart';
+import 'screens/reviews/reviews_list_screen.dart';
+import 'screens/reviews/submit_review_screen.dart';
+import 'screens/splash_screen.dart';
+import 'screens/trips/trips_screen.dart';
+import 'screens/verification/identity_verification_screen.dart';
+import 'services/storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -107,11 +113,16 @@ class _MyAppState extends State<MyApp> {
             bookingRepository: BookingRepository(),
           ),
         ),
-        // Add ChatCubit as global provider
-        BlocProvider(
-          create: (_) => ChatCubit(
-            messageRepository: MessageRepository(),
-          ),
+        // Add ChatCubit as global provider with current user ID
+        ProxyProvider<AuthProvider, ChatCubit>(
+          update: (context, authProvider, previous) {
+            final userId = authProvider.user?.id ?? '';
+            return ChatCubit(
+              messageRepository: MessageRepository(),
+              currentUserId: userId,
+            );
+          },
+          dispose: (context, cubit) => cubit.close(),
         ),
       ],
       child: MaterialApp(
@@ -125,6 +136,7 @@ class _MyAppState extends State<MyApp> {
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const MainScreen(),
           '/trips': (context) => const TripsScreen(),
+          '/conversations': (context) => const ConversationsScreen(),
         },
         onGenerateRoute: (settings) {
           // Handle dynamic routes with arguments
@@ -182,6 +194,35 @@ class _MyAppState extends State<MyApp> {
                 ),
               );
 
+            case '/submit-review':
+              final args = settings.arguments as Map<String, dynamic>;
+              return MaterialPageRoute(
+                builder: (_) => SubmitReviewScreen(
+                  booking: args['booking'] as BookingModel,
+                  onReviewSubmitted: args['onReviewSubmitted'] as VoidCallback?,
+                ),
+              );
+
+            case '/reviews-list':
+              final listingId = settings.arguments as String;
+              return MaterialPageRoute(
+                builder: (_) => ReviewsListScreen(
+                  listingId: listingId,
+                ),
+              );
+
+            case '/chat':
+              final args = settings.arguments as Map<String, dynamic>;
+              return MaterialPageRoute(
+                builder: (_) => ChatScreen(
+                  conversationId: args['conversationId'],
+                  otherUserId: args['otherUserId'],
+                  otherUserName: args['otherUserName'],
+                  otherUserAvatar: args['otherUserAvatar'],
+                  listingId: args['listingId'],
+                ),
+              );
+
             default:
               return null;
           }
@@ -190,4 +231,3 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-

@@ -62,12 +62,16 @@ class Listing {
     this.roomArea,
   });
 
-  String get fullAddress => '$streetAddress, $aptSuite, $city, $province, $country';
+  String get fullAddress =>
+      '$streetAddress, $aptSuite, $city, $province, $country';
 
   String get shortAddress => '$city, $province';
 
   // Get hostId from creator field
   String get hostId => creator;
+
+  // isActive means available and not hidden
+  bool get isActive => isAvailable && !isHidden;
 
   List<String> get photoUrls {
     return listingPhotoPaths
@@ -181,9 +185,8 @@ class Listing {
       bedroomCount: json['bedroomCount'] ?? 0,
       bedCount: json['bedCount'] ?? 0,
       bathroomCount: json['bathroomCount'] ?? 0,
-      amenities: json['amenities'] != null
-          ? List<String>.from(json['amenities'])
-          : [],
+      amenities:
+          json['amenities'] != null ? List<String>.from(json['amenities']) : [],
       listingPhotoPaths: json['listingPhotoPaths'] != null
           ? List<String>.from(json['listingPhotoPaths'])
           : [],
@@ -194,14 +197,13 @@ class Listing {
       price: (json['price'] ?? 0).toDouble(),
       priceType: json['priceType'],
       isAvailable: json['isAvailable'] ?? true,
-      isHidden: isHidden, // Use the inverted isActive value
+      isHidden: isHidden,
+      // Use the inverted isActive value
       roomArea: json['roomArea'] != null ? (json['roomArea']).toDouble() : null,
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'])
-          : null,
+      createdAt:
+          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
     );
   }
 
@@ -292,3 +294,5 @@ class Listing {
   }
 }
 
+/// Type alias for backward compatibility with code expecting ListingModel
+typedef ListingModel = Listing;

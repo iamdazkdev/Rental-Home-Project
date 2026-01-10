@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../data/models/listing_model.dart';
+import '../../../models/listing.dart';
 import '../../../utils/price_formatter.dart';
 
 /// Booking Widget for Entire Place Rental

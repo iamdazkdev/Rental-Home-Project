@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
+
 import '../../../core/enums/booking_enums.dart';
-import '../../../data/models/booking_model.dart';
-import '../../../data/models/booking_intent_model.dart';
+import '../../../models/booking.dart';
+import '../../../models/booking_intent.dart';
 
 abstract class BookingState extends Equatable {
   const BookingState();
@@ -14,6 +15,7 @@ class BookingInitial extends BookingState {}
 
 class BookingLoading extends BookingState {
   final String? message;
+
   const BookingLoading({this.message});
 
   @override
@@ -49,7 +51,8 @@ class BookingListingLocked extends BookingState {
   });
 
   @override
-  List<Object?> get props => [listingId, lockedByUserId, lockExpiresAt, message];
+  List<Object?> get props =>
+      [listingId, lockedByUserId, lockExpiresAt, message];
 }
 
 /// Booking requires agreement to be signed
@@ -87,13 +90,8 @@ class BookingPaymentRequired extends BookingState {
   bool get isPartiallyPaid => paymentStatus == PaymentStatus.partiallyPaid;
 
   @override
-  List<Object?> get props => [
-    booking,
-    amountDue,
-    depositAmount,
-    availablePaymentTypes,
-    paymentStatus
-  ];
+  List<Object?> get props =>
+      [booking, amountDue, depositAmount, availablePaymentTypes, paymentStatus];
 }
 
 /// Payment is being processed
@@ -145,7 +143,9 @@ class BookingLoaded extends BookingState {
   });
 
   bool get canCancel => availableActions.contains('CANCEL');
+
   bool get canPay => availableActions.contains('PAY');
+
   bool get canSignAgreement => availableActions.contains('SIGN_AGREEMENT');
 
   @override
@@ -205,4 +205,3 @@ class BookingError extends BookingState {
   @override
   List<Object?> get props => [message, errorCode, canRetry];
 }
-

@@ -1,74 +1,89 @@
-
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../data/models/message_model.dart';
+
 import '../../../data/repositories/message_repository.dart';
+import '../../../models/message.dart';
+import 'chat_state.dart';
 
-// States
-abstract class ChatState {}
-
-class ChatInitial extends ChatState {}
-
-class ChatLoading extends ChatState {}
-
-class ChatLoaded extends ChatState {
-  final List<MessageModel> messages;
-
-  ChatLoaded({required this.messages});
-}
-
-class ChatError extends ChatState {
-  final String message;
-
-  ChatError({required this.message});
-}
-
-// Cubit
 class ChatCubit extends Cubit<ChatState> {
   final MessageRepository _messageRepository;
+  final String currentUserId;
 
-  ChatCubit({required MessageRepository messageRepository})
-      : _messageRepository = messageRepository,
+  ChatCubit({
+    required MessageRepository messageRepository,
+    required this.currentUserId,
+  })  : _messageRepository = messageRepository,
         super(ChatInitial());
 
-  Future<void> loadMessages(String conversationId) async {
+  Future<void> loadConversations() async {
     emit(ChatLoading());
 
     try {
+      final conversations =
+          await _messageRepository.getConversations(currentUserId);
+      emit(ChatConversationsLoaded(conversations: conversations));
+    } catch (e) {
+      emit(ChatError(message: e.toString()));
+    }
+  }
+
+  Future<void> loadMessages(String conversationId) async {
+    try {
       final messages = await _messageRepository.getMessages(conversationId);
-      emit(ChatLoaded(messages: messages));
+
+      // Keep conversations in state when loading messages
+      if (state is ChatConversationsLoaded) {
+        final conversations = (state as ChatConversationsLoaded).conversations;
+        emit(ChatMessagesLoaded(
+          messages: messages,
+          conversations: conversations,
+        ));
+      } else {
+        emit(ChatMessagesLoaded(messages: messages));
+      }
     } catch (e) {
       emit(ChatError(message: e.toString()));
     }
   }
 
   Future<void> sendMessage({
-    required String conversationId,
-    required String senderId,
-    required String recipientId,
+    required String receiverId,
     required String message,
+    String? listingId,
   }) async {
     try {
       final result = await _messageRepository.sendMessage(
-        conversationId: conversationId,
-        senderId: senderId,
-        receiverId: recipientId,
+        senderId: currentUserId,
+        receiverId: receiverId,
         text: message,
+        listingId: listingId,
       );
 
       if (result != null) {
-        // Reload messages to include the new one
-        loadMessages(conversationId);
+        emit(ChatMessageSent(message: result));
+
+        // Add message to current list
+        if (state is ChatMessagesLoaded) {
+          final currentMessages = (state as ChatMessagesLoaded).messages;
+          final conversations = (state as ChatMessagesLoaded).conversations;
+          emit(ChatMessagesLoaded(
+            messages: [...currentMessages, result],
+            conversations: conversations,
+          ));
+        }
       }
     } catch (e) {
-      // Handle error silently or show notification
+      emit(ChatError(message: e.toString()));
     }
   }
 
   void addMessageToList(MessageModel message) {
-    if (state is ChatLoaded) {
-      final currentMessages = (state as ChatLoaded).messages;
-      emit(ChatLoaded(messages: [...currentMessages, message]));
+    if (state is ChatMessagesLoaded) {
+      final currentMessages = (state as ChatMessagesLoaded).messages;
+      final conversations = (state as ChatMessagesLoaded).conversations;
+      emit(ChatMessagesLoaded(
+        messages: [...currentMessages, message],
+        conversations: conversations,
+      ));
     }
   }
 }
-

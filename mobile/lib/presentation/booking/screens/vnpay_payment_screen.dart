@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'payment_failed_screen.dart';
-import 'payment_processing_screen.dart';
 
 /// VNPay Payment WebView Screen
 /// Handles VNPay payment and intercepts callback URL
@@ -98,20 +97,12 @@ class _VNPayPaymentScreenState extends State<VNPayPaymentScreen> {
       debugPrint('✅ Payment successful!');
 
       if (mounted) {
-        // Navigate to processing screen first
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const PaymentProcessingScreen(),
-          ),
-        );
-
-        // Wait a moment to show processing
-        await Future.delayed(const Duration(milliseconds: 1500));
+        // Show processing overlay (already showing via _isProcessingCallback)
+        // Wait a moment to show processing state
+        await Future.delayed(const Duration(milliseconds: 1000));
 
         if (mounted) {
-          // Return payment data to booking review screen
-          // The booking review screen will handle creating the booking
-          Navigator.of(context).popUntil((route) => route.isFirst);
+          // Pop back to booking review screen with success result
           Navigator.of(context).pop({
             'success': true,
             'tempOrderId': widget.tempOrderId,

@@ -1,10 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../config/app_theme.dart';
+import '../../models/booking.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/booking_service.dart';
-import '../../models/booking.dart';
 import '../../utils/date_formatter.dart';
 import '../../utils/price_formatter.dart';
 
@@ -31,6 +32,15 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload when returning to this screen
+    if (!_isLoading) {
+      _loadHistory();
+    }
+  }
+
+  @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
@@ -42,24 +52,28 @@ class _BookingHistoryScreenState extends State<BookingHistoryScreen>
 
     setState(() => _isLoading = true);
 
-    final trips = await _bookingService.getUserTrips(user.id);
+    // Use getUserBookingHistory to get ALL bookings (including cancelled/completed)
+    final bookings = await _bookingService.getUserBookingHistory(user.id);
 
     setState(() {
-      _allBookings = trips;
+      _allBookings = bookings;
       _isLoading = false;
     });
   }
 
   List<Booking> get _completedBookings {
-    return _allBookings.where((b) =>
-      b.isCheckedOut || b.isCompleted || b.endDate.isBefore(DateTime.now())
-    ).toList();
+    return _allBookings
+        .where((b) =>
+            b.isCheckedOut ||
+            b.isCompleted ||
+            b.endDate.isBefore(DateTime.now()))
+        .toList();
   }
 
   List<Booking> get _cancelledRejected {
-    return _allBookings.where((b) =>
-      b.status == 'rejected' || b.status == 'cancelled'
-    ).toList();
+    return _allBookings
+        .where((b) => b.status == 'rejected' || b.status == 'cancelled')
+        .toList();
   }
 
   @override
@@ -162,7 +176,8 @@ class _BookingHistoryCard extends StatelessWidget {
     final listing = booking.listing as Map?;
     final listingTitle = listing?['title'] ?? 'Property';
     final listingPhotos = listing?['listingPhotoPaths'] as List?;
-    final photoUrl = listingPhotos?.isNotEmpty == true ? listingPhotos!.first : null;
+    final photoUrl =
+        listingPhotos?.isNotEmpty == true ? listingPhotos!.first : null;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -172,7 +187,8 @@ class _BookingHistoryCard extends StatelessWidget {
           // Image
           if (photoUrl != null)
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
               child: CachedNetworkImage(
                 imageUrl: photoUrl.toString(),
                 height: 150,
@@ -201,15 +217,17 @@ class _BookingHistoryCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         listingTitle,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: _getStatusColor().withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
@@ -231,10 +249,12 @@ class _BookingHistoryCard extends StatelessWidget {
                 // Dates
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                    const Icon(Icons.calendar_today,
+                        size: 16, color: Colors.grey),
                     const SizedBox(width: 4),
                     Text(
-                      DateFormatter.formatDateRange(booking.startDate, booking.endDate),
+                      DateFormatter.formatDateRange(
+                          booking.startDate, booking.endDate),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -292,4 +312,3 @@ class _BookingHistoryCard extends StatelessWidget {
     );
   }
 }
-

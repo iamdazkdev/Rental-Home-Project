@@ -1,11 +1,13 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import '../../config/api_config.dart';
-import '../../services/storage_service.dart';
 import '../../core/enums/booking_enums.dart';
-import '../models/booking_model.dart';
-import '../models/booking_intent_model.dart';
+import '../../models/booking.dart';
+import '../../models/booking_intent.dart';
+import '../../services/storage_service.dart';
 
 /// Repository for booking operations
 /// Handles API calls and data transformation
@@ -65,8 +67,11 @@ class BookingRepository {
             'paymentAmount': data['paymentAmount'] ?? totalPrice,
             'depositPercentage': paymentType == 'deposit' ? 30 : 0,
             'depositAmount': paymentType == 'deposit' ? (totalPrice * 0.3) : 0,
-            'remainingAmount': paymentType == 'deposit' ? (totalPrice * 0.7) : 0,
-            'expiresAt': DateTime.now().add(const Duration(minutes: 30)).toIso8601String(),
+            'remainingAmount':
+                paymentType == 'deposit' ? (totalPrice * 0.7) : 0,
+            'expiresAt': DateTime.now()
+                .add(const Duration(minutes: 30))
+                .toIso8601String(),
             'isExpired': false,
             'status': 'LOCKED',
           });
@@ -76,14 +81,17 @@ class BookingRepository {
       // Handle error response
       if (response.statusCode >= 400) {
         final errorData = json.decode(response.body);
-        final errorMessage = errorData['message'] ?? errorData['error'] ?? 'Failed to create booking intent';
+        final errorMessage = errorData['message'] ??
+            errorData['error'] ??
+            'Failed to create booking intent';
         debugPrint('❌ Failed to create booking intent: $errorMessage');
         debugPrint('❌ Response body: ${response.body}');
         throw Exception(errorMessage);
       }
 
       final errorData = json.decode(response.body);
-      final errorMessage = errorData['message'] ?? 'Failed to create booking intent';
+      final errorMessage =
+          errorData['message'] ?? 'Failed to create booking intent';
       debugPrint('❌ Failed to create booking intent: $errorMessage');
       return null;
     } catch (e) {
@@ -129,14 +137,17 @@ class BookingRepository {
       // Handle error response
       if (response.statusCode >= 400) {
         final errorData = json.decode(response.body);
-        final errorMessage = errorData['message'] ?? errorData['error'] ?? 'Failed to create payment URL';
+        final errorMessage = errorData['message'] ??
+            errorData['error'] ??
+            'Failed to create payment URL';
         debugPrint('❌ Failed to create payment URL: $errorMessage');
         debugPrint('❌ Response body: ${response.body}');
         throw Exception(errorMessage);
       }
 
       final errorData = json.decode(response.body);
-      final errorMessage = errorData['message'] ?? 'Failed to create payment URL';
+      final errorMessage =
+          errorData['message'] ?? 'Failed to create payment URL';
       debugPrint('❌ Failed to create payment URL: $errorMessage');
       throw Exception(errorMessage);
     } catch (e) {
@@ -164,14 +175,16 @@ class BookingRepository {
       debugPrint('✅ Processing payment callback: $tempOrderId');
 
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/entire-place-booking/create-from-payment'),
+        Uri.parse(
+            '${ApiConfig.baseUrl}/entire-place-booking/create-from-payment'),
         headers: ApiConfig.headers(token: token),
         body: json.encode(body),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
-        debugPrint('✅ Booking created from payment: ${data['booking']?['_id']}');
+        debugPrint(
+            '✅ Booking created from payment: ${data['booking']?['_id']}');
         return BookingModel.fromJson(data['booking'] ?? data);
       }
 
@@ -260,7 +273,8 @@ class BookingRepository {
         if (userId != null) 'userId': userId,
       };
 
-      final uri = Uri.parse('${ApiConfig.baseUrl}/booking-intent/check-availability/$listingId')
+      final uri = Uri.parse(
+              '${ApiConfig.baseUrl}/booking-intent/check-availability/$listingId')
           .replace(queryParameters: queryParams);
 
       final response = await http.get(
@@ -476,7 +490,8 @@ class BookingRepository {
   }
 
   /// Check-out
-  Future<bool> checkOut(String bookingId, {
+  Future<bool> checkOut(
+    String bookingId, {
     String? homeReview,
     double? homeRating,
     String? hostReview,
@@ -567,7 +582,8 @@ class BookingRepository {
       final token = await _storageService.getToken();
 
       final response = await http.put(
-        Uri.parse('${ApiConfig.baseUrl}/booking/$bookingId/confirm-cash-payment'),
+        Uri.parse(
+            '${ApiConfig.baseUrl}/booking/$bookingId/confirm-cash-payment'),
         headers: ApiConfig.headers(token: token),
       );
 
@@ -637,7 +653,8 @@ class BookingRepository {
       final token = await _storageService.getToken();
 
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/room-rental/agreements/$agreementId/sign'),
+        Uri.parse(
+            '${ApiConfig.baseUrl}/room-rental/agreements/$agreementId/sign'),
         headers: ApiConfig.headers(token: token),
       );
 
@@ -683,7 +700,8 @@ class BookingRepository {
   }
 
   /// Create remaining payment URL for deposit bookings
-  Future<Map<String, dynamic>?> createRemainingPaymentUrl(String bookingId) async {
+  Future<Map<String, dynamic>?> createRemainingPaymentUrl(
+      String bookingId) async {
     try {
       final token = await _storageService.getToken();
 
@@ -774,4 +792,3 @@ class BookingRepository {
     }
   }
 }
-

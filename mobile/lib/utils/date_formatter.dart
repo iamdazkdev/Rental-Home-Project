@@ -76,7 +76,9 @@ class DateFormatter {
   // Check if date is today
   static bool isToday(DateTime date) {
     final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
 
   // Format date range (e.g., "Dec 24 - Dec 31, 2025")
@@ -89,5 +91,22 @@ class DateFormatter {
       return '${DateFormat('MMM dd, yyyy').format(start)} - ${DateFormat('MMM dd, yyyy').format(end)}';
     }
   }
-}
 
+  // Format message time (e.g., "10:30 AM", "Yesterday", "Dec 24")
+  static String formatMessageTime(DateTime? date) {
+    if (date == null) return '';
+
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (isToday(date)) {
+      return DateFormat('HH:mm').format(date);
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return DateFormat('EEEE').format(date); // Day name
+    } else {
+      return DateFormat('MMM dd').format(date);
+    }
+  }
+}
