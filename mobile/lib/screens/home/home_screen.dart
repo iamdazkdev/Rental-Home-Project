@@ -181,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Categories
           Container(
-            height: 50,
+            height: 60,
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
@@ -218,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           // Property Types Filter
           Container(
-            height: 50,
+            height: 60,
             padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
               color: Colors.grey[50],
