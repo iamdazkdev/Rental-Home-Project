@@ -7,6 +7,7 @@ import '../../config/app_theme.dart';
 import '../../models/listing.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/listing_service.dart';
+import '../host/host_calendar_screen.dart';
 import '../listings/listing_detail_screen.dart';
 import 'edit_property_screen.dart';
 
@@ -443,6 +444,35 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
                       const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HostCalendarScreen(
+                                  listingId: listing.id,
+                                  listingTitle: listing.title,
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.calendar_month, size: 16),
+                          label: const Text('Calendar'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.blue,
+                            side: const BorderSide(color: Colors.blue),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Second row of action buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
                           onPressed: () => _toggleListingStatus(listing),
                           icon: Icon(
                             isActive ? Icons.visibility_off : Icons.visibility,
@@ -459,10 +489,16 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
                         ),
                       ),
                       const SizedBox(width: 8),
-                      IconButton(
-                        onPressed: () => _deleteListing(listing),
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        tooltip: 'Delete',
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _deleteListing(listing),
+                          icon: const Icon(Icons.delete, size: 16),
+                          label: const Text('Delete'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: const BorderSide(color: Colors.red),
+                          ),
+                        ),
                       ),
                     ],
                   ),

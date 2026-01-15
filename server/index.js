@@ -6,6 +6,10 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const http = require("http");
 const {Server} = require("socket.io");
+const logger = require("./utils/logger");
+
+// Override console to add timestamps to all logs
+logger.overrideConsole();
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -36,6 +40,7 @@ const messageRoutes = require("./routes/messages.js");
 const paymentRoutes = require("./routes/payment.js");
 const paymentReminderRoutes = require("./routes/paymentReminder.js");
 const staticDataRoutes = require("./routes/staticData.js");
+const calendarRoutes = require("./routes/calendar.js");
 
 // Import services
 const {startPaymentReminderScheduler} = require("./services/paymentReminderService");
@@ -60,7 +65,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
             });
         }
 
-        console.log("✅ Image uploaded to Cloudinary:", req.file.path);
+        logger.upload("Image uploaded to Cloudinary:", req.file.path);
 
         res.status(200).json({
             success: true,
@@ -68,7 +73,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
             imageUrl: req.file.path,
         });
     } catch (error) {
-        console.error("❌ Error uploading image:", error);
+        logger.error("Error uploading image:", error);
         res.status(500).json({
             success: false,
             message: "Failed to upload image",
@@ -93,10 +98,10 @@ app.use("/auth", authRoutes);
 try {
     const adminRoutes = require("./routes/admin/index-verbose");
     app.use("/admin", adminRoutes);
-    console.log("✅ Admin routes loaded successfully");
+    logger.success("Admin routes loaded successfully");
 } catch (error) {
-    console.error("❌ Failed to load admin routes:");
-    console.error(error);
+    logger.error("Failed to load admin routes:");
+    logger.error(error);
 }
 
 app.use("/listing", listingRoutes);
@@ -119,14 +124,15 @@ app.use("/payment-reminder", paymentReminderRoutes);
 app.use("/payment-history", require("./routes/paymentHistory"));
 app.use("/booking-intent", require("./routes/bookingIntent")); // Booking Intent for concurrent booking
 app.use("/concurrent-booking", require("./routes/concurrentBooking")); // Concurrent Booking Handling
+app.use("/calendar", calendarRoutes); // Host Calendar Management
 
 // Identity verification route - IMPORTANT for Shared Room & Roommate
 try {
     const identityVerificationRoutes = require("./routes/identityVerification");
     app.use("/identity-verification", identityVerificationRoutes);
-    console.log("✅ Identity Verification route loaded successfully");
+    logger.success("Identity Verification route loaded successfully");
 } catch (error) {
-    console.error("❌ Failed to load Identity Verification route:", error.message);
+    logger.error("Failed to load Identity Verification route:", error.message);
 }
 
 app.use("/static-data", staticDataRoutes); // Static data API (categories, types, facilities)
@@ -150,7 +156,7 @@ app.use((req, res, next) => {
 
 // Global error handler - must be after all routes
 app.use((err, req, res, next) => {
-    console.error("🔥 Global error handler:", err);
+    logger.error("Global error handler:", err);
 
     // Ensure we always return JSON, not HTML
     res.status(err.status || 500).json({
@@ -170,12 +176,12 @@ app.set("io", io);
 const onlineUsers = new Map(); // userId -> socketId
 
 io.on("connection", (socket) => {
-    console.log("✅ User connected:", socket.id);
+    logger.socket("User connected:", socket.id);
 
     // User comes online
     socket.on("user_online", (userId) => {
         onlineUsers.set(userId, socket.id);
-        console.log(`👤 User ${userId} is online (${socket.id})`);
+        logger.socket(`User ${userId} is online (${socket.id})`);
 
         // Broadcast to all users that this user is online
         socket.broadcast.emit("user_status_change", {
@@ -187,7 +193,7 @@ io.on("connection", (socket) => {
     // Send message
     socket.on("send_message", async (data) => {
         const {receiverId, message} = data;
-        console.log("💬 Message from", data.senderId, "to", receiverId);
+        logger.message("Message from", data.senderId, "to", receiverId);
 
         // Send to receiver if online
         const receiverSocketId = onlineUsers.get(receiverId);
@@ -213,7 +219,7 @@ io.on("connection", (socket) => {
 
     // User disconnect
     socket.on("disconnect", () => {
-        console.log("❌ User disconnected:", socket.id);
+        logger.socket("User disconnected:", socket.id);
 
         // Find and remove user from online users
         for (const [userId, socketId] of onlineUsers.entries()) {
@@ -226,7 +232,7 @@ io.on("connection", (socket) => {
                     status: "offline",
                 });
 
-                console.log(`👤 User ${userId} went offline`);
+                logger.socket(`User ${userId} went offline`);
                 break;
             }
         }
@@ -243,8 +249,8 @@ mongoose
     .then(() => {
         const HOST = process.env.HOST || "0.0.0.0"; // Changed to 0.0.0.0 to accept connections from all network interfaces
         server.listen(PORT, HOST, () => {
-            console.log(`🚀 Server running on http://${HOST}:${PORT}`);
-            console.log(`💬 Socket.io enabled for real-time chat`);
+            logger.success(`Server running on http://${HOST}:${PORT}`);
+            logger.socket("Socket.io enabled for real-time chat");
 
             // Start payment reminder scheduler
             startPaymentReminderScheduler();
@@ -257,5 +263,5 @@ mongoose
         });
     })
     .catch((error) => {
-        console.log(`Error connecting to database: ${error.message}`);
+        logger.error(`Error connecting to database: ${error.message}`);
     });
