@@ -175,6 +175,9 @@ app.set("io", io);
 // Socket.io connection handling
 const onlineUsers = new Map(); // userId -> socketId
 
+// Make onlineUsers accessible from io instance
+io.onlineUsers = onlineUsers;
+
 io.on("connection", (socket) => {
     logger.socket("User connected:", socket.id);
 

@@ -21,6 +21,7 @@ import {useDispatch, useSelector} from "react-redux";
 import "../styles/Navbar.scss";
 import {Link, useNavigate} from "react-router-dom";
 import {setLogout} from "../redux/state";
+import NotificationDropdown from "./NotificationDropdown";
 
 const Navbar = () => {
     const [dropdownMenu, setDropdownMenu] = useState(false);
@@ -136,6 +137,9 @@ const Navbar = () => {
                     <Home sx={{fontSize: 18, marginRight: 1}}/>
                     Become A Host
                 </Link>
+
+                {/* Notification Bell */}
+                {user && <NotificationDropdown user={user}/>}
 
                 <div className="account_section" ref={dropdownRef}>
                     <button
