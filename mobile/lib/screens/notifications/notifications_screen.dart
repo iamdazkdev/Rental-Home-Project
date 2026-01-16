@@ -112,14 +112,18 @@ class NotificationsScreen extends StatelessWidget {
     Map<String, dynamic> notification,
     NotificationProvider provider,
   ) {
-    final bool isRead = notification['isRead'] ?? false;
-    final String title = notification['title'] ?? 'Notification';
-    final String body = notification['body'] ?? '';
-    final String timestamp = notification['timestamp'] ?? '';
-    final Map<String, dynamic> data = notification['data'] ?? {};
+    // Safely cast the notification data
+    final notificationData = Map<String, dynamic>.from(notification);
+    final bool isRead = notificationData['isRead'] ?? false;
+    final String title = notificationData['title'] ?? 'Notification';
+    final String body = notificationData['body'] ?? '';
+    final String timestamp = notificationData['timestamp'] ?? '';
+    final Map<String, dynamic> data = notificationData['data'] is Map
+        ? Map<String, dynamic>.from(notificationData['data'] as Map)
+        : {};
 
     return Dismissible(
-      key: Key(notification['id']),
+      key: Key(notificationData['id'].toString()),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
@@ -128,18 +132,20 @@ class NotificationsScreen extends StatelessWidget {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (_) {
-        // Remove notification
-        provider.notifications.remove(notification);
+        // Delete notification
+        provider.deleteNotification(notificationData['id'].toString());
       },
       child: InkWell(
         onTap: () {
           if (!isRead) {
-            provider.markAsRead(notification['id']);
+            provider.markAsRead(notificationData['id'].toString());
           }
           _handleNotificationTap(context, data);
         },
         child: Container(
-          color: isRead ? Colors.white : Colors.blue.shade50,
+          color: isRead
+              ? Theme.of(context).cardColor
+              : Theme.of(context).primaryColor.withValues(alpha: 0.05),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +155,8 @@ class NotificationsScreen extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: _getNotificationColor(data['type']).withOpacity(0.1),
+                  color: _getNotificationColor(data['type'])
+                      .withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -175,7 +182,6 @@ class NotificationsScreen extends StatelessWidget {
                               fontSize: 16,
                               fontWeight:
                                   isRead ? FontWeight.w500 : FontWeight.w600,
-                              color: Colors.black87,
                             ),
                           ),
                         ),
@@ -183,8 +189,8 @@ class NotificationsScreen extends StatelessWidget {
                           Container(
                             width: 8,
                             height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.blue,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).primaryColor,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -193,21 +199,14 @@ class NotificationsScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       body,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade700,
-                        height: 1.4,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
                     Text(
                       _formatTimestamp(timestamp),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
-                      ),
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
                 ),
