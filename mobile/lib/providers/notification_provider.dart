@@ -2,23 +2,28 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 import '../services/fcm_service.dart';
+import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 
 /// Notification Provider
 /// Manages FCM notifications and integrates with app state
 class NotificationProvider with ChangeNotifier {
   final FCMService _fcmService = FCMService();
+  final NotificationService _notificationService = NotificationService();
   final StorageService _storage = StorageService();
 
   String? _fcmToken;
   List<Map<String, dynamic>> _notifications = [];
   int _unreadCount = 0;
+  bool _isLoading = false;
 
   String? get fcmToken => _fcmToken;
 
   List<Map<String, dynamic>> get notifications => _notifications;
 
   int get unreadCount => _unreadCount;
+
+  bool get isLoading => _isLoading;
 
   /// Initialize notifications
   Future<void> initialize() async {
@@ -31,12 +36,49 @@ class NotificationProvider with ChangeNotifier {
     _fcmService.onMessageOpenedApp = _onMessageOpenedApp;
     _fcmService.onTokenRefresh = _onTokenRefresh;
 
-    // Load saved notifications
-    await _loadNotifications();
+    // Fetch notifications from server
+    await fetchNotifications();
 
     // Send token to server
     if (_fcmToken != null) {
       await _sendTokenToServer(_fcmToken!);
+    }
+  }
+
+  /// Fetch notifications from server
+  Future<void> fetchNotifications() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final result = await _notificationService.getUserNotifications();
+
+      if (result['success']) {
+        _notifications = (result['notifications'] as List)
+            .map((n) => {
+                  'id': n['_id'] ?? n['id'],
+                  'title': n['title'] ?? 'Notification',
+                  'body': n['message'] ?? n['body'] ?? '',
+                  'data': n['data'] ?? {},
+                  'timestamp':
+                      n['createdAt'] ?? DateTime.now().toIso8601String(),
+                  'isRead': n['isRead'] ?? false,
+                  'type': n['type'] ?? 'general',
+                })
+            .toList();
+
+        _unreadCount = result['unreadCount'] ?? 0;
+
+        debugPrint(
+            '✅ Loaded ${_notifications.length} notifications from server');
+      } else {
+        debugPrint('❌ Failed to fetch notifications: ${result['message']}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetching notifications: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -56,9 +98,6 @@ class NotificationProvider with ChangeNotifier {
 
     _unreadCount++;
     notifyListeners();
-
-    // Save to local storage
-    _saveNotifications();
   }
 
   /// Handle message when app opened from notification
@@ -74,7 +113,6 @@ class NotificationProvider with ChangeNotifier {
       _notifications[index]['isRead'] = true;
       _unreadCount--;
       notifyListeners();
-      _saveNotifications();
     }
 
     // Handle navigation will be done by FCM service
@@ -112,56 +150,58 @@ class NotificationProvider with ChangeNotifier {
     }
   }
 
-  /// Load notifications from local storage
-  Future<void> _loadNotifications() async {
-    try {
-      // Load from SharedPreferences or local database
-      // For now, start with empty list
-      _notifications = [];
-      _unreadCount = 0;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('❌ Error loading notifications: $e');
-    }
-  }
-
-  /// Save notifications to local storage
-  Future<void> _saveNotifications() async {
-    try {
-      // Save to SharedPreferences or local database
-      // Implement based on your storage strategy
-    } catch (e) {
-      debugPrint('❌ Error saving notifications: $e');
-    }
-  }
-
   /// Mark notification as read
-  void markAsRead(String notificationId) {
+  Future<void> markAsRead(String notificationId) async {
     final index = _notifications.indexWhere((n) => n['id'] == notificationId);
     if (index != -1 && _notifications[index]['isRead'] == false) {
+      // Update locally first
       _notifications[index]['isRead'] = true;
       _unreadCount--;
       notifyListeners();
-      _saveNotifications();
+
+      // Sync with server
+      await _notificationService.markAsRead(notificationId);
     }
   }
 
   /// Mark all notifications as read
-  void markAllAsRead() {
+  Future<void> markAllAsRead() async {
+    // Update locally first
     for (var notification in _notifications) {
       notification['isRead'] = true;
     }
     _unreadCount = 0;
     notifyListeners();
-    _saveNotifications();
+
+    // Sync with server
+    await _notificationService.markAllAsRead();
   }
 
   /// Clear all notifications
-  void clearAll() {
+  Future<void> clearAll() async {
+    // Clear locally
     _notifications.clear();
     _unreadCount = 0;
     notifyListeners();
-    _saveNotifications();
+
+    // Delete from server
+    await _notificationService.deleteAllNotifications();
+  }
+
+  /// Delete single notification
+  Future<void> deleteNotification(String notificationId) async {
+    final index = _notifications.indexWhere((n) => n['id'] == notificationId);
+    if (index != -1) {
+      final wasUnread = _notifications[index]['isRead'] == false;
+
+      // Remove locally
+      _notifications.removeAt(index);
+      if (wasUnread) _unreadCount--;
+      notifyListeners();
+
+      // Delete from server
+      await _notificationService.deleteNotification(notificationId);
+    }
   }
 
   /// Subscribe to topic

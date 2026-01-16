@@ -44,24 +44,40 @@ class NotificationsScreen extends StatelessWidget {
       ),
       body: Consumer<NotificationProvider>(
         builder: (context, provider, _) {
-          if (provider.notifications.isEmpty) {
-            return _buildEmptyState();
+          if (provider.isLoading && provider.notifications.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: provider.notifications.length,
-            itemBuilder: (context, index) {
-              final notification = provider.notifications[index];
-              return _buildNotificationItem(context, notification, provider);
-            },
+          if (provider.notifications.isEmpty) {
+            return RefreshIndicator(
+              onRefresh: () => provider.fetchNotifications(),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height - 100,
+                  child: _buildEmptyState(context),
+                ),
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () => provider.fetchNotifications(),
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: provider.notifications.length,
+              itemBuilder: (context, index) {
+                final notification = provider.notifications[index];
+                return _buildNotificationItem(context, notification, provider);
+              },
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -69,7 +85,8 @@ class NotificationsScreen extends StatelessWidget {
           Icon(
             Icons.notifications_none,
             size: 80,
-            color: Colors.grey.shade400,
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
@@ -77,16 +94,13 @@ class NotificationsScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
-              color: Colors.grey.shade600,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'You\'ll see notifications here',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ),
