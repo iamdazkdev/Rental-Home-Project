@@ -1,0 +1,36 @@
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+*.md
+.DS_Store
+.vscode
+.idea
+
+# Mobile folders
+mobile/
+client/
+docs/
+
+# Build files
+build/
+dist/
+
+# Logs
+logs
+*.log
+server.log
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+*~
+
