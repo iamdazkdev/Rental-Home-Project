@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +16,7 @@ import 'presentation/booking/screens/booking_review_screen.dart';
 import 'presentation/booking/screens/payment_callback_screen.dart';
 import 'presentation/chat/cubit/chat_cubit.dart';
 import 'providers/auth_provider.dart';
+import 'providers/notification_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/bookings/extend_stay_screen.dart';
@@ -27,6 +29,7 @@ import 'screens/reviews/submit_review_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/trips/trips_screen.dart';
 import 'screens/verification/identity_verification_screen.dart';
+import 'services/fcm_service.dart';
 import 'services/storage_service.dart';
 
 void main() async {
@@ -34,6 +37,12 @@ void main() async {
 
   // Initialize storage
   await StorageService().init();
+
+  // Initialize FCM
+  await FCMService().initialize();
+
+  // Setup background message handler
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   runApp(const MyApp());
 }
@@ -107,6 +116,8 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(
+            create: (_) => NotificationProvider()..initialize()),
         // Add BookingCubit as global provider
         BlocProvider(
           create: (_) => BookingCubit(

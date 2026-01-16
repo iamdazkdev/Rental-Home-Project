@@ -133,6 +133,11 @@ const logger = {
         formatLog('CALENDAR', '📆', colors.blue, message, ...args);
     },
 
+    // FCM logs - Firebase Cloud Messaging
+    fcm: (message, ...args) => {
+        formatLog('FCM Notification', '📲', colors.magenta, message, ...args);
+    },
+
     // Scheduler/Cron logs - scheduled tasks
     cron: (message, ...args) => {
         formatLog('CRON', '⏰', colors.yellow, message, ...args);

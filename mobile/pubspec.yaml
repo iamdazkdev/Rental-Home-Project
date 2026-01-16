@@ -45,6 +45,7 @@ dependencies:
   intl: ^0.19.0
   flutter_datetime_picker_plus: ^2.1.0
   table_calendar: ^3.0.9
+  timeago: ^3.7.0
 
   # Maps & Location
   google_maps_flutter: ^2.5.0
@@ -64,6 +65,11 @@ dependencies:
   # Animation
   lottie: ^2.7.0
   animate_do: ^3.1.2
+
+  # Firebase
+  firebase_core: ^3.8.1
+  firebase_messaging: ^15.1.5
+  flutter_local_notifications: ^18.0.1
 
 dev_dependencies:
   flutter_test:

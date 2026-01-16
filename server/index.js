@@ -41,6 +41,7 @@ const paymentRoutes = require("./routes/payment.js");
 const paymentReminderRoutes = require("./routes/paymentReminder.js");
 const staticDataRoutes = require("./routes/staticData.js");
 const calendarRoutes = require("./routes/calendar.js");
+const fcmRoutes = require("./routes/fcm.js");
 
 // Import services
 const {startPaymentReminderScheduler} = require("./services/paymentReminderService");
@@ -125,6 +126,7 @@ app.use("/payment-history", require("./routes/paymentHistory"));
 app.use("/booking-intent", require("./routes/bookingIntent")); // Booking Intent for concurrent booking
 app.use("/concurrent-booking", require("./routes/concurrentBooking")); // Concurrent Booking Handling
 app.use("/calendar", calendarRoutes); // Host Calendar Management
+app.use("/fcm", fcmRoutes); // Firebase Cloud Messaging for Push Notifications
 
 // Identity verification route - IMPORTANT for Shared Room & Roommate
 try {
