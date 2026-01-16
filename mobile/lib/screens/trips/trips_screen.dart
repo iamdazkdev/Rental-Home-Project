@@ -17,7 +17,8 @@ class TripsScreen extends StatefulWidget {
   State<TripsScreen> createState() => _TripsScreenState();
 }
 
-class _TripsScreenState extends State<TripsScreen> with SingleTickerProviderStateMixin {
+class _TripsScreenState extends State<TripsScreen>
+    with SingleTickerProviderStateMixin {
   final BookingService _bookingService = BookingService();
   late TabController _tabController;
 
@@ -48,7 +49,8 @@ class _TripsScreenState extends State<TripsScreen> with SingleTickerProviderStat
     debugPrint('🎯 Loaded ${trips.length} trips');
     for (var i = 0; i < trips.length; i++) {
       final trip = trips[i];
-      debugPrint('  Trip $i: status=${trip.status}, start=${trip.startDate}, end=${trip.endDate}');
+      debugPrint(
+          '  Trip $i: status=${trip.status}, start=${trip.startDate}, end=${trip.endDate}');
     }
 
     setState(() {
@@ -56,19 +58,20 @@ class _TripsScreenState extends State<TripsScreen> with SingleTickerProviderStat
       _isLoading = false;
     });
 
-    debugPrint('📊 Filtered: ${_upcomingTrips.length} upcoming, ${_pastTrips.length} past');
+    debugPrint(
+        '📊 Filtered: ${_upcomingTrips.length} upcoming, ${_pastTrips.length} past');
   }
 
   List<Booking> get _upcomingTrips {
     final now = DateTime.now();
     return _trips.where((trip) {
       // Show pending, approved bookings that haven't ended yet
-      final isActiveFutureBooking = (trip.isPending ||
-                                      trip.isApproved ||
-                                      trip.isCheckedIn) &&
-                                     trip.endDate.isAfter(now);
+      final isActiveFutureBooking =
+          (trip.isPending || trip.isApproved || trip.isCheckedIn) &&
+              trip.endDate.isAfter(now);
 
-      debugPrint('  Upcoming check: ${trip.effectiveStatus}, ends ${trip.endDate}, now $now, include: $isActiveFutureBooking');
+      debugPrint(
+          '  Upcoming check: ${trip.effectiveStatus}, ends ${trip.endDate}, now $now, include: $isActiveFutureBooking');
       return isActiveFutureBooking;
     }).toList();
   }
@@ -78,14 +81,15 @@ class _TripsScreenState extends State<TripsScreen> with SingleTickerProviderStat
     return _trips.where((trip) {
       // Show completed, checked out, rejected, cancelled, or past bookings
       final isPastBooking = trip.isCompleted ||
-                           trip.isCheckedOut ||
-                           trip.isRejected ||
-                           trip.isCancelled ||
-                           trip.isExpired ||
-                           trip.endDate.isBefore(now) ||
-                           trip.endDate.isAtSameMomentAs(now);
+          trip.isCheckedOut ||
+          trip.isRejected ||
+          trip.isCancelled ||
+          trip.isExpired ||
+          trip.endDate.isBefore(now) ||
+          trip.endDate.isAtSameMomentAs(now);
 
-      debugPrint('  Past check: ${trip.effectiveStatus}, ends ${trip.endDate}, now $now, include: $isPastBooking');
+      debugPrint(
+          '  Past check: ${trip.effectiveStatus}, ends ${trip.endDate}, now $now, include: $isPastBooking');
       return isPastBooking;
     }).toList();
   }
@@ -185,7 +189,8 @@ class _BookingCard extends StatelessWidget {
     final listing = booking.listing as Map?;
     final listingTitle = listing?['title'] ?? 'Property';
     final listingPhotos = listing?['listingPhotoPaths'] as List?;
-    final photoUrl = listingPhotos?.isNotEmpty == true ? listingPhotos!.first : null;
+    final photoUrl =
+        listingPhotos?.isNotEmpty == true ? listingPhotos!.first : null;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -195,7 +200,8 @@ class _BookingCard extends StatelessWidget {
           // Image
           if (photoUrl != null)
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
               child: CachedNetworkImage(
                 imageUrl: photoUrl.toString().startsWith('http')
                     ? photoUrl
@@ -231,7 +237,6 @@ class _BookingCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-
                   ],
                 ),
 
@@ -240,10 +245,12 @@ class _BookingCard extends StatelessWidget {
                 // Dates
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                    const Icon(Icons.calendar_today,
+                        size: 16, color: Colors.grey),
                     const SizedBox(width: 4),
                     Text(
-                      DateFormatter.formatDateRange(booking.startDate, booking.endDate),
+                      DateFormatter.formatDateRange(
+                          booking.startDate, booking.endDate),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -271,14 +278,16 @@ class _BookingCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         PriceFormatter.formatPriceInteger(booking.totalPrice),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: AppTheme.primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: AppTheme.primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: _getStatusColor().withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
@@ -303,14 +312,16 @@ class _BookingCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                      border: Border.all(
+                          color: Colors.orange.withValues(alpha: 0.3)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                            const Icon(Icons.info_outline,
+                                size: 16, color: Colors.orange),
                             const SizedBox(width: 4),
                             const Text(
                               'Payment Info',
@@ -330,7 +341,8 @@ class _BookingCard extends StatelessWidget {
                               style: const TextStyle(fontSize: 12),
                             ),
                             Text(
-                              PriceFormatter.formatPriceInteger(booking.depositAmount?.toInt() ?? 0),
+                              PriceFormatter.formatPriceInteger(
+                                  booking.depositAmount?.toInt() ?? 0),
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -348,7 +360,8 @@ class _BookingCard extends StatelessWidget {
                               style: TextStyle(fontSize: 12),
                             ),
                             Text(
-                              PriceFormatter.formatPriceInteger(booking.effectiveRemainingAmount.toInt()),
+                              PriceFormatter.formatPriceInteger(
+                                  booking.effectiveRemainingAmount.toInt()),
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -428,25 +441,31 @@ class _BookingCard extends StatelessWidget {
       children: [
         if (canCheckout)
           Expanded(
-            child: ElevatedButton.icon(
+            child: ElevatedButton(
               onPressed: () => _showCheckoutDialog(context),
-              icon: const Icon(Icons.check_circle, size: 18),
-              label: const Text('Checkout'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,
                 foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text(
+                'Checkout',
+                style: TextStyle(fontSize: 14),
               ),
             ),
           ),
         if (canCheckout && canExtend) const SizedBox(width: 8),
         if (canExtend)
           Expanded(
-            child: OutlinedButton.icon(
+            child: OutlinedButton(
               onPressed: () => _showExtendStayDialog(context),
-              icon: const Icon(Icons.add_circle_outline, size: 18),
-              label: const Text('Extend'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppTheme.primaryColor,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text(
+                'Extend',
+                style: TextStyle(fontSize: 14),
               ),
             ),
           ),
@@ -524,7 +543,8 @@ class _ExtendStayDialogState extends State<_ExtendStayDialog> {
 
   double get _extensionCost {
     final listing = widget.booking.listing as Map?;
-    final pricePerNight = listing?['price']?.toDouble() ?? widget.booking.totalPrice / widget.booking.numberOfNights;
+    final pricePerNight = listing?['price']?.toDouble() ??
+        widget.booking.totalPrice / widget.booking.numberOfNights;
     return pricePerNight * _additionalDays * 1.3; // 30% surcharge
   }
 
@@ -561,7 +581,8 @@ class _ExtendStayDialogState extends State<_ExtendStayDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final newEndDate = widget.booking.endDate.add(Duration(days: _additionalDays));
+    final newEndDate =
+        widget.booking.endDate.add(Duration(days: _additionalDays));
 
     return AlertDialog(
       title: const Text('Extend Stay'),
@@ -574,7 +595,6 @@ class _ExtendStayDialogState extends State<_ExtendStayDialog> {
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
-
           Text(
             'Additional Days',
             style: Theme.of(context).textTheme.titleSmall,
@@ -602,9 +622,7 @@ class _ExtendStayDialogState extends State<_ExtendStayDialog> {
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(

@@ -645,7 +645,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
-              childAspectRatio: 2.5,
+              childAspectRatio: 2.0,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
               children: [
@@ -702,7 +702,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
 
   Widget _buildProfileItem(String emoji, String label, String value) {
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),

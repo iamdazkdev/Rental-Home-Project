@@ -128,3 +128,4 @@ ios/Runner/GeneratedPluginRegistrant.*
 *.md
 !README.md
 
+server/config/firebase-service-account.json

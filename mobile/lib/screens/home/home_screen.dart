@@ -6,11 +6,13 @@ import '../../config/app_theme.dart';
 import '../../models/listing.dart';
 import '../../models/roommate.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../services/listing_service.dart';
 import '../../services/roommate_service.dart';
 import '../../services/wishlist_service.dart';
 import '../../utils/price_formatter.dart';
 import '../listings/listing_detail_screen.dart';
+import '../notifications/notifications_screen.dart';
 import '../roommate/roommate_post_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -161,10 +163,51 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // Navigate to notifications
+          // Notification icon with badge
+          Consumer<NotificationProvider>(
+            builder: (context, notificationProvider, child) {
+              final unreadCount = notificationProvider.unreadCount;
+
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          unreadCount > 9 ? '9+' : '$unreadCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
             },
           ),
           if (user?.profileImage != null)
@@ -583,13 +626,19 @@ class _ListingCardState extends State<_ListingCard> {
                     ),
                     Row(
                       children: [
-                        Text(
-                          formatVND(widget.listing.price, showCurrency: false),
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                        Flexible(
+                          child: Text(
+                            formatVND(widget.listing.price,
+                                showCurrency: false),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
+                                  color: AppTheme.primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         Text(
                           ' VND/${widget.listing.priceType ?? 'night'}',

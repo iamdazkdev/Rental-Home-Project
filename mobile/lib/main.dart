@@ -37,10 +37,16 @@ import 'services/storage_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase FIRST (required for FCM)
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Initialize Firebase FIRST (with duplicate check)
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint('✅ Firebase initialized');
+  } catch (e) {
+    // Firebase already initialized (hot reload or already running)
+    debugPrint('⚠️ Firebase already initialized: $e');
+  }
 
   // Initialize storage
   await StorageService().init();
