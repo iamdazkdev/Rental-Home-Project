@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_links/app_links.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'config/app_theme.dart';
 import 'data/repositories/booking_repository.dart';
 import 'data/repositories/message_repository.dart';
+import 'firebase_options.dart';
 import 'models/booking.dart';
 import 'presentation/booking/cubit/booking_cubit.dart';
 import 'presentation/booking/screens/booking_confirmation_screen.dart';
@@ -35,10 +37,15 @@ import 'services/storage_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize Firebase FIRST (required for FCM)
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   // Initialize storage
   await StorageService().init();
 
-  // Initialize FCM
+  // Initialize FCM (Firebase already initialized above)
   await FCMService().initialize();
 
   // Setup background message handler

@@ -32,11 +32,8 @@ class FCMService {
   /// Initialize Firebase and FCM
   Future<void> initialize() async {
     try {
-      // Initialize Firebase
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      debugPrint('✅ Firebase initialized');
+      // Firebase is already initialized in main.dart
+      debugPrint('✅ Starting FCM initialization...');
 
       // Request permissions
       await _requestPermissions();
