@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../config/app_theme.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/roommate_service.dart';
 import '../../services/identity_verification_service.dart';
+import '../../services/roommate_service.dart';
 
 class CreateRoommatePostScreen extends StatefulWidget {
   const CreateRoommatePostScreen({super.key});
 
   @override
-  State<CreateRoommatePostScreen> createState() => _CreateRoommatePostScreenState();
+  State<CreateRoommatePostScreen> createState() =>
+      _CreateRoommatePostScreenState();
 }
 
 class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
   final _formKey = GlobalKey<FormState>();
   final RoommateService _roommateService = RoommateService();
-  final IdentityVerificationService _verificationService = IdentityVerificationService();
+  final IdentityVerificationService _verificationService =
+      IdentityVerificationService();
 
   int _currentStep = 0;
   bool _isSubmitting = false;
@@ -40,7 +43,7 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
   String _sleepSchedule = 'flexible';
   String _smoking = 'non_smoker';
   String _cleanliness = 'moderate';
-  String _personality = 'ambivert';
+  final String _personality = 'ambivert';
 
   // Contact
   String _preferredContact = 'CHAT';
@@ -160,6 +163,7 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
     if (result['success']) {
       _showSuccessDialog();
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message'] ?? 'Failed to create post')),
       );
@@ -226,7 +230,8 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/identity-verification');
+                    Navigator.pushReplacementNamed(
+                        context, '/identity-verification');
                   },
                   child: const Text('Verify Now'),
                 ),
@@ -331,7 +336,8 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
                     maxLines: 4,
                     decoration: const InputDecoration(
                       labelText: 'Description',
-                      hintText: 'Tell about yourself and what you are looking for...',
+                      hintText:
+                          'Tell about yourself and what you are looking for...',
                       border: OutlineInputBorder(),
                     ),
                     validator: (v) => v?.isEmpty == true ? 'Required' : null,
@@ -427,7 +433,8 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
                       return ChoiceChip(
                         label: Text(g),
                         selected: _genderPreference == g,
-                        onSelected: (s) => setState(() => _genderPreference = g),
+                        onSelected: (s) =>
+                            setState(() => _genderPreference = g),
                       );
                     }).toList(),
                   ),
@@ -471,7 +478,8 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
                       return ChoiceChip(
                         label: Text(c),
                         selected: _preferredContact == c,
-                        onSelected: (s) => setState(() => _preferredContact = c),
+                        onSelected: (s) =>
+                            setState(() => _preferredContact = c),
                       );
                     }).toList(),
                   ),
@@ -516,7 +524,8 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
-          color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : null,
+          color:
+              isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : null,
         ),
         child: Column(
           children: [
@@ -542,7 +551,7 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
@@ -568,4 +577,3 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
     return '${date.day}/${date.month}/${date.year}';
   }
 }
-

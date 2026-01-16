@@ -1,6 +1,8 @@
 /// Calendar Models for Host Calendar Management
 library;
 
+import 'package:flutter/cupertino.dart';
+
 class CalendarData {
   final ListingInfo listing;
   final CalendarPeriod period;
@@ -18,14 +20,14 @@ class CalendarData {
 
   factory CalendarData.fromJson(Map<String, dynamic> json) {
     try {
-      print('📊 Parsing CalendarData from JSON');
+      debugPrint('📊 Parsing CalendarData from JSON');
 
       final bookingsList = (json['bookings'] as List? ?? [])
           .map((b) {
             try {
               return CalendarBooking.fromJson(b as Map<String, dynamic>);
             } catch (e) {
-              print('⚠️ Skipping invalid booking: $e');
+              debugPrint('⚠️ Skipping invalid booking: $e');
               return null;
             }
           })
@@ -37,7 +39,7 @@ class CalendarData {
             try {
               return BlockedDate.fromJson(b as Map<String, dynamic>);
             } catch (e) {
-              print('⚠️ Skipping invalid blocked date: $e');
+              debugPrint('⚠️ Skipping invalid blocked date: $e');
               return null;
             }
           })
@@ -49,14 +51,14 @@ class CalendarData {
             try {
               return CustomPrice.fromJson(c as Map<String, dynamic>);
             } catch (e) {
-              print('⚠️ Skipping invalid custom price: $e');
+              debugPrint('⚠️ Skipping invalid custom price: $e');
               return null;
             }
           })
           .whereType<CustomPrice>()
           .toList();
 
-      print(
+      debugPrint(
           '✅ Parsed: ${bookingsList.length} bookings, ${blockedDatesList.length} blocked dates, ${customPricesList.length} custom prices');
 
       return CalendarData(
@@ -67,8 +69,8 @@ class CalendarData {
         customPrices: customPricesList,
       );
     } catch (e) {
-      print('❌ Error parsing CalendarData: $e');
-      print('   JSON structure: ${json.keys}');
+      debugPrint('❌ Error parsing CalendarData: $e');
+      debugPrint('   JSON structure: ${json.keys}');
       rethrow;
     }
   }
@@ -165,8 +167,8 @@ class CalendarBooking {
         numberOfGuests: json['numberOfGuests'] ?? 1,
       );
     } catch (e) {
-      print('❌ Error parsing CalendarBooking: $e');
-      print('   JSON data: $json');
+      debugPrint('❌ Error parsing CalendarBooking: $e');
+      debugPrint('   JSON data: $json');
       rethrow;
     }
   }
@@ -214,8 +216,8 @@ class BlockedDate {
                 : null,
       );
     } catch (e) {
-      print('❌ Error parsing BlockedDate: $e');
-      print('   JSON data: $json');
+      debugPrint('❌ Error parsing BlockedDate: $e');
+      debugPrint('   JSON data: $json');
       rethrow;
     }
   }
@@ -289,8 +291,8 @@ class CustomPrice {
         reason: json['reason']?.toString(),
       );
     } catch (e) {
-      print('❌ Error parsing CustomPrice: $e');
-      print('   JSON data: $json');
+      debugPrint('❌ Error parsing CustomPrice: $e');
+      debugPrint('   JSON data: $json');
       rethrow;
     }
   }

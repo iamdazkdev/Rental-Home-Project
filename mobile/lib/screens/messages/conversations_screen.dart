@@ -32,7 +32,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
       final userId = user?.id;
 
       if (userId == null) {
-        print('⚠️ User not logged in');
+        debugPrint('⚠️ User not logged in');
         if (mounted) {
           setState(() {
             _isLoading = false;
@@ -53,7 +53,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
         });
       }
     } catch (e) {
-      print('❌ Error loading conversations: $e');
+      debugPrint('❌ Error loading conversations: $e');
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(

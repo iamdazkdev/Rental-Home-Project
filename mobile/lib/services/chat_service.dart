@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,7 +15,7 @@ class ChatService {
   // Get authorization header
   Future<Map<String, String>> _getHeaders() async {
     final token = await _storage.read(key: 'auth_token');
-    print(
+    debugPrint(
         '🔑 Auth token: ${token != null ? "Present (${token.substring(0, 20)}...)" : "Missing"}');
     return {
       'Content-Type': 'application/json',
@@ -27,14 +28,14 @@ class ChatService {
   /// Fetch all conversations for a user
   Future<List<Conversation>> getConversations(String userId) async {
     try {
-      print('📞 Fetching conversations for user: $userId');
+      debugPrint('📞 Fetching conversations for user: $userId');
 
       final response = await http.get(
         Uri.parse('$baseUrl/messages/conversations/$userId'),
         headers: await _getHeaders(),
       );
 
-      print('📥 Conversations response status: ${response.statusCode}');
+      debugPrint('📥 Conversations response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -42,14 +43,14 @@ class ChatService {
             .map((json) => Conversation.fromJson(json))
             .toList();
 
-        print('✅ Fetched ${conversations.length} conversations');
+        debugPrint('✅ Fetched ${conversations.length} conversations');
         return conversations;
       } else {
-        print('❌ Failed to fetch conversations: ${response.body}');
+        debugPrint('❌ Failed to fetch conversations: ${response.body}');
         throw Exception('Failed to load conversations');
       }
     } catch (e) {
-      print('❌ Error fetching conversations: $e');
+      debugPrint('❌ Error fetching conversations: $e');
       rethrow;
     }
   }
@@ -61,7 +62,7 @@ class ChatService {
     String? listingId,
   }) async {
     try {
-      print(
+      debugPrint(
           '🔄 Getting/creating conversation: $currentUserId <-> $otherUserId');
 
       final response = await http.post(
@@ -74,19 +75,19 @@ class ChatService {
         }),
       );
 
-      print('📥 Get/create conversation response: ${response.statusCode}');
+      debugPrint('📥 Get/create conversation response: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         final conversation = Conversation.fromJson(data['conversation']);
-        print('✅ Got conversation: ${conversation.conversationId}');
+        debugPrint('✅ Got conversation: ${conversation.conversationId}');
         return conversation;
       } else {
-        print('❌ Failed to get/create conversation: ${response.body}');
+        debugPrint('❌ Failed to get/create conversation: ${response.body}');
         throw Exception('Failed to create conversation');
       }
     } catch (e) {
-      print('❌ Error getting/creating conversation: $e');
+      debugPrint('❌ Error getting/creating conversation: $e');
       rethrow;
     }
   }
@@ -96,14 +97,14 @@ class ChatService {
   /// Fetch messages for a conversation
   Future<List<Message>> getMessages(String conversationId) async {
     try {
-      print('📨 Fetching messages for conversation: $conversationId');
+      debugPrint('📨 Fetching messages for conversation: $conversationId');
 
       final response = await http.get(
         Uri.parse('$baseUrl/messages/$conversationId'),
         headers: await _getHeaders(),
       );
 
-      print('📥 Messages response status: ${response.statusCode}');
+      debugPrint('📥 Messages response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -120,14 +121,14 @@ class ChatService {
           messages = [];
         }
 
-        print('✅ Fetched ${messages.length} messages');
+        debugPrint('✅ Fetched ${messages.length} messages');
         return messages;
       } else {
-        print('❌ Failed to fetch messages: ${response.body}');
+        debugPrint('❌ Failed to fetch messages: ${response.body}');
         throw Exception('Failed to load messages');
       }
     } catch (e) {
-      print('❌ Error fetching messages: $e');
+      debugPrint('❌ Error fetching messages: $e');
       rethrow;
     }
   }
@@ -141,7 +142,7 @@ class ChatService {
     String? listingId,
   }) async {
     try {
-      print('📤 Sending message from $senderId to $receiverId');
+      debugPrint('📤 Sending message from $senderId to $receiverId');
 
       final requestBody = {
         'senderId': senderId,
@@ -151,8 +152,8 @@ class ChatService {
         if (listingId != null && listingId.isNotEmpty) 'listingId': listingId,
       };
 
-      print('📡 Request URL: $baseUrl/messages/messages');
-      print('📦 Request body: ${json.encode(requestBody)}');
+      debugPrint('📡 Request URL: $baseUrl/messages/messages');
+      debugPrint('📦 Request body: ${json.encode(requestBody)}');
 
       final response = await http.post(
         Uri.parse('$baseUrl/messages/messages'),
@@ -160,21 +161,21 @@ class ChatService {
         body: json.encode(requestBody),
       );
 
-      print('📥 Send message response: ${response.statusCode}');
-      print('📄 Response body: ${response.body}');
+      debugPrint('📥 Send message response: ${response.statusCode}');
+      debugPrint('📄 Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         final message = Message.fromJson(data['message']);
-        print('✅ Message sent successfully');
+        debugPrint('✅ Message sent successfully');
         return message;
       } else {
-        print('❌ Failed to send message: ${response.body}');
+        debugPrint('❌ Failed to send message: ${response.body}');
         throw Exception(
             'Failed to send message: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('❌ Error sending message: $e');
+      debugPrint('❌ Error sending message: $e');
       rethrow;
     }
   }
@@ -182,7 +183,7 @@ class ChatService {
   /// Mark messages as read
   Future<void> markAsRead(String conversationId, String userId) async {
     try {
-      print('✅ Marking messages as read: $conversationId');
+      debugPrint('✅ Marking messages as read: $conversationId');
 
       final response = await http.patch(
         Uri.parse('$baseUrl/messages/$conversationId/read'),
@@ -191,12 +192,12 @@ class ChatService {
       );
 
       if (response.statusCode == 200) {
-        print('✅ Messages marked as read');
+        debugPrint('✅ Messages marked as read');
       } else {
-        print('⚠️ Failed to mark as read: ${response.body}');
+        debugPrint('⚠️ Failed to mark as read: ${response.body}');
       }
     } catch (e) {
-      print('❌ Error marking as read: $e');
+      debugPrint('❌ Error marking as read: $e');
     }
   }
 
@@ -215,7 +216,7 @@ class ChatService {
         return 0;
       }
     } catch (e) {
-      print('❌ Error fetching unread count: $e');
+      debugPrint('❌ Error fetching unread count: $e');
       return 0;
     }
   }

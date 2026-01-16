@@ -1,5 +1,6 @@
 /// Booking enums for state management
 /// Synced with backend booking states
+library;
 
 /// Booking Status enum matching backend states
 enum BookingStatus {
@@ -241,5 +242,3 @@ enum BookingIntentStatus {
     }
   }
 }
-
-

@@ -330,7 +330,7 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
                 if (currentText.isEmpty) {
                   controller.text = suggestion;
                 } else if (!currentText.contains(suggestion)) {
-                  controller.text = '$currentText ${suggestion}';
+                  controller.text = '$currentText $suggestion';
                 }
               },
               backgroundColor: Colors.grey[200],

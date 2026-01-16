@@ -78,16 +78,21 @@ class ListingService {
       if (query != null && query.isNotEmpty) params['query'] = query;
       if (category != null && category != 'All') params['category'] = category;
       if (type != null) params['type'] = type;
-      if (minPrice != null && minPrice > 0)
+      if (minPrice != null && minPrice > 0) {
         params['minPrice'] = minPrice.toString();
-      if (maxPrice != null && maxPrice < 10000)
+      }
+      if (maxPrice != null && maxPrice < 10000) {
         params['maxPrice'] = maxPrice.toString();
-      if (minGuests != null && minGuests > 0)
+      }
+      if (minGuests != null && minGuests > 0) {
         params['minGuests'] = minGuests.toString();
-      if (minBedrooms != null && minBedrooms > 0)
+      }
+      if (minBedrooms != null && minBedrooms > 0) {
         params['minBedrooms'] = minBedrooms.toString();
-      if (minBathrooms != null && minBathrooms > 0)
+      }
+      if (minBathrooms != null && minBathrooms > 0) {
         params['minBathrooms'] = minBathrooms.toString();
+      }
       if (amenities != null && amenities.isNotEmpty) {
         params['amenities'] = amenities.join(',');
       }

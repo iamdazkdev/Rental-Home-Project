@@ -1,5 +1,6 @@
 /// Roommate models for Flutter mobile app
 /// Synced with backend RoommatePost.js, RoommateRequest.js, RoommateMatch.js
+library;
 
 /// Roommate Post Type enum
 enum RoommatePostType {

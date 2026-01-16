@@ -119,6 +119,7 @@ class _ExtendStayScreenState extends State<ExtendStayScreen> {
 
     setState(() => _isLoading = true);
     try {
+      if (!mounted) return;
       final cubit = context.read<BookingCubit>();
 
       final result = await cubit.requestStayExtension(

@@ -337,12 +337,14 @@ class _MyRentalRequestsScreenState extends State<MyRentalRequestsScreen> {
     final result = await _roomRentalService.cancelRequest(request.id);
 
     if (result['success']) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Request cancelled'), backgroundColor: Colors.green),
       );
       _loadRequests();
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message']), backgroundColor: Colors.red),
       );

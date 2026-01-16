@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../config/app_theme.dart';
 import '../../models/room_rental.dart';
 import '../../providers/auth_provider.dart';
@@ -10,7 +11,8 @@ class HostRentalRequestsScreen extends StatefulWidget {
   const HostRentalRequestsScreen({super.key});
 
   @override
-  State<HostRentalRequestsScreen> createState() => _HostRentalRequestsScreenState();
+  State<HostRentalRequestsScreen> createState() =>
+      _HostRentalRequestsScreenState();
 }
 
 class _HostRentalRequestsScreenState extends State<HostRentalRequestsScreen> {
@@ -41,7 +43,9 @@ class _HostRentalRequestsScreenState extends State<HostRentalRequestsScreen> {
 
   List<RentalRequest> get _filteredRequests {
     if (_selectedFilter == 'all') return _requests;
-    return _requests.where((r) => r.status.value.toLowerCase() == _selectedFilter).toList();
+    return _requests
+        .where((r) => r.status.value.toLowerCase() == _selectedFilter)
+        .toList();
   }
 
   @override
@@ -183,6 +187,7 @@ class _HostRentalRequestsScreenState extends State<HostRentalRequestsScreen> {
     final result = await _roomRentalService.approveRequest(request.id, user.id);
 
     if (result['success']) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Request approved! Agreement created.'),
@@ -191,6 +196,7 @@ class _HostRentalRequestsScreenState extends State<HostRentalRequestsScreen> {
       );
       _loadRequests();
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message']), backgroundColor: Colors.red),
       );
@@ -249,14 +255,18 @@ class _HostRentalRequestsScreenState extends State<HostRentalRequestsScreen> {
 
     if (confirmed != true) return;
 
-    final result = await _roomRentalService.rejectRequest(request.id, reasonController.text);
+    final result = await _roomRentalService.rejectRequest(
+        request.id, reasonController.text);
 
     if (result['success']) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Request rejected'), backgroundColor: Colors.orange),
+        const SnackBar(
+            content: Text('Request rejected'), backgroundColor: Colors.orange),
       );
       _loadRequests();
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message']), backgroundColor: Colors.red),
       );
@@ -306,7 +316,8 @@ class _HostRequestCard extends StatelessWidget {
             const SizedBox(height: 12),
 
             // Tenant Info
-            const Text('From Tenant:', style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text('From Tenant:',
+                style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -334,7 +345,8 @@ class _HostRequestCard extends StatelessWidget {
 
             // Message from tenant
             if (request.message.isNotEmpty) ...[
-              const Text('Introduction:', style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text('Introduction:',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -357,7 +369,8 @@ class _HostRequestCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Move-in Date', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      const Text('Move-in Date',
+                          style: TextStyle(fontSize: 12, color: Colors.grey)),
                       const SizedBox(height: 4),
                       Text(
                         DateFormatter.formatDate(request.moveInDate),
@@ -370,7 +383,8 @@ class _HostRequestCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Intended Stay', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      const Text('Intended Stay',
+                          style: TextStyle(fontSize: 12, color: Colors.grey)),
                       const SizedBox(height: 4),
                       Text(
                         '${request.intendedStayDuration} months',
@@ -446,9 +460,9 @@ class _HostRequestCard extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12),
+        style:
+            TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12),
       ),
     );
   }
 }
-

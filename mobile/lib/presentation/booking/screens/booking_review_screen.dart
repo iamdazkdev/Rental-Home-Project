@@ -491,6 +491,7 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
         setState(() => _isProcessingPayment = true);
 
         // Call cubit to create booking from payment callback
+        if (!mounted) return;
         context.read<BookingCubit>().createBookingFromPayment(
               tempOrderId: tempOrderIdFromResult,
               transactionId: transactionId,

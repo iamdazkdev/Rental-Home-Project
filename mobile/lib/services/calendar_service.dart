@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:rental_home/config/api_config.dart';
 import 'package:rental_home/models/calendar_models.dart';
@@ -29,14 +30,14 @@ class CalendarService {
         url += '?month=$month&year=$year';
       }
 
-      print('📅 Fetching calendar data: $url');
+      debugPrint('📅 Fetching calendar data: $url');
 
       final response = await http.get(
         Uri.parse(url),
         headers: headers,
       );
 
-      print('📥 Calendar response status: ${response.statusCode}');
+      debugPrint('📥 Calendar response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
@@ -52,7 +53,7 @@ class CalendarService {
             errorData['message'] ?? 'Failed to fetch calendar data');
       }
     } catch (e) {
-      print('❌ Error fetching calendar data: $e');
+      debugPrint('❌ Error fetching calendar data: $e');
       rethrow;
     }
   }
@@ -64,8 +65,8 @@ class CalendarService {
 
       final url = '${ApiConfig.baseUrl}/calendar/$listingId/block';
 
-      print('🚫 Blocking dates: $url');
-      print('   Request: ${request.toJson()}');
+      debugPrint('🚫 Blocking dates: $url');
+      debugPrint('   Request: ${request.toJson()}');
 
       final response = await http.post(
         Uri.parse(url),
@@ -73,12 +74,12 @@ class CalendarService {
         body: json.encode(request.toJson()),
       );
 
-      print('📥 Block dates response: ${response.statusCode}');
+      debugPrint('📥 Block dates response: ${response.statusCode}');
 
       if (response.statusCode == 201) {
         final jsonData = json.decode(response.body);
         if (jsonData['success'] == true) {
-          print('✅ Dates blocked successfully');
+          debugPrint('✅ Dates blocked successfully');
           return;
         } else {
           throw Exception(jsonData['message'] ?? 'Failed to block dates');
@@ -88,7 +89,7 @@ class CalendarService {
         throw Exception(errorData['message'] ?? 'Failed to block dates');
       }
     } catch (e) {
-      print('❌ Error blocking dates: $e');
+      debugPrint('❌ Error blocking dates: $e');
       rethrow;
     }
   }
@@ -100,24 +101,24 @@ class CalendarService {
 
       final url = '${ApiConfig.baseUrl}/calendar/$listingId/block/$blockId';
 
-      print('✅ Unblocking dates: $url');
+      debugPrint('✅ Unblocking dates: $url');
 
       final response = await http.delete(
         Uri.parse(url),
         headers: headers,
       );
 
-      print('📥 Unblock dates response: ${response.statusCode}');
+      debugPrint('📥 Unblock dates response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        print('✅ Dates unblocked successfully');
+        debugPrint('✅ Dates unblocked successfully');
         return;
       } else {
         final errorData = json.decode(response.body);
         throw Exception(errorData['message'] ?? 'Failed to unblock dates');
       }
     } catch (e) {
-      print('❌ Error unblocking dates: $e');
+      debugPrint('❌ Error unblocking dates: $e');
       rethrow;
     }
   }
@@ -130,8 +131,8 @@ class CalendarService {
 
       final url = '${ApiConfig.baseUrl}/calendar/$listingId/pricing';
 
-      print('💰 Setting custom price: $url');
-      print('   Request: ${request.toJson()}');
+      debugPrint('💰 Setting custom price: $url');
+      debugPrint('   Request: ${request.toJson()}');
 
       final response = await http.post(
         Uri.parse(url),
@@ -139,12 +140,12 @@ class CalendarService {
         body: json.encode(request.toJson()),
       );
 
-      print('📥 Custom price response: ${response.statusCode}');
+      debugPrint('📥 Custom price response: ${response.statusCode}');
 
       if (response.statusCode == 201) {
         final jsonData = json.decode(response.body);
         if (jsonData['success'] == true) {
-          print('✅ Custom price set successfully');
+          debugPrint('✅ Custom price set successfully');
           return;
         } else {
           throw Exception(jsonData['message'] ?? 'Failed to set custom price');
@@ -154,7 +155,7 @@ class CalendarService {
         throw Exception(errorData['message'] ?? 'Failed to set custom price');
       }
     } catch (e) {
-      print('❌ Error setting custom price: $e');
+      debugPrint('❌ Error setting custom price: $e');
       rethrow;
     }
   }
@@ -166,17 +167,17 @@ class CalendarService {
 
       final url = '${ApiConfig.baseUrl}/calendar/$listingId/pricing/$priceId';
 
-      print('🗑️ Removing custom price: $url');
+      debugPrint('🗑️ Removing custom price: $url');
 
       final response = await http.delete(
         Uri.parse(url),
         headers: headers,
       );
 
-      print('📥 Remove price response: ${response.statusCode}');
+      debugPrint('📥 Remove price response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        print('✅ Custom price removed successfully');
+        debugPrint('✅ Custom price removed successfully');
         return;
       } else {
         final errorData = json.decode(response.body);
@@ -184,7 +185,7 @@ class CalendarService {
             errorData['message'] ?? 'Failed to remove custom price');
       }
     } catch (e) {
-      print('❌ Error removing custom price: $e');
+      debugPrint('❌ Error removing custom price: $e');
       rethrow;
     }
   }
@@ -200,11 +201,11 @@ class CalendarService {
           '?startDate=${startDate.toIso8601String()}'
           '&endDate=${endDate.toIso8601String()}';
 
-      print('🔍 Checking availability: $url');
+      debugPrint('🔍 Checking availability: $url');
 
       final response = await http.get(Uri.parse(url));
 
-      print('📥 Availability response: ${response.statusCode}');
+      debugPrint('📥 Availability response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
@@ -219,7 +220,7 @@ class CalendarService {
         throw Exception(errorData['message'] ?? 'Failed to check availability');
       }
     } catch (e) {
-      print('❌ Error checking availability: $e');
+      debugPrint('❌ Error checking availability: $e');
       rethrow;
     }
   }

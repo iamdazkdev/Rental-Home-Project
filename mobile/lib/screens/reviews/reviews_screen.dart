@@ -12,12 +12,12 @@ class ReviewsScreen extends StatefulWidget {
   final bool canReview;
 
   const ReviewsScreen({
-    Key? key,
+    super.key,
     required this.listingId,
     this.listingTitle,
     this.bookingId,
     this.canReview = false,
-  }) : super(key: key);
+  });
 
   @override
   State<ReviewsScreen> createState() => _ReviewsScreenState();

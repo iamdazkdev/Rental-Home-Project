@@ -134,6 +134,7 @@ class _PaymentReminderScreenState extends State<PaymentReminderScreen> {
 
     setState(() => _isLoading = true);
     try {
+      if (!mounted) return;
       final cubit = context.read<BookingCubit>();
 
       final result = await cubit.completeRemainingPayment(

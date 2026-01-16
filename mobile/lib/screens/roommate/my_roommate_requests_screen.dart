@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../config/app_theme.dart';
 import '../../models/roommate.dart';
 import '../../providers/auth_provider.dart';
@@ -9,7 +10,8 @@ class MyRoommateRequestsScreen extends StatefulWidget {
   const MyRoommateRequestsScreen({super.key});
 
   @override
-  State<MyRoommateRequestsScreen> createState() => _MyRoommateRequestsScreenState();
+  State<MyRoommateRequestsScreen> createState() =>
+      _MyRoommateRequestsScreenState();
 }
 
 class _MyRoommateRequestsScreenState extends State<MyRoommateRequestsScreen>
@@ -44,20 +46,25 @@ class _MyRoommateRequestsScreenState extends State<MyRoommateRequestsScreen>
 
     setState(() {
       _sentRequests = requests.where((r) => r.senderId == user.id).toList();
-      _receivedRequests = requests.where((r) => r.receiverId == user.id).toList();
+      _receivedRequests =
+          requests.where((r) => r.receiverId == user.id).toList();
       _isLoading = false;
     });
   }
 
   Future<void> _handleAccept(String requestId) async {
-    final result = await _roommateService.respondToRequest(requestId, 'ACCEPTED');
+    final result =
+        await _roommateService.respondToRequest(requestId, 'ACCEPTED');
 
     if (result['success']) {
       _loadRequests();
-      _showSuccessDialog('Request Accepted', 'You can now chat with your potential roommate!');
+      _showSuccessDialog(
+          'Request Accepted', 'You can now chat with your potential roommate!');
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'Failed to accept request')),
+        SnackBar(
+            content: Text(result['message'] ?? 'Failed to accept request')),
       );
     }
   }
@@ -84,13 +91,16 @@ class _MyRoommateRequestsScreenState extends State<MyRoommateRequestsScreen>
 
     if (confirm != true) return;
 
-    final result = await _roommateService.respondToRequest(requestId, 'REJECTED');
+    final result =
+        await _roommateService.respondToRequest(requestId, 'REJECTED');
 
     if (result['success']) {
       _loadRequests();
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'Failed to reject request')),
+        SnackBar(
+            content: Text(result['message'] ?? 'Failed to reject request')),
       );
     }
   }
@@ -142,7 +152,8 @@ class _MyRoommateRequestsScreenState extends State<MyRoommateRequestsScreen>
     );
   }
 
-  Widget _buildRequestsList(List<RoommateRequest> requests, {required bool isReceived}) {
+  Widget _buildRequestsList(List<RoommateRequest> requests,
+      {required bool isReceived}) {
     if (requests.isEmpty) {
       return Center(
         child: Column(
@@ -374,4 +385,3 @@ class _RequestCard extends StatelessWidget {
     );
   }
 }
-

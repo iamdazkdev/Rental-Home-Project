@@ -340,6 +340,7 @@ class _HostAgreementsScreenState extends State<HostAgreementsScreen> {
     final result = await _roomRentalService.confirmAgreement(agreement.id);
 
     if (result['success']) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Agreement confirmed and activated!'),
@@ -348,6 +349,7 @@ class _HostAgreementsScreenState extends State<HostAgreementsScreen> {
       );
       _loadAgreements();
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message']), backgroundColor: Colors.red),
       );
@@ -373,7 +375,7 @@ class _HostAgreementsScreenState extends State<HostAgreementsScreen> {
                 const Text('Payment Type'),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: paymentType,
+                  initialValue: paymentType,
                   decoration:
                       const InputDecoration(border: OutlineInputBorder()),
                   items: const [
@@ -452,6 +454,7 @@ class _HostAgreementsScreenState extends State<HostAgreementsScreen> {
     );
 
     if (result['success']) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Payment recorded!'),
@@ -460,6 +463,7 @@ class _HostAgreementsScreenState extends State<HostAgreementsScreen> {
       );
       _loadAgreements();
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message']), backgroundColor: Colors.red),
       );

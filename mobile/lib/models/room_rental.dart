@@ -1,5 +1,6 @@
 /// Room Rental models for Flutter mobile app
 /// Synced with backend RoomRental.js model
+library;
 
 /// Rental Request Status enum
 enum RentalRequestStatus {

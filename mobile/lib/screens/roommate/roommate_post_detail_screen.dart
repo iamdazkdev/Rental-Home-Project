@@ -76,6 +76,7 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
     if (result['success']) {
       _showSuccessDialog();
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message'] ?? 'Failed to send request')),
       );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../core/enums/booking_enums.dart';
 import '../cubit/booking_cubit.dart';
 import '../cubit/booking_state.dart';
@@ -13,42 +14,27 @@ class BookingStatusWidget extends StatelessWidget {
       builder: (context, state) {
         return switch (state) {
           BookingInitial() => const SizedBox.shrink(),
-
           BookingLoading(:final message) => _buildLoading(message),
-
           BookingIntentCreated(:final timeRemaining) =>
             _buildIntentCountdown(context, timeRemaining),
-
           BookingListingLocked(:final message) =>
             _buildLockedMessage(context, message),
 
+          // ignore: unused_local_variable
           BookingAgreementRequired(:final booking) =>
             _buildAgreementRequired(context, state),
-
           BookingPaymentRequired(:final amountDue, :final isPartiallyPaid) =>
             _buildPaymentRequired(context, state, amountDue, isPartiallyPaid),
-
           BookingPaymentProcessing(:final paymentUrl) =>
             _buildPaymentProcessing(context, paymentUrl),
-
-          BookingPendingApproval() =>
-            _buildPendingApproval(context),
-
-          BookingConfirmed(:final booking) =>
-            _buildConfirmed(context, booking),
-
-          BookingCancelled(:final reason) =>
-            _buildCancelled(context, reason),
-
-          BookingIntentExpired() =>
-            _buildIntentExpired(context),
-
+          BookingPendingApproval() => _buildPendingApproval(context),
+          BookingConfirmed(:final booking) => _buildConfirmed(context, booking),
+          BookingCancelled(:final reason) => _buildCancelled(context, reason),
+          BookingIntentExpired() => _buildIntentExpired(context),
           BookingError(:final message, :final canRetry) =>
             _buildError(context, message, canRetry),
-
           BookingLoaded(:final booking, :final availableActions) =>
             _buildLoaded(context, state),
-
           BookingsLoaded() => const SizedBox.shrink(),
           // TODO: Handle this case.
           BookingState() => throw UnimplementedError(),
@@ -95,9 +81,9 @@ class BookingStatusWidget extends StatelessWidget {
           Text(
             '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.orange,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
           ),
           const SizedBox(height: 8),
           const Text('Complete your booking before time expires'),
@@ -204,9 +190,9 @@ class BookingStatusWidget extends StatelessWidget {
           Text(
             '\$${amountDue.toStringAsFixed(2)}',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.green,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
           ),
           const SizedBox(height: 16),
           Wrap(
@@ -297,9 +283,9 @@ class BookingStatusWidget extends StatelessWidget {
           Text(
             'Booking Confirmed!',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Colors.green,
-              fontWeight: FontWeight.bold,
-            ),
+                  color: Colors.green,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 4),
           const Text(
@@ -431,14 +417,16 @@ class BookingStatusWidget extends StatelessWidget {
         if (state.canPay)
           ElevatedButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/payment', arguments: state.booking);
+              Navigator.pushNamed(context, '/payment',
+                  arguments: state.booking);
             },
             child: const Text('Pay Now'),
           ),
         if (state.canSignAgreement)
           ElevatedButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/agreement/sign', arguments: state.booking);
+              Navigator.pushNamed(context, '/agreement/sign',
+                  arguments: state.booking);
             },
             child: const Text('Sign Agreement'),
           ),
@@ -467,9 +455,9 @@ class BookingStatusWidget extends StatelessWidget {
             onPressed: () {
               Navigator.pop(ctx);
               context.read<BookingCubit>().cancelBooking(
-                bookingId: bookingId,
-                reason: 'Cancelled by user',
-              );
+                    bookingId: bookingId,
+                    reason: 'Cancelled by user',
+                  );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Yes, Cancel'),
@@ -489,4 +477,3 @@ class BookingStatusWidget extends StatelessWidget {
     };
   }
 }
-

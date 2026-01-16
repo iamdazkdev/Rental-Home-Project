@@ -203,7 +203,7 @@ class _ReviewsListScreenState extends State<ReviewsListScreen> {
           const SizedBox(height: 24),
 
           // Reviews List
-          ..._reviews.map((review) => _buildReviewCard(review)).toList(),
+          ..._reviews.map((review) => _buildReviewCard(review)),
 
           // Load More Indicator
           if (_isLoadingMore)

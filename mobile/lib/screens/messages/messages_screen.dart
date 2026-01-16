@@ -51,7 +51,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       // Create temporary conversation for new contact
       _selectedConversation = ConversationModel(
         id: tempId,
-        participants: [chatCubit.currentUserId ?? '', widget.receiverId!],
+        participants: [chatCubit.currentUserId, widget.receiverId!],
         otherUser: UserInfo(
           id: widget.receiverId!,
           firstName: widget.receiverName?.split(' ').first ?? 'Host',
@@ -170,8 +170,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 state is ChatConversationsLoaded
                     ? state.conversations
                     : state is ChatMessagesLoaded
-                        ? (state as ChatMessagesLoaded).conversations ??
-                            <ConversationModel>[]
+                        ? (state).conversations ?? <ConversationModel>[]
                         : <ConversationModel>[];
 
             final List<MessageModel> messages =
@@ -316,7 +315,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     children: [
                       Expanded(
                         child: Text(
-                          conversation.lastMessage ?? 'No messages yet',
+                          conversation.lastMessage,
                           style: TextStyle(
                             fontSize: 14,
                             color: conversation.unreadCount > 0

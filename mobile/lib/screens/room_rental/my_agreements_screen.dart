@@ -336,6 +336,7 @@ class _MyAgreementsScreenState extends State<MyAgreementsScreen> {
     final result = await _roomRentalService.acceptAgreement(agreement.id);
 
     if (result['success']) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Agreement accepted!'),
@@ -344,6 +345,7 @@ class _MyAgreementsScreenState extends State<MyAgreementsScreen> {
       );
       _loadAgreements();
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(result['message']), backgroundColor: Colors.red),
       );

@@ -92,7 +92,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
 
   Future<void> _toggleListingStatus(Listing listing) async {
     try {
-      final newStatus = !(listing.isActive ?? true);
+      final newStatus = !(listing.isActive);
       final success = await _listingService.updateListingStatus(
         listing.id,
         newStatus,
@@ -276,7 +276,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
   }
 
   Widget _buildListingCard(Listing listing) {
-    final isActive = listing.isActive ?? true;
+    final isActive = listing.isActive;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),

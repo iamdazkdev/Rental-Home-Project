@@ -1,5 +1,6 @@
 /// Price Formatter Utility
 /// Format prices according to Vietnamese standard (8000000 → 8.000.000)
+library;
 
 /// Format number to Vietnamese price format with dots as thousand separator
 ///
@@ -92,7 +93,8 @@ num parseVND(String formattedPrice) {
   if (formattedPrice.isEmpty) return 0;
 
   // Remove all dots and non-numeric characters except digits
-  final cleaned = formattedPrice.replaceAll('.', '').replaceAll(RegExp(r'[^\d]'), '');
+  final cleaned =
+      formattedPrice.replaceAll('.', '').replaceAll(RegExp(r'[^\d]'), '');
 
   return int.tryParse(cleaned) ?? 0;
 }
@@ -114,4 +116,3 @@ String formatCompact(num? amount) {
 
   return rounded.toString();
 }
-

@@ -52,10 +52,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _loadCurrentUser() async {
-    print('🔄 Loading current user...');
+    debugPrint('🔄 Loading current user...');
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final user = authProvider.user;
-    print('👤 Current user loaded: ${user?.id ?? "NULL"}');
+    debugPrint('👤 Current user loaded: ${user?.id ?? "NULL"}');
     setState(() {
       _currentUserId = user?.id;
     });
@@ -67,7 +67,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
       // Skip fetching if conversation is temporary (new conversation not yet created)
       if (widget.conversationId.startsWith('temp_')) {
-        print('ℹ️ Skipping message fetch for temporary conversation');
+        debugPrint('ℹ️ Skipping message fetch for temporary conversation');
         if (mounted) {
           setState(() {
             _messages = [];
@@ -92,7 +92,7 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
     } catch (e) {
-      print('❌ Error loading messages: $e');
+      debugPrint('❌ Error loading messages: $e');
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -106,7 +106,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_currentUserId == null) return;
 
     try {
-      print('🔌 Connecting to Socket.IO...');
+      debugPrint('🔌 Connecting to Socket.IO...');
 
       _socket = IO.io(
         ApiConfig.baseUrl,
@@ -119,12 +119,12 @@ class _ChatScreenState extends State<ChatScreen> {
       _socket?.connect();
 
       _socket?.onConnect((_) {
-        print('✅ Socket connected');
+        debugPrint('✅ Socket connected');
         _socket?.emit('join', _currentUserId);
       });
 
       _socket?.on('receiveMessage', (data) {
-        print('📨 Received message via socket: $data');
+        debugPrint('📨 Received message via socket: $data');
         final message = _chatService.parseSocketMessage(data);
 
         // Accept message if it matches either widget conversationId or real conversationId
@@ -147,14 +147,14 @@ class _ChatScreenState extends State<ChatScreen> {
       });
 
       _socket?.onDisconnect((_) {
-        print('❌ Socket disconnected');
+        debugPrint('❌ Socket disconnected');
       });
 
       _socket?.onError((error) {
-        print('❌ Socket error: $error');
+        debugPrint('❌ Socket error: $error');
       });
     } catch (e) {
-      print('❌ Error connecting socket: $e');
+      debugPrint('❌ Error connecting socket: $e');
     }
   }
 
@@ -171,18 +171,19 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _sendMessage() async {
-    print('🔔 Send button pressed!');
-    print('   _currentUserId: $_currentUserId');
-    print('   _isSending: $_isSending');
-    print('   messageText length: ${_messageController.text.trim().length}');
+    debugPrint('🔔 Send button pressed!');
+    debugPrint('   _currentUserId: $_currentUserId');
+    debugPrint('   _isSending: $_isSending');
+    debugPrint(
+        '   messageText length: ${_messageController.text.trim().length}');
 
     if (_messageController.text.trim().isEmpty || _currentUserId == null) {
-      print('❌ Send aborted:');
+      debugPrint('❌ Send aborted:');
       if (_messageController.text.trim().isEmpty) {
-        print('   - Message is empty');
+        debugPrint('   - Message is empty');
       }
       if (_currentUserId == null) {
-        print('   - Current user ID is null');
+        debugPrint('   - Current user ID is null');
       }
       return;
     }
@@ -193,12 +194,12 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       setState(() => _isSending = true);
 
-      print('📤 ChatScreen - Sending message:');
-      print('   conversationId: ${widget.conversationId}');
-      print('   senderId: $_currentUserId');
-      print('   receiverId: ${widget.otherUserId}');
-      print('   listingId: ${widget.listingId}');
-      print('   text: $messageText');
+      debugPrint('📤 ChatScreen - Sending message:');
+      debugPrint('   conversationId: ${widget.conversationId}');
+      debugPrint('   senderId: $_currentUserId');
+      debugPrint('   receiverId: ${widget.otherUserId}');
+      debugPrint('   listingId: ${widget.listingId}');
+      debugPrint('   text: $messageText');
 
       final message = await _chatService.sendMessage(
         conversationId: widget.conversationId,
@@ -213,7 +214,7 @@ class _ChatScreenState extends State<ChatScreen> {
         setState(() {
           _realConversationId = message.conversationId;
         });
-        print('✅ Real conversation ID: $_realConversationId');
+        debugPrint('✅ Real conversation ID: $_realConversationId');
       }
 
       // Emit via socket for real-time delivery
@@ -228,7 +229,8 @@ class _ChatScreenState extends State<ChatScreen> {
         _scrollToBottom();
       }
     } catch (e) {
-      print('❌ Error sending message: $e');
+      debugPrint('❌ Error sending message: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to send message: $e')),
       );
