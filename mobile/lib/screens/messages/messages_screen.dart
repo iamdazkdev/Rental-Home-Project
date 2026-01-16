@@ -186,7 +186,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         : MediaQuery.of(context).size.width,
                     decoration: BoxDecoration(
                       border: Border(
-                        right: BorderSide(color: Colors.grey.shade300),
+                        right:
+                            BorderSide(color: Theme.of(context).dividerColor),
                       ),
                     ),
                     child: _buildConversationsList(conversations),
@@ -210,15 +211,20 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   Widget _buildConversationsList(List<ConversationModel> conversations) {
     if (conversations.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
+            Icon(Icons.chat_bubble_outline,
+                size: 64,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.3)),
+            const SizedBox(height: 16),
             Text(
               'No conversations yet',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),
@@ -248,9 +254,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.shade50 : Colors.transparent,
+          color: isSelected
+              ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
+              : Colors.transparent,
           border: Border(
-            bottom: BorderSide(color: Colors.grey.shade200),
+            bottom: BorderSide(color: Theme.of(context).dividerColor),
           ),
         ),
         child: Row(
@@ -291,10 +299,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       Text(
                         DateFormatter.formatMessageTime(
                             conversation.lastMessageAt),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
@@ -302,10 +307,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     const SizedBox(height: 4),
                     Text(
                       conversation.listingTitle!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
+                      style: Theme.of(context).textTheme.bodySmall,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -319,8 +321,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             color: conversation.unreadCount > 0
-                                ? Colors.black
-                                : Colors.grey.shade700,
+                                ? Theme.of(context).textTheme.bodyLarge?.color
+                                : Theme.of(context).textTheme.bodyMedium?.color,
                             fontWeight: conversation.unreadCount > 0
                                 ? FontWeight.w600
                                 : FontWeight.normal,
@@ -359,15 +361,20 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.chat_outlined, size: 80, color: Colors.grey),
-          SizedBox(height: 16),
+          Icon(Icons.chat_outlined,
+              size: 80,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.3)),
+          const SizedBox(height: 16),
           Text(
             'Select a conversation to start messaging',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: Theme.of(context).textTheme.titleMedium,
           ),
         ],
       ),
@@ -382,10 +389,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
         // Messages List
         Expanded(
           child: messages.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
                     'No messages yet. Start the conversation!',
-                    style: TextStyle(color: Colors.grey),
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 )
               : ListView.builder(
@@ -409,9 +416,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(
-          bottom: BorderSide(color: Colors.grey.shade300),
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
         ),
       ),
       child: Row(
@@ -457,10 +464,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 if (_selectedConversation!.listingTitle != null)
                   Text(
                     _selectedConversation!.listingTitle!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: Theme.of(context).textTheme.bodySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -485,7 +489,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
           maxWidth: MediaQuery.of(context).size.width * 0.7,
         ),
         decoration: BoxDecoration(
-          color: isMe ? const Color(0xFFFF385A) : Colors.grey.shade200,
+          color: isMe
+              ? Theme.of(context).primaryColor
+              : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -495,7 +501,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
               message.message,
               style: TextStyle(
                 fontSize: 15,
-                color: isMe ? Colors.white : Colors.black87,
+                color: isMe
+                    ? Colors.white
+                    : Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
             const SizedBox(height: 4),
@@ -503,7 +511,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
               DateFormatter.formatMessageTime(message.createdAt),
               style: TextStyle(
                 fontSize: 11,
-                color: isMe ? Colors.white70 : Colors.grey.shade600,
+                color: isMe
+                    ? Colors.white.withValues(alpha: 0.7)
+                    : Theme.of(context).textTheme.bodySmall?.color,
               ),
             ),
           ],
@@ -516,9 +526,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(
-          top: BorderSide(color: Colors.grey.shade300),
+          top: BorderSide(color: Theme.of(context).dividerColor),
         ),
       ),
       child: Row(
@@ -530,7 +540,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 hintText: 'Type a message...',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: Theme.of(context).dividerColor),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -544,7 +554,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           ),
           const SizedBox(width: 12),
           CircleAvatar(
-            backgroundColor: const Color(0xFFFF385A),
+            backgroundColor: Theme.of(context).primaryColor,
             child: IconButton(
               icon: const Icon(Icons.send, color: Colors.white),
               onPressed: _sendMessage,

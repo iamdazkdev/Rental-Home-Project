@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+
 import '../../config/app_theme.dart';
 import '../../models/booking.dart';
 import '../../services/booking_service.dart';
@@ -60,7 +61,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _addSuggestedReview(String suggestion, bool isHost) {
-    final controller = isHost ? _hostReviewController : _listingReviewController;
+    final controller =
+        isHost ? _hostReviewController : _listingReviewController;
     final currentText = controller.text.trim();
 
     // Don't add if already included
@@ -94,9 +96,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       if (result['success']) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Checked out successfully!'),
-            backgroundColor: AppTheme.successColor,
+          SnackBar(
+            content: const Text('✅ Checked out successfully!'),
+            backgroundColor: Colors.green,
           ),
         );
         Navigator.pop(context);
@@ -105,7 +107,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? 'Checkout failed'),
-            backgroundColor: AppTheme.errorColor,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -124,10 +126,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final listingCity = listing?['city'] ?? '';
     final listingProvince = listing?['province'] ?? '';
     final listingPhotos = listing?['listingPhotoPaths'] as List?;
-    final photoUrl = listingPhotos?.isNotEmpty == true ? listingPhotos!.first : null;
+    final photoUrl =
+        listingPhotos?.isNotEmpty == true ? listingPhotos!.first : null;
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('🏠 Check Out'),
         centerTitle: true,
@@ -140,11 +143,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             Container(
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -155,7 +158,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   // Image
                   if (photoUrl != null)
                     ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(16)),
                       child: CachedNetworkImage(
                         imageUrl: photoUrl.toString(),
                         height: 180,
@@ -163,7 +167,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Container(
                           color: AppTheme.backgroundColor,
-                          child: const Center(child: CircularProgressIndicator()),
+                          child:
+                              const Center(child: CircularProgressIndicator()),
                         ),
                         errorWidget: (context, url, error) => Container(
                           color: AppTheme.backgroundColor,
@@ -180,16 +185,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       children: [
                         Text(
                           listingTitle,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '$listingCity, $listingProvince',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppTheme.textSecondaryColor,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
                         ),
                       ],
                     ),
@@ -203,11 +210,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -223,7 +230,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
                   ),
                   const SizedBox(height: 16),
-
                   _buildSummaryItem(
                     icon: '📅',
                     label: 'Check-in Date',
@@ -241,7 +247,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   _buildSummaryItem(
                     icon: '🌙',
                     label: 'Total Nights',
-                    value: '$_numberOfNights night${_numberOfNights != 1 ? 's' : ''}',
+                    value:
+                        '$_numberOfNights night${_numberOfNights != 1 ? 's' : ''}',
                   ),
                   const SizedBox(height: 12),
                   _buildSummaryItem(
@@ -249,7 +256,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     label: 'Total Paid',
                     value: PriceFormatter.formatPriceInteger(
                       widget.booking.extensionCost != null
-                          ? widget.booking.totalPrice + widget.booking.extensionCost!
+                          ? widget.booking.totalPrice +
+                              widget.booking.extensionCost!
                           : widget.booking.totalPrice,
                     ),
                   ),
@@ -302,9 +310,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Complete your stay and leave a review (optional) to help others!',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textSecondaryColor,
-                        ),
+                    style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -318,11 +324,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -356,7 +362,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   _buildReviewSection(
                     title: 'Rate the Listing',
                     rating: _listingRating,
-                    onRatingChanged: (rating) => setState(() => _listingRating = rating),
+                    onRatingChanged: (rating) =>
+                        setState(() => _listingRating = rating),
                     controller: _listingReviewController,
                     hintText: 'Share your thoughts about the property...',
                     suggestedReviews: _suggestedListingReviews,
@@ -369,7 +376,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   _buildReviewSection(
                     title: 'Rate the Host',
                     rating: _hostRating,
-                    onRatingChanged: (rating) => setState(() => _hostRating = rating),
+                    onRatingChanged: (rating) =>
+                        setState(() => _hostRating = rating),
                     controller: _hostReviewController,
                     hintText: 'How was your host?',
                     suggestedReviews: _suggestedHostReviews,
@@ -387,7 +395,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: ElevatedButton(
                 onPressed: _isSubmitting ? null : _handleCheckout,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
+                  backgroundColor: Theme.of(context).primaryColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -401,7 +409,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : const Text(
@@ -436,16 +445,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textSecondaryColor,
-                    ),
+                style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 2),
               Text(
-                value,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                label,
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),
@@ -497,7 +502,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppTheme.backgroundColor,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -528,16 +533,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                          color: Theme.of(context)
+                              .primaryColor
+                              .withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(
                         suggestion,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.primaryColor,
+                              color: Theme.of(context).primaryColor,
                             ),
                       ),
                     ),
@@ -560,11 +567,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             filled: true,
-            fillColor: AppTheme.backgroundColor,
+            fillColor: Theme.of(context).colorScheme.surface,
           ),
         ),
       ],
     );
   }
 }
-

@@ -194,7 +194,12 @@ class _MyRoommatePostsScreenState extends State<MyRoommatePostsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.article_outlined, size: 80, color: Colors.grey[400]),
+            Icon(Icons.article_outlined,
+                size: 80,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.3)),
             const SizedBox(height: 16),
             const Text(
               'No posts yet',
@@ -204,7 +209,7 @@ class _MyRoommatePostsScreenState extends State<MyRoommatePostsScreen> {
             Text(
               'Create a post to find your perfect roommate',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600]),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -310,11 +315,16 @@ class _PostCard extends StatelessWidget {
               // Location
               Row(
                 children: [
-                  const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                  Icon(Icons.location_on,
+                      size: 16,
+                      color: Theme.of(context)
+                          .iconTheme
+                          .color
+                          ?.withValues(alpha: 0.6)),
                   const SizedBox(width: 4),
                   Text(
                     '${post.city}, ${post.province}',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
@@ -323,7 +333,12 @@ class _PostCard extends StatelessWidget {
               // Budget
               Row(
                 children: [
-                  const Icon(Icons.attach_money, size: 16, color: Colors.grey),
+                  Icon(Icons.attach_money,
+                      size: 16,
+                      color: Theme.of(context)
+                          .iconTheme
+                          .color
+                          ?.withValues(alpha: 0.6)),
                   const SizedBox(width: 4),
                   Text(
                     '${PriceFormatter.formatPriceInteger(post.budgetMin)} - ${PriceFormatter.formatPriceInteger(post.budgetMax)}/month',
@@ -336,11 +351,16 @@ class _PostCard extends StatelessWidget {
               // Date
               Row(
                 children: [
-                  const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                  Icon(Icons.access_time,
+                      size: 16,
+                      color: Theme.of(context)
+                          .iconTheme
+                          .color
+                          ?.withValues(alpha: 0.6)),
                   const SizedBox(width: 4),
                   Text(
                     'Created: ${post.formattedDate}',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),

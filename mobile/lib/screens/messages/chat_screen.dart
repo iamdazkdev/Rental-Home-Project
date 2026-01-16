@@ -297,19 +297,20 @@ class _ChatScreenState extends State<ChatScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.chat_bubble_outline,
-                                size: 64, color: Colors.grey.shade400),
+                                size: 64,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.3)),
                             const SizedBox(height: 16),
                             Text(
                               'No messages yet',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey.shade600,
-                              ),
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Start the conversation!',
-                              style: TextStyle(color: Colors.grey.shade500),
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
                         ),
@@ -330,10 +331,10 @@ class _ChatScreenState extends State<ChatScreen> {
           // Message input
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).scaffoldBackgroundColor,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.shade300,
+                  color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
                   blurRadius: 4,
                   offset: const Offset(0, -2),
                 ),
@@ -353,7 +354,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: Colors.grey.shade100,
+                        fillColor: Theme.of(context).colorScheme.surface,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 12,
@@ -366,8 +367,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.blue,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
@@ -403,7 +404,9 @@ class _ChatScreenState extends State<ChatScreen> {
           maxWidth: MediaQuery.of(context).size.width * 0.7,
         ),
         decoration: BoxDecoration(
-          color: isMe ? Colors.blue : Colors.grey.shade200,
+          color: isMe
+              ? Theme.of(context).primaryColor
+              : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -417,7 +420,9 @@ class _ChatScreenState extends State<ChatScreen> {
             Text(
               message.text,
               style: TextStyle(
-                color: isMe ? Colors.white : Colors.black87,
+                color: isMe
+                    ? Colors.white
+                    : Theme.of(context).textTheme.bodyLarge?.color,
                 fontSize: 15,
               ),
             ),
@@ -425,7 +430,9 @@ class _ChatScreenState extends State<ChatScreen> {
             Text(
               message.formattedTime,
               style: TextStyle(
-                color: isMe ? Colors.white70 : Colors.grey.shade600,
+                color: isMe
+                    ? Colors.white.withValues(alpha: 0.7)
+                    : Theme.of(context).textTheme.bodySmall?.color,
                 fontSize: 11,
               ),
             ),

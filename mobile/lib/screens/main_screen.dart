@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../config/app_theme.dart';
-import 'home/home_screen.dart';
+
 import 'explore/explore_screen.dart';
-import 'trips/trips_screen.dart';
+import 'home/home_screen.dart';
 import 'messages/messages_screen.dart';
 import 'profile/profile_screen.dart';
+import 'trips/trips_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -38,8 +38,10 @@ class _MainScreenState extends State<MainScreen> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: AppTheme.textSecondaryColor,
+        selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Theme.of(context).textTheme.bodySmall?.color,
+        backgroundColor:
+            Theme.of(context).bottomNavigationBarTheme.backgroundColor,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
@@ -71,4 +73,3 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
-

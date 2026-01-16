@@ -3,7 +3,6 @@ import 'package:carousel_slider/carousel_slider.dart' as carousel;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../config/app_theme.dart';
 import '../../models/conversation.dart';
 import '../../models/listing.dart';
 import '../../models/review.dart';
@@ -90,9 +89,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         minChildSize: 0.5,
         maxChildSize: 0.95,
         builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: SingleChildScrollView(
             controller: scrollController,
@@ -148,14 +147,21 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         fit: BoxFit.cover,
                         width: double.infinity,
                         placeholder: (context, url) => Container(
-                          color: AppTheme.backgroundColor,
+                          color: Theme.of(context).colorScheme.surface,
                           child: const Center(
                             child: CircularProgressIndicator(),
                           ),
                         ),
                         errorWidget: (context, url, error) => Container(
-                          color: AppTheme.backgroundColor,
-                          child: const Icon(Icons.home_work_outlined, size: 60),
+                          color: Theme.of(context).colorScheme.surface,
+                          child: Icon(
+                            Icons.home_work_outlined,
+                            size: 60,
+                            color: Theme.of(context)
+                                .iconTheme
+                                .color
+                                ?.withValues(alpha: 0.3),
+                          ),
                         ),
                       );
                     }).toList(),
@@ -176,8 +182,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: _currentImageIndex == entry.key
-                                ? Colors.white
-                                : Colors.white.withValues(alpha: 0.4),
+                                ? Theme.of(context).primaryColor
+                                : Theme.of(context)
+                                    .primaryColor
+                                    .withValues(alpha: 0.3),
                           ),
                         );
                       }).toList(),
@@ -224,7 +232,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                                 .textTheme
                                 .headlineMedium
                                 ?.copyWith(
-                                  color: AppTheme.primaryColor,
+                                  color: Theme.of(context).primaryColor,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -285,7 +293,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     Text(
                       _listing!.highlight,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppTheme.primaryColor,
+                            color: Theme.of(context).primaryColor,
                           ),
                     ),
                     const SizedBox(height: 4),
@@ -336,9 +344,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: AppTheme.backgroundColor,
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppTheme.borderColor),
+                          border:
+                              Border.all(color: Theme.of(context).dividerColor),
                         ),
                         child: Row(
                           children: [
@@ -376,10 +385,11 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
+                      color:
+                          Theme.of(context).shadowColor.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, -2),
                     ),
@@ -446,8 +456,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         label: const Text('Contact Host'),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: BorderSide(color: AppTheme.primaryColor),
-                          foregroundColor: AppTheme.primaryColor,
+                          side:
+                              BorderSide(color: Theme.of(context).primaryColor),
+                          foregroundColor: Theme.of(context).primaryColor,
                         ),
                       ),
                     ),
@@ -475,7 +486,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   Widget _buildStatItem(IconData icon, String label) {
     return Column(
       children: [
-        Icon(icon, size: 28, color: AppTheme.primaryColor),
+        Icon(icon, size: 28, color: Theme.of(context).primaryColor),
         const SizedBox(height: 4),
         Text(
           label,
@@ -500,16 +511,16 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.backgroundColor,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderColor),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Row(
           children: [
             // Host Avatar
             CircleAvatar(
               radius: 30,
-              backgroundColor: AppTheme.primaryColor,
+              backgroundColor: Theme.of(context).primaryColor,
               backgroundImage: _listing!.hostProfileImage != null
                   ? CachedNetworkImageProvider(_listing!.hostProfileImage!)
                   : null,
@@ -538,16 +549,14 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   const SizedBox(height: 4),
                   Text(
                     '${_listing!.type} • ${_listing!.city}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textSecondaryColor,
-                        ),
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
             ),
             Icon(
               Icons.chevron_right,
-              color: AppTheme.textSecondaryColor,
+              color: Theme.of(context).iconTheme.color,
             ),
           ],
         ),
@@ -565,27 +574,27 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppTheme.backgroundColor,
-            Colors.white,
+            Theme.of(context).colorScheme.surface,
+            Theme.of(context).scaffoldBackgroundColor,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderColor, width: 2),
+        border: Border.all(color: Theme.of(context).dividerColor, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.person_outline, color: AppTheme.primaryColor),
+              Icon(Icons.person_outline, color: Theme.of(context).primaryColor),
               const SizedBox(width: 8),
               Text(
                 'About Your Host',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryColor,
+                      color: Theme.of(context).primaryColor,
                     ),
               ),
             ],
@@ -599,12 +608,13 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppTheme.primaryColor.withValues(alpha: 0.1),
-                    Colors.white,
+                    Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                    Theme.of(context).scaffoldBackgroundColor,
                   ],
                 ),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.primaryColor, width: 2),
+                border:
+                    Border.all(color: Theme.of(context).primaryColor, width: 2),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -612,14 +622,14 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   Row(
                     children: [
                       Icon(Icons.edit_note,
-                          color: AppTheme.primaryColor, size: 20),
+                          color: Theme.of(context).primaryColor, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'About Me',
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryColor,
+                                  color: Theme.of(context).primaryColor,
                                 ),
                       ),
                     ],
@@ -629,7 +639,6 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     hostBio,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           height: 1.6,
-                          color: AppTheme.textPrimaryColor,
                         ),
                   ),
                 ],
@@ -704,9 +713,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderColor),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -721,7 +730,6 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 child: Text(
                   label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppTheme.textSecondaryColor,
                         fontWeight: FontWeight.w600,
                         fontSize: 11,
                       ),
@@ -735,7 +743,6 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
           Text(
             value,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textPrimaryColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -752,9 +759,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -762,7 +769,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
           Text(
             title,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: AppTheme.primaryColor,
+                  color: Theme.of(context).primaryColor,
                   fontWeight: FontWeight.bold,
                 ),
           ),
@@ -770,7 +777,6 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
           Text(
             content,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.textSecondaryColor,
                   height: 1.5,
                 ),
           ),
@@ -878,10 +884,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         const SizedBox(width: 8),
                         Text(
                           '${_listingReviews.length} review${_listingReviews.length != 1 ? 's' : ''}',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: AppTheme.textSecondaryColor,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
@@ -907,9 +910,11 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 icon: const Icon(Icons.rate_review, size: 18),
                 label: const Text('View All Reviews'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.primaryColor,
+                  foregroundColor: Theme.of(context).primaryColor,
                   side: BorderSide(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+                      color: Theme.of(context)
+                          .primaryColor
+                          .withValues(alpha: 0.3)),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),

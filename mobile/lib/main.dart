@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
-import 'config/app_theme.dart';
+import 'config/app_themes.dart';
 import 'data/repositories/booking_repository.dart';
 import 'data/repositories/message_repository.dart';
 import 'firebase_options.dart';
@@ -19,6 +19,7 @@ import 'presentation/booking/screens/payment_callback_screen.dart';
 import 'presentation/chat/cubit/chat_cubit.dart';
 import 'providers/auth_provider.dart';
 import 'providers/notification_provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/bookings/extend_stay_screen.dart';
@@ -128,6 +129,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(
             create: (_) => NotificationProvider()..initialize()),
@@ -149,107 +151,114 @@ class _MyAppState extends State<MyApp> {
           dispose: (context, cubit) => cubit.close(),
         ),
       ],
-      child: MaterialApp(
-        navigatorKey: _navigatorKey,
-        title: 'Rental Home',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        home: const SplashScreen(),
-        routes: {
-          '/login': (context) => const LoginScreen(),
-          '/register': (context) => const RegisterScreen(),
-          '/home': (context) => const MainScreen(),
-          '/trips': (context) => const TripsScreen(),
-          '/conversations': (context) => const ConversationsScreen(),
-        },
-        onGenerateRoute: (settings) {
-          // Handle dynamic routes with arguments
-          switch (settings.name) {
-            case '/booking-review':
-              final args = settings.arguments as Map<String, dynamic>;
-              return MaterialPageRoute(
-                builder: (_) => BookingReviewScreen(
-                  listing: args['listing'],
-                  checkIn: args['checkIn'],
-                  checkOut: args['checkOut'],
-                  nights: args['nights'],
-                  totalPrice: args['totalPrice'],
-                ),
-              );
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            navigatorKey: _navigatorKey,
+            title: 'Rental Home',
+            debugShowCheckedModeBanner: false,
+            theme: AppThemes.lightTheme,
+            darkTheme: AppThemes.darkTheme,
+            themeMode: themeProvider.themeMode,
+            home: const SplashScreen(),
+            routes: {
+              '/login': (context) => const LoginScreen(),
+              '/register': (context) => const RegisterScreen(),
+              '/home': (context) => const MainScreen(),
+              '/trips': (context) => const TripsScreen(),
+              '/conversations': (context) => const ConversationsScreen(),
+            },
+            onGenerateRoute: (settings) {
+              // Handle dynamic routes with arguments
+              switch (settings.name) {
+                case '/booking-review':
+                  final args = settings.arguments as Map<String, dynamic>;
+                  return MaterialPageRoute(
+                    builder: (_) => BookingReviewScreen(
+                      listing: args['listing'],
+                      checkIn: args['checkIn'],
+                      checkOut: args['checkOut'],
+                      nights: args['nights'],
+                      totalPrice: args['totalPrice'],
+                    ),
+                  );
 
-            case '/payment-callback':
-              final queryParams = settings.arguments as Map<String, String>;
-              return MaterialPageRoute(
-                builder: (_) => PaymentCallbackScreen(
-                  queryParams: queryParams,
-                ),
-              );
+                case '/payment-callback':
+                  final queryParams = settings.arguments as Map<String, String>;
+                  return MaterialPageRoute(
+                    builder: (_) => PaymentCallbackScreen(
+                      queryParams: queryParams,
+                    ),
+                  );
 
-            case '/booking-confirmation':
-              final booking = settings.arguments as BookingModel;
-              return MaterialPageRoute(
-                builder: (_) => BookingConfirmationScreen(
-                  booking: booking,
-                ),
-              );
+                case '/booking-confirmation':
+                  final booking = settings.arguments as BookingModel;
+                  return MaterialPageRoute(
+                    builder: (_) => BookingConfirmationScreen(
+                      booking: booking,
+                    ),
+                  );
 
-            case '/identity-verification':
-              final args = settings.arguments as Map<String, dynamic>?;
-              return MaterialPageRoute(
-                builder: (_) => IdentityVerificationScreen(
-                  isRequired: args?['isRequired'] ?? false,
-                  onVerificationComplete: args?['onComplete'],
-                ),
-              );
+                case '/identity-verification':
+                  final args = settings.arguments as Map<String, dynamic>?;
+                  return MaterialPageRoute(
+                    builder: (_) => IdentityVerificationScreen(
+                      isRequired: args?['isRequired'] ?? false,
+                      onVerificationComplete: args?['onComplete'],
+                    ),
+                  );
 
-            case '/payment-reminder':
-              final bookingId = settings.arguments as String;
-              return MaterialPageRoute(
-                builder: (_) => PaymentReminderScreen(
-                  bookingId: bookingId,
-                ),
-              );
+                case '/payment-reminder':
+                  final bookingId = settings.arguments as String;
+                  return MaterialPageRoute(
+                    builder: (_) => PaymentReminderScreen(
+                      bookingId: bookingId,
+                    ),
+                  );
 
-            case '/extend-stay':
-              final booking = settings.arguments as BookingModel;
-              return MaterialPageRoute(
-                builder: (_) => ExtendStayScreen(
-                  booking: booking,
-                ),
-              );
+                case '/extend-stay':
+                  final booking = settings.arguments as BookingModel;
+                  return MaterialPageRoute(
+                    builder: (_) => ExtendStayScreen(
+                      booking: booking,
+                    ),
+                  );
 
-            case '/submit-review':
-              final args = settings.arguments as Map<String, dynamic>;
-              return MaterialPageRoute(
-                builder: (_) => SubmitReviewScreen(
-                  booking: args['booking'] as BookingModel,
-                  onReviewSubmitted: args['onReviewSubmitted'] as VoidCallback?,
-                ),
-              );
+                case '/submit-review':
+                  final args = settings.arguments as Map<String, dynamic>;
+                  return MaterialPageRoute(
+                    builder: (_) => SubmitReviewScreen(
+                      booking: args['booking'] as BookingModel,
+                      onReviewSubmitted:
+                          args['onReviewSubmitted'] as VoidCallback?,
+                    ),
+                  );
 
-            case '/reviews-list':
-              final listingId = settings.arguments as String;
-              return MaterialPageRoute(
-                builder: (_) => ReviewsListScreen(
-                  listingId: listingId,
-                ),
-              );
+                case '/reviews-list':
+                  final listingId = settings.arguments as String;
+                  return MaterialPageRoute(
+                    builder: (_) => ReviewsListScreen(
+                      listingId: listingId,
+                    ),
+                  );
 
-            case '/chat':
-              final args = settings.arguments as Map<String, dynamic>;
-              return MaterialPageRoute(
-                builder: (_) => ChatScreen(
-                  conversationId: args['conversationId'],
-                  otherUserId: args['otherUserId'],
-                  otherUserName: args['otherUserName'],
-                  otherUserAvatar: args['otherUserAvatar'],
-                  listingId: args['listingId'],
-                ),
-              );
+                case '/chat':
+                  final args = settings.arguments as Map<String, dynamic>;
+                  return MaterialPageRoute(
+                    builder: (_) => ChatScreen(
+                      conversationId: args['conversationId'],
+                      otherUserId: args['otherUserId'],
+                      otherUserName: args['otherUserName'],
+                      otherUserAvatar: args['otherUserAvatar'],
+                      listingId: args['listingId'],
+                    ),
+                  );
 
-            default:
-              return null;
-          }
+                default:
+                  return null;
+              }
+            },
+          );
         },
       ),
     );

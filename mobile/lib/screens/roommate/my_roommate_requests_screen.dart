@@ -162,7 +162,10 @@ class _MyRoommateRequestsScreenState extends State<MyRoommateRequestsScreen>
             Icon(
               isReceived ? Icons.inbox : Icons.send,
               size: 80,
-              color: Colors.grey[400],
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -174,7 +177,7 @@ class _MyRoommateRequestsScreenState extends State<MyRoommateRequestsScreen>
               isReceived
                   ? 'Requests from other users will appear here'
                   : 'Your requests to other users will appear here',
-              style: TextStyle(color: Colors.grey[600]),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
@@ -256,7 +259,7 @@ class _RequestCard extends StatelessWidget {
                       ),
                       Text(
                         request.formattedDate,
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
@@ -272,12 +275,17 @@ class _RequestCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.article, size: 20, color: Colors.grey),
+                    Icon(Icons.article,
+                        size: 20,
+                        color: Theme.of(context)
+                            .iconTheme
+                            .color
+                            ?.withValues(alpha: 0.6)),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -302,7 +310,7 @@ class _RequestCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 request.message,
-                style: TextStyle(color: Colors.grey[700]),
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 12),
             ],

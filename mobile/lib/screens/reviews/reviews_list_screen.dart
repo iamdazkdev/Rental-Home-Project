@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../config/app_theme.dart';
 import '../../models/review.dart';
 import '../../services/review_service.dart';
 
@@ -240,23 +239,23 @@ class _ReviewsListScreenState extends State<ReviewsListScreen> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.star,
-                    color: AppTheme.primaryColor,
+                    color: Theme.of(context).primaryColor,
                     size: 28,
                   ),
                   Text(
                     _averageRating.toStringAsFixed(1),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryColor,
+                      color: Theme.of(context).primaryColor,
                     ),
                   ),
                 ],
@@ -316,7 +315,7 @@ class _ReviewsListScreenState extends State<ReviewsListScreen> {
                   backgroundImage: review.reviewerProfileImage != null
                       ? CachedNetworkImageProvider(review.reviewerProfileImage!)
                       : null,
-                  backgroundColor: AppTheme.primaryColor,
+                  backgroundColor: Theme.of(context).primaryColor,
                   child: review.reviewerProfileImage == null
                       ? Text(
                           review.reviewerName[0].toUpperCase(),

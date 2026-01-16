@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
+
 import '../../models/listing.dart';
-import '../../config/app_theme.dart';
 import '../../utils/date_formatter.dart';
 import '../../utils/price_formatter.dart';
 import '../checkout/booking_checkout_screen.dart';
@@ -73,7 +73,8 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
   void _proceedToCheckout() {
     if (_startDate == null || _endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select check-in and check-out dates')),
+        const SnackBar(
+            content: Text('Please select check-in and check-out dates')),
       );
       return;
     }
@@ -124,11 +125,13 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
                     Row(
                       children: [
                         Text(
-                          PriceFormatter.formatPriceInteger(widget.listing.price),
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          PriceFormatter.formatPriceInteger(
+                              widget.listing.price),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: Theme.of(context).primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         Text(
                           ' / ${widget.listing.priceType ?? 'night'}',
@@ -154,12 +157,13 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppTheme.borderColor),
+                  border: Border.all(color: Theme.of(context).dividerColor),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today, color: AppTheme.primaryColor),
+                    Icon(Icons.calendar_today,
+                        color: Theme.of(context).primaryColor),
                     const SizedBox(width: 12),
                     Text(
                       _startDate != null
@@ -185,12 +189,13 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppTheme.borderColor),
+                  border: Border.all(color: Theme.of(context).dividerColor),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today, color: AppTheme.primaryColor),
+                    Icon(Icons.calendar_today,
+                        color: Theme.of(context).primaryColor),
                     const SizedBox(width: 12),
                     Text(
                       _endDate != null
@@ -240,7 +245,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
                   Text(
                     PriceFormatter.formatPriceInteger(_totalPrice),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppTheme.primaryColor,
+                          color: Theme.of(context).primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                   ),
@@ -253,9 +258,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
             ElevatedButton(
               onPressed: _numberOfNights > 0 ? _proceedToCheckout : null,
               child: Text(
-                _numberOfNights > 0
-                    ? 'Proceed to Checkout'
-                    : 'Select Dates',
+                _numberOfNights > 0 ? 'Proceed to Checkout' : 'Select Dates',
               ),
             ),
 
@@ -265,7 +268,7 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.backgroundColor,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -280,4 +283,3 @@ class _CreateBookingScreenState extends State<CreateBookingScreen> {
     );
   }
 }
-

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../config/app_theme.dart';
-import '../search/search_screen.dart';
+
 import '../room_rental/room_rental_search_screen.dart';
 import '../roommate/roommate_search_screen.dart';
+import '../search/search_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -11,7 +11,8 @@ class ExploreScreen extends StatefulWidget {
   State<ExploreScreen> createState() => _ExploreScreenState();
 }
 
-class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProviderStateMixin {
+class _ExploreScreenState extends State<ExploreScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -33,9 +34,9 @@ class _ExploreScreenState extends State<ExploreScreen> with SingleTickerProvider
         title: const Text('Explore'),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: AppTheme.primaryColor,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: AppTheme.primaryColor,
+          labelColor: Theme.of(context).primaryColor,
+          unselectedLabelColor: Theme.of(context).textTheme.bodySmall?.color,
+          indicatorColor: Theme.of(context).primaryColor,
           tabs: const [
             Tab(
               icon: Icon(Icons.home_outlined),

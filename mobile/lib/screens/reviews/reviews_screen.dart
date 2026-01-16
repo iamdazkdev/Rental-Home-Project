@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:intl/intl.dart';
 
 import '../../models/review.dart';
 import '../../services/review_service.dart';
@@ -103,10 +104,13 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Theme.of(context)
+                              .shadowColor
+                              .withValues(alpha: 0.1),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -140,10 +144,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                                 const SizedBox(height: 4),
                                 Text(
                                   '$_totalReviews ${_totalReviews == 1 ? 'review' : 'reviews'}',
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 14,
-                                  ),
+                                  style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                               ],
                             ),
@@ -156,13 +157,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   // Reviews List
                   Expanded(
                     child: _reviews.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Text(
                               'No reviews yet',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                              ),
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
                           )
                         : ListView.builder(
@@ -227,11 +225,8 @@ class _ReviewCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        review.formattedDate,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
+                        DateFormat('dd/MM/yyyy').format(review.createdAt),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),

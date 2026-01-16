@@ -154,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            const Icon(Icons.home_rounded, color: AppTheme.primaryColor),
+            Icon(Icons.home_rounded, color: Theme.of(context).primaryColor),
             const SizedBox(width: 8),
             Text(
               'Rental Home',
@@ -171,7 +171,10 @@ class _HomeScreenState extends State<HomeScreen> {
               return Stack(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.notifications_outlined),
+                    icon: Icon(
+                      Icons.notifications_outlined,
+                      color: Theme.of(context).iconTheme.color,
+                    ),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -188,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: Colors.red,
+                          color: Theme.of(context).primaryColor,
                           shape: BoxShape.circle,
                         ),
                         constraints: const BoxConstraints(
@@ -226,6 +229,15 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             height: 60,
             padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).dividerColor,
+                  width: 1,
+                ),
+              ),
+            ),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -245,29 +257,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       });
                       _loadListings();
                     },
-                    backgroundColor: AppTheme.backgroundColor,
-                    selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    selectedColor:
+                        Theme.of(context).primaryColor.withValues(alpha: 0.2),
                     labelStyle: TextStyle(
                       color: isSelected
-                          ? AppTheme.primaryColor
-                          : AppTheme.textSecondaryColor,
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).textTheme.bodyMedium?.color,
                       fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                    side: BorderSide(
+                      color: isSelected
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).dividerColor,
                     ),
                   ),
                 );
               },
             ),
           ),
+
           // Property Types Filter
           Container(
             height: 60,
             padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: Theme.of(context).colorScheme.surface,
               border: Border(
-                top: BorderSide(color: AppTheme.borderColor, width: 1),
-                bottom: BorderSide(color: AppTheme.borderColor, width: 1),
+                top:
+                    BorderSide(color: Theme.of(context).dividerColor, width: 1),
+                bottom:
+                    BorderSide(color: Theme.of(context).dividerColor, width: 1),
               ),
             ),
             child: ListView(
@@ -286,13 +307,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       });
                       _loadListings();
                     },
-                    backgroundColor: Colors.white,
-                    selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-                    checkmarkColor: AppTheme.primaryColor,
+                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    selectedColor:
+                        Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                    checkmarkColor: Theme.of(context).primaryColor,
                     labelStyle: TextStyle(
                       color: _selectedType == null
-                          ? AppTheme.primaryColor
-                          : AppTheme.textSecondaryColor,
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).textTheme.bodyMedium?.color,
                       fontWeight: _selectedType == null
                           ? FontWeight.w600
                           : FontWeight.normal,
@@ -300,8 +322,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     side: BorderSide(
                       color: _selectedType == null
-                          ? AppTheme.primaryColor
-                          : AppTheme.borderColor,
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).dividerColor,
                     ),
                   ),
                 ),
@@ -319,29 +341,30 @@ class _HomeScreenState extends State<HomeScreen> {
                         });
                         _loadListings();
                       },
-                      backgroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
                       selectedColor:
-                          AppTheme.primaryColor.withValues(alpha: 0.2),
-                      checkmarkColor: AppTheme.primaryColor,
+                          Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                      checkmarkColor: Theme.of(context).primaryColor,
                       labelStyle: TextStyle(
                         color: isSelected
-                            ? AppTheme.primaryColor
-                            : AppTheme.textSecondaryColor,
+                            ? Theme.of(context).primaryColor
+                            : Theme.of(context).textTheme.bodyMedium?.color,
                         fontWeight:
                             isSelected ? FontWeight.w600 : FontWeight.normal,
                         fontSize: 13,
                       ),
                       side: BorderSide(
                         color: isSelected
-                            ? AppTheme.primaryColor
-                            : AppTheme.borderColor,
+                            ? Theme.of(context).primaryColor
+                            : Theme.of(context).dividerColor,
                       ),
                     ),
                   );
-                }),
+                }).toList(),
               ],
             ),
           ),
+
           // Listings or Roommate Posts
           Expanded(
             child: _isLoading
@@ -362,10 +385,13 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.home_work_outlined,
               size: 80,
-              color: AppTheme.textLightColor,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -376,9 +402,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 8),
               Text(
                 'Try changing the property type filter',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textSecondaryColor,
-                    ),
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ],
@@ -412,10 +436,13 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.people_outline,
               size: 80,
-              color: AppTheme.textLightColor,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -425,9 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 8),
             Text(
               'Be the first to create a roommate post!',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textSecondaryColor,
-                  ),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
@@ -532,8 +557,8 @@ class _ListingCardState extends State<_ListingCard> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderColor),
-          color: AppTheme.surfaceColor,
+          border: Border.all(color: Theme.of(context).dividerColor),
+          color: Theme.of(context).cardColor,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -553,16 +578,29 @@ class _ListingCardState extends State<_ListingCard> {
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
                               height: 120,
-                              color: AppTheme.backgroundColor,
-                              child: const Icon(Icons.home_work_outlined,
-                                  size: 40),
+                              color: Theme.of(context).colorScheme.surface,
+                              child: Icon(
+                                Icons.home_work_outlined,
+                                size: 40,
+                                color: Theme.of(context)
+                                    .iconTheme
+                                    .color
+                                    ?.withValues(alpha: 0.3),
+                              ),
                             );
                           },
                         )
                       : Container(
                           height: 120,
-                          color: AppTheme.backgroundColor,
-                          child: const Icon(Icons.home_work_outlined, size: 40),
+                          color: Theme.of(context).colorScheme.surface,
+                          child: Icon(
+                            Icons.home_work_outlined,
+                            size: 40,
+                            color: Theme.of(context)
+                                .iconTheme
+                                .color
+                                ?.withValues(alpha: 0.3),
+                          ),
                         ),
                   // Wishlist button
                   Positioned(
@@ -573,8 +611,17 @@ class _ListingCardState extends State<_ListingCard> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.9),
+                          color: Theme.of(context)
+                              .cardColor
+                              .withValues(alpha: 0.9),
                           shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: _isToggling
                             ? const SizedBox(
@@ -588,8 +635,8 @@ class _ListingCardState extends State<_ListingCard> {
                                     ? Icons.favorite
                                     : Icons.favorite_border,
                                 color: _isInWishlist
-                                    ? Colors.red
-                                    : Colors.grey.shade700,
+                                    ? Theme.of(context).primaryColor
+                                    : Theme.of(context).iconTheme.color,
                                 size: 20,
                               ),
                       ),
@@ -686,8 +733,8 @@ class _RoommatePostCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderColor),
-          color: AppTheme.surfaceColor,
+          border: Border.all(color: Theme.of(context).dividerColor),
+          color: Theme.of(context).cardColor,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -698,21 +745,21 @@ class _RoommatePostCard extends StatelessWidget {
                   const BorderRadius.vertical(top: Radius.circular(12)),
               child: Builder(
                 builder: (context) {
-                  // Debug log
-                  debugPrint(
-                      '🖼️ RoommatePostCard: post.id=${post.id}, photos count=${post.photos.length}');
-                  if (post.photos.isNotEmpty) {
-                    debugPrint(
-                        '🖼️ RoommatePostCard: first photo URL=${post.photos.first}');
-                  }
+                  // ...existing code...
 
                   if (post.photos.isEmpty) {
                     return Container(
                       height: 120,
-                      color: AppTheme.backgroundColor,
-                      child: const Center(
-                        child: Icon(Icons.people_outline,
-                            size: 40, color: AppTheme.textLightColor),
+                      color: Theme.of(context).colorScheme.surface,
+                      child: Center(
+                        child: Icon(
+                          Icons.people_outline,
+                          size: 40,
+                          color: Theme.of(context)
+                              .iconTheme
+                              .color
+                              ?.withValues(alpha: 0.3),
+                        ),
                       ),
                     );
                   }
@@ -726,7 +773,7 @@ class _RoommatePostCard extends StatelessWidget {
                       if (loadingProgress == null) return child;
                       return Container(
                         height: 120,
-                        color: AppTheme.backgroundColor,
+                        color: Theme.of(context).colorScheme.surface,
                         child: const Center(
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
@@ -736,10 +783,16 @@ class _RoommatePostCard extends StatelessWidget {
                       debugPrint('❌ Failed to load roommate photo: $error');
                       return Container(
                         height: 120,
-                        color: AppTheme.backgroundColor,
-                        child: const Center(
-                          child: Icon(Icons.broken_image,
-                              size: 40, color: AppTheme.textLightColor),
+                        color: Theme.of(context).colorScheme.surface,
+                        child: Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 40,
+                            color: Theme.of(context)
+                                .iconTheme
+                                .color
+                                ?.withValues(alpha: 0.3),
+                          ),
                         ),
                       );
                     },
@@ -761,16 +814,21 @@ class _RoommatePostCard extends StatelessWidget {
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: post.postType == RoommatePostType.provider
-                            ? AppTheme.primaryColor.withValues(alpha: 0.1)
-                            : AppTheme.accentColor.withValues(alpha: 0.1),
+                            ? Theme.of(context)
+                                .primaryColor
+                                .withValues(alpha: 0.1)
+                            : Theme.of(context)
+                                .colorScheme
+                                .secondary
+                                .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         _getPostTypeLabel(),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: post.postType == RoommatePostType.provider
-                                  ? AppTheme.primaryColor
-                                  : AppTheme.accentColor,
+                                  ? Theme.of(context).primaryColor
+                                  : Theme.of(context).colorScheme.secondary,
                               fontWeight: FontWeight.w600,
                             ),
                       ),
@@ -794,7 +852,7 @@ class _RoommatePostCard extends StatelessWidget {
                     Text(
                       '${formatVND(post.budgetMin, showCurrency: false)} - ${formatVND(post.budgetMax, showCurrency: false)} VND',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppTheme.primaryColor,
+                            color: Theme.of(context).primaryColor,
                             fontWeight: FontWeight.bold,
                           ),
                       maxLines: 1,

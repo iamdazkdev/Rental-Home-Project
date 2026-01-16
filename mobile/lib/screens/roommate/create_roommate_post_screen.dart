@@ -216,7 +216,7 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.verified_user, size: 80, color: Colors.grey),
+                const Icon(Icons.verified_user, size: 80, color: Colors.green),
                 const SizedBox(height: 16),
                 const Text(
                   'Verification Required',
@@ -520,12 +520,15 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isSelected ? AppTheme.primaryColor : Colors.grey[300]!,
+            color: isSelected
+                ? Theme.of(context).primaryColor
+                : Theme.of(context).dividerColor,
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(12),
-          color:
-              isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : null,
+          color: isSelected
+              ? Theme.of(context).primaryColor.withValues(alpha: 0.05)
+              : Theme.of(context).colorScheme.surface,
         ),
         child: Column(
           children: [
@@ -533,7 +536,7 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
           ],

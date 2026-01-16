@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../config/app_theme.dart';
 import '../../models/booking.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/review_service.dart';
@@ -157,7 +156,7 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
             ElevatedButton(
               onPressed: _isSubmitting ? null : _submitReview,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
+                backgroundColor: Theme.of(context).primaryColor,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -226,8 +225,8 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
                 const SizedBox(width: 8),
                 Text(
                   formatPrice(widget.booking.totalPrice),
-                  style: const TextStyle(
-                    color: AppTheme.primaryColor,
+                  style: TextStyle(
+                    color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -254,7 +253,7 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
         // Section Title
         Row(
           children: [
-            Icon(icon, color: AppTheme.primaryColor),
+            Icon(icon, color: Theme.of(context).primaryColor),
             const SizedBox(width: 8),
             Text(
               title,
@@ -291,7 +290,7 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
             _getRatingText(rating),
             style: TextStyle(
               fontSize: 16,
-              color: AppTheme.primaryColor,
+              color: Theme.of(context).primaryColor,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -311,7 +310,7 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.primaryColor),
+              borderSide: BorderSide(color: Theme.of(context).primaryColor),
             ),
           ),
         ),

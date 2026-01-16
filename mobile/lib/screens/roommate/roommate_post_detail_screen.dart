@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../config/app_theme.dart';
 import '../../models/roommate.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/roommate_service.dart';
@@ -89,7 +88,7 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
       builder: (context) => AlertDialog(
         title: const Row(
           children: [
-            Icon(Icons.check_circle, color: AppTheme.successColor),
+            Icon(Icons.check_circle, color: Colors.green),
             SizedBox(width: 12),
             Text('Request Sent!'),
           ],
@@ -219,10 +218,10 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
                       Expanded(
                         child: Text(
                           '${PriceFormatter.formatPriceInteger(_post!.budgetMin)} - ${PriceFormatter.formatPriceInteger(_post!.budgetMax)}/month',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryColor,
+                            color: Theme.of(context).primaryColor,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -336,7 +335,7 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
 
     switch (_post!.status) {
       case RoommatePostStatus.active:
-        color = AppTheme.successColor;
+        color = Colors.green;
         text = 'Active';
         break;
       case RoommatePostStatus.matched:
@@ -387,13 +386,15 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: Colors.grey[700]),
+          Icon(icon,
+              size: 16,
+              color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.7)),
           const SizedBox(width: 6),
           Text(label),
         ],
@@ -409,7 +410,7 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
@@ -465,10 +466,10 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -503,7 +504,7 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
                     : const Icon(Icons.send),
                 label: Text(_isSendingRequest ? 'Sending...' : 'Send Request'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
+                  backgroundColor: Theme.of(context).primaryColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),

@@ -1,9 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import '../../providers/auth_provider.dart';
-import '../../config/app_theme.dart';
+
 import '../../models/listing.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/wishlist_service.dart';
 import '../listings/listing_detail_screen.dart';
 
@@ -80,7 +80,8 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   onRefresh: _loadWishlist,
                   child: GridView.builder(
                     padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       childAspectRatio: 0.75,
                       crossAxisSpacing: 12,
@@ -90,7 +91,8 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     itemBuilder: (context, index) {
                       return _WishlistCard(
                         listing: _wishlistItems[index],
-                        onRemove: () => _removeFromWishlist(_wishlistItems[index].id),
+                        onRemove: () =>
+                            _removeFromWishlist(_wishlistItems[index].id),
                       );
                     },
                   ),
@@ -106,7 +108,8 @@ class _WishlistScreenState extends State<WishlistScreen> {
           Icon(
             Icons.favorite_border,
             size: 80,
-            color: Colors.grey.shade400,
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
@@ -148,15 +151,16 @@ class _WishlistCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.borderColor),
-          color: AppTheme.surfaceColor,
+          border: Border.all(color: Theme.of(context).dividerColor),
+          color: Theme.of(context).cardColor,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image with remove button
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
               child: Stack(
                 children: [
                   listing.mainPhoto != null
@@ -167,19 +171,34 @@ class _WishlistCard extends StatelessWidget {
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
                             height: 120,
-                            color: AppTheme.backgroundColor,
-                            child: const Center(child: CircularProgressIndicator()),
+                            color: Theme.of(context).colorScheme.surface,
+                            child: const Center(
+                                child: CircularProgressIndicator()),
                           ),
                           errorWidget: (context, url, error) => Container(
                             height: 120,
-                            color: AppTheme.backgroundColor,
-                            child: const Icon(Icons.home_work_outlined, size: 40),
+                            color: Theme.of(context).colorScheme.surface,
+                            child: Icon(
+                              Icons.home_work_outlined,
+                              size: 40,
+                              color: Theme.of(context)
+                                  .iconTheme
+                                  .color
+                                  ?.withValues(alpha: 0.3),
+                            ),
                           ),
                         )
                       : Container(
                           height: 120,
-                          color: AppTheme.backgroundColor,
-                          child: const Icon(Icons.home_work_outlined, size: 40),
+                          color: Theme.of(context).colorScheme.surface,
+                          child: Icon(
+                            Icons.home_work_outlined,
+                            size: 40,
+                            color: Theme.of(context)
+                                .iconTheme
+                                .color
+                                ?.withValues(alpha: 0.3),
+                          ),
                         ),
                   // Remove button
                   Positioned(
@@ -190,12 +209,14 @@ class _WishlistCard extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.9),
+                          color: Theme.of(context)
+                              .cardColor
+                              .withValues(alpha: 0.9),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.favorite,
-                          color: Colors.red,
+                          color: Theme.of(context).primaryColor,
                           size: 20,
                         ),
                       ),
@@ -234,10 +255,11 @@ class _WishlistCard extends StatelessWidget {
                       children: [
                         Text(
                           '\$${listing.price.toStringAsFixed(0)}',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: Theme.of(context).primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                         ),
                         Text(
                           '/${listing.priceType ?? 'night'}',
@@ -255,4 +277,3 @@ class _WishlistCard extends StatelessWidget {
     );
   }
 }
-
