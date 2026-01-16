@@ -12,7 +12,7 @@ class FCMService {
 
     /**
      * Initialize Firebase Admin SDK
-     * Call this once when server starts
+     * Supports both service account JSON file and environment variables
      */
     initialize(serviceAccount) {
         try {
@@ -21,12 +21,42 @@ class FCMService {
                 return;
             }
 
-            admin.initializeApp({
-                credential: admin.credential.cert(serviceAccount),
-            });
+            // Option 1: Use environment variables (for production/Render)
+            if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
+                logger.info('Initializing FCM with environment variables...');
 
-            this.initialized = true;
-            logger.success('✅ Firebase Admin SDK initialized');
+                admin.initializeApp({
+                    credential: admin.credential.cert({
+                        type: 'service_account',
+                        project_id: process.env.FIREBASE_PROJECT_ID || 'rento-65ec9',
+                        private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+                        client_email: process.env.FIREBASE_CLIENT_EMAIL,
+                    }),
+                });
+
+                this.initialized = true;
+                logger.success('✅ Firebase Admin SDK initialized (env vars)');
+                return;
+            }
+
+            // Option 2: Use service account JSON file (for local development)
+            if (serviceAccount) {
+                logger.info('Initializing FCM with service account JSON...');
+
+                admin.initializeApp({
+                    credential: admin.credential.cert(serviceAccount),
+                });
+
+                this.initialized = true;
+                logger.success('✅ Firebase Admin SDK initialized (JSON file)');
+                return;
+            }
+
+            // No credentials available
+            logger.warn('⚠️ No Firebase credentials found. FCM will not work.');
+            logger.warn('   Set env vars (FIREBASE_PRIVATE_KEY, FIREBASE_CLIENT_EMAIL)');
+            logger.warn('   OR provide service account JSON file');
+
         } catch (error) {
             logger.error('❌ Error initializing Firebase Admin:', error.message);
             throw error;

@@ -4,7 +4,7 @@ class ApiConstants {
   // For Real Device use: Your machine's local IP (e.g., 192.168.1.x)
   // To find your IP: Run `ipconfig getifaddr en0` on macOS or `ipconfig` on Windows
 
-  static const bool isProduction = true; // Set to true for production
+  static const bool isProduction = false; // Set to false for local testing
 
   // Development URLs
   // ignore: unused_field

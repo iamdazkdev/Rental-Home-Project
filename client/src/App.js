@@ -64,10 +64,13 @@ import RoommatePostDetail from "./pages/roommate/RoommatePostDetail";
 import MyRoommateRequests from "./pages/roommate/MyRoommateRequests";
 import MyRoommatePosts from "./pages/roommate/MyRoommatePosts";
 
+// GitHub Pages basename (remove if using custom domain)
+const basename = process.env.NODE_ENV === 'production' ? '/Rental-Home-Project' : '';
+
 function App() {
     return (
         <div>
-            <BrowserRouter>
+            <BrowserRouter basename={basename}>
                 <SocketProvider>
                     <Routes>
                         <Route

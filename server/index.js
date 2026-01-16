@@ -252,10 +252,29 @@ const DB_NAME = process.env.DB_NAME;
 mongoose
     .connect(process.env.MONGO_URL, {dbName: DB_NAME})
     .then(() => {
-        const HOST = process.env.HOST || "0.0.0.0"; // Changed to 0.0.0.0 to accept connections from all network interfaces
+        const HOST = process.env.HOST || "0.0.0.0";
         server.listen(PORT, HOST, () => {
             logger.success(`Server running on http://${HOST}:${PORT}`);
             logger.socket("Socket.io enabled for real-time chat");
+
+            // Initialize FCM (Firebase Cloud Messaging)
+            try {
+                const fcmService = require('./services/fcmService');
+
+                // Try to load service account JSON file (local development)
+                let serviceAccount = null;
+                try {
+                    serviceAccount = require('./config/firebase-service-account.json');
+                    logger.info('Service account JSON file found');
+                } catch (err) {
+                    logger.info('No service account JSON file (will use env vars if available)');
+                }
+
+                fcmService.initialize(serviceAccount);
+            } catch (error) {
+                logger.warn('⚠️ FCM initialization failed:', error.message);
+                logger.warn('   Push notifications will not work');
+            }
 
             // Start payment reminder scheduler
             startPaymentReminderScheduler();
