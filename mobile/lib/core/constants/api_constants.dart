@@ -4,20 +4,21 @@ class ApiConstants {
   // For Real Device use: Your machine's local IP (e.g., 192.168.1.x)
   // To find your IP: Run `ipconfig getifaddr en0` on macOS or `ipconfig` on Windows
 
-  static const bool isProduction = false;
+  static const bool isProduction = true; // Set to true for production
 
   // Development URLs
   // ignore: unused_field
   static const String _devBaseUrl = 'http://10.0.2.2:3001'; // Android Emulator
   static const String _devBaseUrlIOS = 'http://127.0.0.1:3001'; // iOS Simulator
 
-  // ⚠️ UPDATE THIS WITH YOUR MACHINE'S IP ADDRESS
+  // ⚠️ UPDATE THIS WITH YOUR MACHINE'S IP ADDRESS for local testing
   // Run: ipconfig getifaddr en0 (macOS) or ipconfig (Windows)
   static const String _devBaseUrlDevice =
       'http://192.168.1.37:3001'; // Real device
 
-  // Production URL
-  static const String _prodBaseUrl = 'https://api.yourapp.com';
+  // Production URL - Render Server
+  static const String _prodBaseUrl =
+      'https://rental-home-project-qssf.onrender.com';
 
   // Auto-detect platform and return appropriate URL
   static String get baseUrl {

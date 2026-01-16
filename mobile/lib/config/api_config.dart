@@ -1,11 +1,12 @@
-import 'package:rental_home/core/constants/api_constants.dart';
-
 class ApiConfig {
-  // Base URL - Change this based on your platform
+  // Base URL - Production (Render)
+  static String baseUrl = 'https://rental-home-project-qssf.onrender.com';
+
+  // Development URLs (uncomment for local testing):
   // For iOS Simulator: use 'http://localhost:3001'
   // For Android Emulator: use 'http://10.0.2.2:3001'
   // For Physical Device: use your computer's IP, e.g., 'http://192.168.1.100:3001'
-  static String baseUrl = ApiConstants.baseUrl;
+  // static String baseUrl = 'http://192.168.1.37:3001'; // Local development
 
   // API Endpoints
   static const String auth = '/auth';
@@ -40,8 +41,13 @@ class ApiConfig {
 
   static const String properties = '/properties';
 
-  // WebSocket
-  static const String socketUrl = 'http://localhost:3001';
+  // WebSocket - Production (Render)
+  static const String socketUrl =
+      'https://rental-home-project-qssf.onrender.com';
+
+  // Development WebSocket (uncomment for local testing):
+  // static const String socketUrl = 'http://localhost:3001';
+  // static const String socketUrl = 'http://192.168.1.37:3001'; // Your local IP
 
   // Headers
   static Map<String, String> headers({String? token}) {
