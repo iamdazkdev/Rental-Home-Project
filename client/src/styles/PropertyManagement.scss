@@ -269,6 +269,16 @@
             cursor: pointer;
             transition: all 0.3s ease;
 
+            &.btn-calendar {
+              background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+              color: white;
+
+              &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+              }
+            }
+
             &.btn-edit {
               background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
               color: white;

@@ -280,6 +280,14 @@ const PropertyManagement = () => {
                                     {/* Action Buttons */}
                                     <div className="action-buttons">
                                         <button
+                                            className="btn-calendar"
+                                            onClick={() => navigate(`/calendar/${property._id}`)}
+                                            title="Manage calendar"
+                                        >
+                                            📅 Calendar
+                                        </button>
+
+                                        <button
                                             className="btn-edit"
                                             onClick={() => handleEdit(property._id)}
                                             title="Edit property"
