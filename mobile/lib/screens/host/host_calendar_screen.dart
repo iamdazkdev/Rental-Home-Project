@@ -10,10 +10,10 @@ class HostCalendarScreen extends StatefulWidget {
   final String listingTitle;
 
   const HostCalendarScreen({
-    Key? key,
+    super.key,
     required this.listingId,
     required this.listingTitle,
-  }) : super(key: key);
+  });
 
   @override
   State<HostCalendarScreen> createState() => _HostCalendarScreenState();
@@ -304,6 +304,7 @@ class _HostCalendarScreenState extends State<HostCalendarScreen> {
                   );
                   if (picked != null) {
                     setState(() => startDate = picked);
+                    if (!context.mounted) return;
                     Navigator.pop(context);
                     _showBlockDateDialog();
                   }
@@ -323,6 +324,7 @@ class _HostCalendarScreenState extends State<HostCalendarScreen> {
                   );
                   if (picked != null) {
                     setState(() => endDate = picked);
+                    if (!context.mounted) return;
                     Navigator.pop(context);
                     _showBlockDateDialog();
                   }
@@ -398,6 +400,7 @@ class _HostCalendarScreenState extends State<HostCalendarScreen> {
                 );
                 if (picked != null) {
                   setState(() => selectedDate = picked);
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                   _showCustomPriceDialog();
                 }
@@ -452,13 +455,14 @@ class _HostCalendarScreenState extends State<HostCalendarScreen> {
           note: note.isEmpty ? null : note,
         ),
       );
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('✅ Đã chặn ngày thành công')),
       );
 
       _loadCalendarData();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('❌ Lỗi: $e'), backgroundColor: Colors.red),
       );
@@ -468,6 +472,7 @@ class _HostCalendarScreenState extends State<HostCalendarScreen> {
   Future<void> _unblockDate(String blockId) async {
     try {
       await _calendarService.unblockDates(widget.listingId, blockId);
+      if (!mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('✅ Đã bỏ chặn thành công')),
@@ -491,7 +496,7 @@ class _HostCalendarScreenState extends State<HostCalendarScreen> {
           reason: reason.isEmpty ? null : reason,
         ),
       );
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('✅ Đã đặt giá thành công')),
       );
@@ -507,6 +512,7 @@ class _HostCalendarScreenState extends State<HostCalendarScreen> {
   Future<void> _removeCustomPrice(String priceId) async {
     try {
       await _calendarService.removeCustomPrice(widget.listingId, priceId);
+      if (!mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('✅ Đã xóa giá thành công')),
