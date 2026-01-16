@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {useSocket} from '../../context/SocketContext';
-import {CONFIG, HTTP_METHODS} from '../../constants/api';
+import {useSocket} from '../context/SocketContext';
+import {CONFIG, HTTP_METHODS} from '../constants/api';
 import './NotificationDropdown.scss';
 
 const NotificationDropdown = ({user}) => {
