@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../config/app_theme.dart';
 import '../roommate/my_roommate_posts_screen.dart';
 import '../roommate/my_roommate_requests_screen.dart';
 import '../roommate/roommate_search_screen.dart';
@@ -11,7 +10,7 @@ class RoommateHubScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           '👥 Find Roommate',
@@ -98,7 +97,7 @@ class RoommateHubScreen extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: color.withValues(alpha: 0.3),
@@ -135,11 +134,9 @@ class RoommateHubScreen extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),
@@ -172,7 +169,7 @@ class _HubItem extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border(
-            top: BorderSide(color: Colors.grey[200]!),
+            top: BorderSide(color: Theme.of(context).dividerColor),
           ),
         ),
         child: Row(
@@ -180,10 +177,11 @@ class _HubItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: AppTheme.primaryColor, size: 24),
+              child:
+                  Icon(icon, color: Theme.of(context).primaryColor, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -200,17 +198,14 @@ class _HubItem extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
             ),
             Icon(
               Icons.chevron_right,
-              color: Colors.grey[400],
+              color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.4),
             ),
           ],
         ),

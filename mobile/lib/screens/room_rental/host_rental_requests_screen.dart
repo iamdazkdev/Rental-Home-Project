@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../config/app_theme.dart';
 import '../../models/room_rental.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/room_rental_service.dart';
@@ -108,8 +107,8 @@ class _HostRentalRequestsScreenState extends State<HostRentalRequestsScreen> {
         onSelected: (selected) {
           setState(() => _selectedFilter = value);
         },
-        selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-        checkmarkColor: AppTheme.primaryColor,
+        selectedColor: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+        checkmarkColor: Theme.of(context).primaryColor,
       ),
     );
   }
@@ -119,7 +118,12 @@ class _HostRentalRequestsScreenState extends State<HostRentalRequestsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.inbox_outlined, size: 80, color: Colors.grey[400]),
+          Icon(Icons.inbox_outlined,
+              size: 80,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.3)),
           const SizedBox(height: 16),
           const Text(
             'No incoming requests',
@@ -128,7 +132,7 @@ class _HostRentalRequestsScreenState extends State<HostRentalRequestsScreen> {
           const SizedBox(height: 8),
           Text(
             'Rental requests from tenants will appear here',
-            style: TextStyle(color: Colors.grey[600]),
+            style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ),
@@ -323,7 +327,7 @@ class _HostRequestCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: Colors.grey[200],
+                  backgroundColor: Theme.of(context).colorScheme.surface,
                   child: const Icon(Icons.person, size: 24),
                 ),
                 const SizedBox(width: 12),
@@ -351,12 +355,12 @@ class _HostRequestCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   request.message,
-                  style: TextStyle(color: Colors.grey[800]),
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
               const SizedBox(height: 16),

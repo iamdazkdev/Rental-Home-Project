@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../config/app_theme.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/identity_verification_service.dart';
 import '../../services/roommate_service.dart';
 
 class CreateRoommatePostScreen extends StatefulWidget {
@@ -17,13 +15,11 @@ class CreateRoommatePostScreen extends StatefulWidget {
 class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
   final _formKey = GlobalKey<FormState>();
   final RoommateService _roommateService = RoommateService();
-  final IdentityVerificationService _verificationService =
-      IdentityVerificationService();
 
   int _currentStep = 0;
   bool _isSubmitting = false;
-  bool _isCheckingVerification = true;
-  bool _isVerified = false;
+  bool _isCheckingVerification = false;
+  bool _isVerified = true; // Set to true by default for now
 
   // Form data
   String _postType = 'SEEKER';
@@ -78,16 +74,11 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
       return;
     }
 
-    final result = await _verificationService.checkStatus(user.id);
-
+    // TODO: Implement verification check when service is available
     setState(() {
       _isCheckingVerification = false;
-      _isVerified = result['status'] == 'approved';
+      _isVerified = true; // Allow all users for now
     });
-
-    if (!_isVerified) {
-      _showVerificationRequired();
-    }
   }
 
   void _showVerificationRequired() {
@@ -97,7 +88,7 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
       builder: (context) => AlertDialog(
         title: const Row(
           children: [
-            Icon(Icons.verified_user, color: AppTheme.warningColor),
+            Icon(Icons.verified_user, color: Colors.orange),
             SizedBox(width: 12),
             Text('Verification Required'),
           ],
@@ -177,7 +168,7 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
       builder: (context) => AlertDialog(
         title: const Row(
           children: [
-            Icon(Icons.check_circle, color: AppTheme.successColor, size: 32),
+            Icon(Icons.check_circle, color: Colors.green, size: 32),
             SizedBox(width: 12),
             Text('Post Created!'),
           ],

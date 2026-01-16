@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../config/app_theme.dart';
 import '../../data/repositories/review_repository.dart';
 import '../../models/review.dart';
 import '../../presentation/review/cubit/review_cubit.dart';
@@ -56,7 +55,7 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(isEditing ? 'Edit Review' : 'Write a Review'),
-          backgroundColor: AppTheme.primaryColor,
+          backgroundColor: Theme.of(context).primaryColor,
         ),
         body: BlocConsumer<ReviewCubit, ReviewState>(
           listener: (context, state) {
@@ -185,7 +184,7 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
               _getRatingDescription(_rating),
               style: TextStyle(
                 fontSize: 16,
-                color: AppTheme.primaryColor,
+                color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -225,7 +224,8 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
+              borderSide:
+                  BorderSide(color: Theme.of(context).primaryColor, width: 2),
             ),
           ),
         ),
@@ -244,7 +244,7 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
       child: ElevatedButton(
         onPressed: canSubmit ? () => _submitReview(context, isEditing) : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryColor,
+          backgroundColor: Theme.of(context).primaryColor,
           disabledBackgroundColor: Colors.grey[300],
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),

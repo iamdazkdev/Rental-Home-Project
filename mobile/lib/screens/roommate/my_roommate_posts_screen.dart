@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../config/app_theme.dart';
 import '../../models/roommate.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/roommate_service.dart';
@@ -398,7 +397,7 @@ class _PostCard extends StatelessWidget {
 
     switch (post.status.value) {
       case 'ACTIVE':
-        color = AppTheme.successColor;
+        color = Colors.green;
         text = 'Active';
         break;
       case 'MATCHED':

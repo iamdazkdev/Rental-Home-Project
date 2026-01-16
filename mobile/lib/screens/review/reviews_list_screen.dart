@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../config/app_theme.dart';
 import '../../data/repositories/review_repository.dart';
 import '../../models/review.dart';
 import '../../presentation/review/cubit/review_cubit.dart';
@@ -26,7 +25,7 @@ class ReviewsListScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Reviews'),
-          backgroundColor: AppTheme.primaryColor,
+          backgroundColor: Theme.of(context).primaryColor,
         ),
         body: BlocBuilder<ReviewCubit, ReviewState>(
           builder: (context, state) {
@@ -252,7 +251,7 @@ class ReviewsListScreen extends StatelessWidget {
                         Icon(
                           Icons.reply,
                           size: 16,
-                          color: AppTheme.primaryColor,
+                          color: Theme.of(context).primaryColor,
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -260,7 +259,7 @@ class ReviewsListScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryColor,
+                            color: Theme.of(context).primaryColor,
                           ),
                         ),
                       ],

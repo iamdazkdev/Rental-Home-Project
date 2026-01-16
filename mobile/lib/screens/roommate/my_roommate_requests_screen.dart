@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../config/app_theme.dart';
 import '../../models/roommate.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/roommate_service.dart';
@@ -111,7 +110,7 @@ class _MyRoommateRequestsScreenState extends State<MyRoommateRequestsScreen>
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.check_circle, color: AppTheme.successColor),
+            const Icon(Icons.check_circle, color: Colors.green),
             const SizedBox(width: 12),
             Text(title),
           ],
@@ -240,8 +239,10 @@ class _RequestCard extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  child: const Icon(Icons.person, color: AppTheme.primaryColor),
+                  backgroundColor:
+                      Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  child:
+                      Icon(Icons.person, color: Theme.of(context).primaryColor),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -336,7 +337,7 @@ class _RequestCard extends StatelessWidget {
                       icon: const Icon(Icons.check),
                       label: const Text('Accept'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.successColor,
+                        backgroundColor: Colors.green,
                       ),
                     ),
                   ),
@@ -348,7 +349,7 @@ class _RequestCard extends StatelessWidget {
                 icon: const Icon(Icons.chat),
                 label: const Text('Chat Now'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
+                  backgroundColor: Theme.of(context).primaryColor,
                 ),
               ),
           ],
@@ -363,11 +364,11 @@ class _RequestCard extends StatelessWidget {
 
     switch (request.status) {
       case RoommateRequestStatus.pending:
-        color = AppTheme.warningColor;
+        color = Colors.orange;
         text = 'Pending';
         break;
       case RoommateRequestStatus.accepted:
-        color = AppTheme.successColor;
+        color = Colors.green;
         text = 'Accepted';
         break;
       case RoommateRequestStatus.rejected:
