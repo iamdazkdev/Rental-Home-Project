@@ -1,0 +1,45 @@
+name: Deploy Client to Surge
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'client/**'
+  workflow_dispatch: # Cho phép trigger thủ công
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+        env:
+          CI: false
+          REACT_APP_API_URL: https://rental-home-project-qssf.onrender.com
+
+      - name: Deploy to Surge
+        run: npx surge ./build rental-home-iamdazk.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+
+      - name: Deployment Summary
+        run: |
+          echo "✅ Deployment successful!"
+          echo "🌐 URL: https://rental-home-iamdazk.surge.sh"
+
