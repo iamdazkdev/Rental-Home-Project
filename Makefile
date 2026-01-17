@@ -1,188 +1,109 @@
-# Rental Home Project Makefile
-# Usage: make project - to setup and start the entire project
+# Rental Home Project - Root Makefile
+# Usage: make help - to see all available commands
+#
+# This Makefile delegates to client/Makefile and server/Makefile
+# For detailed commands, use:
+#   cd client && make help
+#   cd server && make help
 
-.PHONY: all project install install-server install-client install-mobile start start-server start-client start-all stop clean help
+.PHONY: help install start clean client server mobile
 
 # Default target
-all: project
-
-# Main command to setup and start the project
-project: install start-all
-	@echo "✅ Project is ready!"
+help:
+	@echo ""
+	@echo "═══════════════════════════════════════════════════════════"
+	@echo "         Rental Home Project - Root Makefile"
+	@echo "═══════════════════════════════════════════════════════════"
+	@echo ""
+	@echo "  Quick Start:"
+	@echo "    make install      - Install all dependencies"
+	@echo "    make start        - Start both client & server"
+	@echo "    make clean        - Clean all build files"
+	@echo ""
+	@echo "  Individual Services:"
+	@echo "    make client       - Go to client folder (then run: make help)"
+	@echo "    make server       - Go to server folder (then run: make help)"
+	@echo "    make mobile       - Go to mobile folder"
+	@echo ""
+	@echo "  Detailed Commands:"
+	@echo "    cd client && make help   - See all client commands"
+	@echo "    cd server && make help   - See all server commands"
+	@echo ""
+	@echo "═══════════════════════════════════════════════════════════"
+	@echo ""
+	@echo "  Examples:"
+	@echo "    cd client && make dev          - Start client dev server"
+	@echo "    cd client && make deploy       - Build & deploy client"
+	@echo "    cd server && make dev          - Start server with nodemon"
+	@echo "    cd server && make test         - Run server tests"
+	@echo ""
+	@echo "═══════════════════════════════════════════════════════════"
 
 # Install all dependencies
-install: install-server install-client
+install:
+	@echo "📦 Installing all dependencies..."
+	@echo ""
+	@echo "Installing server dependencies..."
+	@cd server && $(MAKE) install
+	@echo ""
+	@echo "Installing client dependencies..."
+	@cd client && $(MAKE) install
+	@echo ""
 	@echo "✅ All dependencies installed!"
 
-# Install server dependencies
-install-server:
-	@echo "📦 Installing server dependencies..."
-	@cd server && npm install
-	@echo "✅ Server dependencies installed!"
-
-# Install client dependencies
-install-client:
-	@echo "📦 Installing client dependencies..."
-	@cd client && npm install
-	@echo "✅ Client dependencies installed!"
-
-# Install mobile dependencies (Flutter)
-install-mobile:
-	@echo "📦 Installing mobile dependencies..."
-	@cd mobile && flutter pub get
-	@echo "✅ Mobile dependencies installed!"
-
-# Start server only
-start-server:
-	@echo "🚀 Starting server..."
-	@cd server && npm start &
-	@echo "✅ Server started on http://localhost:3001"
-
-# Start client only
-start-client:
-	@echo "🚀 Starting client..."
-	@cd client && npm start &
-	@echo "✅ Client started on http://localhost:3000"
-
-# Start both server and client
-start-all:
+# Start both services
+start:
 	@echo "🚀 Starting Rental Home Project..."
 	@echo ""
-	@echo "📡 Starting Server (Port 3001)..."
+	@echo "Starting server..."
 	@cd server && npm start &
 	@sleep 3
 	@echo ""
-	@echo "🌐 Starting Client (Port 3000)..."
+	@echo "Starting client..."
 	@cd client && npm start &
 	@echo ""
 	@echo "═══════════════════════════════════════════════════════════"
-	@echo "✅ Rental Home Project is running!"
+	@echo "✅ Project running!"
 	@echo ""
 	@echo "   🌐 Client: http://localhost:3000"
 	@echo "   📡 Server: http://localhost:3001"
 	@echo ""
-	@echo "   Press Ctrl+C to stop all services"
+	@echo "   Press Ctrl+C to stop"
 	@echo "═══════════════════════════════════════════════════════════"
 
-# Start mobile app
-start-mobile:
-	@echo "📱 Starting mobile app..."
-	@cd mobile && flutter run
+# Clean all
+clean:
+	@echo "🧹 Cleaning entire project..."
+	@echo ""
+	@cd server && $(MAKE) clean
+	@cd client && $(MAKE) clean
+	@echo ""
+	@echo "✅ Project cleaned!"
 
-# Stop all running processes
+# Stop all services
 stop:
 	@echo "🛑 Stopping all services..."
 	@pkill -f "node.*server" || true
 	@pkill -f "react-scripts start" || true
 	@echo "✅ All services stopped!"
 
-# Clean all node_modules and build files
-clean:
-	@echo "🧹 Cleaning project..."
-	@rm -rf server/node_modules
-	@rm -rf client/node_modules
-	@rm -rf client/build
-	@rm -rf mobile/build
-	@echo "✅ Project cleaned!"
-
-# Rebuild the project
-rebuild: clean install
-	@echo "✅ Project rebuilt!"
-
-# Run server tests
-test-server:
-	@echo "🧪 Running server tests..."
-	@cd server && npm test
-
-# Run concurrent booking tests
-test-concurrent:
-	@echo "🧪 Running concurrent booking tests..."
-	@cd server && npm run test:concurrent
-
-# Run booking scenario tests
-test-scenarios:
-	@echo "🧪 Running booking scenario tests..."
-	@cd server && npm run test:scenarios:all
-
-# Build client for production
-build-client:
-	@echo "🏗️ Building client for production..."
-	@cd client && npm run build
-	@echo "✅ Client build complete!"
-
-# Build mobile for Android
-build-android:
-	@echo "🏗️ Building Android APK..."
-	@cd mobile && flutter build apk
-	@echo "✅ Android build complete!"
-
-# Build mobile for iOS
-build-ios:
-	@echo "🏗️ Building iOS..."
-	@cd mobile && flutter build ios
-	@echo "✅ iOS build complete!"
-
-# Setup environment files
-setup-env:
-	@echo "⚙️ Setting up environment files..."
-	@if [ ! -f server/.env ]; then \
-		echo "Creating server/.env from example..."; \
-		cp server/.env.example server/.env 2>/dev/null || echo "No .env.example found"; \
-	fi
-	@echo "✅ Environment setup complete!"
-
-# Database migration (if needed)
-migrate:
-	@echo "🗄️ Running database migrations..."
-	@cd server && npm run migrate 2>/dev/null || echo "No migration script found"
-	@echo "✅ Migrations complete!"
-
-# Full setup from scratch
-setup: setup-env install migrate
-	@echo "✅ Full setup complete!"
-
-# Development mode with hot reload
-dev:
-	@echo "🔧 Starting in development mode..."
-	@make start-all
-
-# Help command
-help:
+# Shortcuts to navigate to folders
+client:
+	@echo "💡 Use: cd client && make help"
 	@echo ""
-	@echo "═══════════════════════════════════════════════════════════"
-	@echo "         Rental Home Project - Makefile Commands"
-	@echo "═══════════════════════════════════════════════════════════"
+	@cd client && $(MAKE) help
+
+server:
+	@echo "💡 Use: cd server && make help"
 	@echo ""
-	@echo "  Main Commands:"
-	@echo "    make project      - Install deps & start entire project"
-	@echo "    make install      - Install all dependencies"
-	@echo "    make start-all    - Start server and client"
-	@echo "    make stop         - Stop all running services"
+	@cd server && $(MAKE) help
+
+mobile:
+	@echo "📱 Mobile folder: ./mobile"
 	@echo ""
-	@echo "  Individual Services:"
-	@echo "    make start-server - Start only the server"
-	@echo "    make start-client - Start only the client"
-	@echo "    make start-mobile - Start Flutter mobile app"
-	@echo ""
-	@echo "  Installation:"
-	@echo "    make install-server - Install server deps only"
-	@echo "    make install-client - Install client deps only"
-	@echo "    make install-mobile - Install mobile deps only"
-	@echo ""
-	@echo "  Testing:"
-	@echo "    make test-server     - Run server tests"
-	@echo "    make test-concurrent - Run concurrent booking tests"
-	@echo "    make test-scenarios  - Run booking scenario tests"
-	@echo ""
-	@echo "  Building:"
-	@echo "    make build-client  - Build client for production"
-	@echo "    make build-android - Build Android APK"
-	@echo "    make build-ios     - Build iOS app"
-	@echo ""
-	@echo "  Maintenance:"
-	@echo "    make clean    - Remove node_modules & build files"
-	@echo "    make rebuild  - Clean and reinstall everything"
-	@echo "    make setup    - Full setup from scratch"
-	@echo ""
-	@echo "═══════════════════════════════════════════════════════════"
+	@echo "Available commands:"
+	@echo "  flutter pub get   - Install dependencies"
+	@echo "  flutter run       - Run app on device"
+	@echo "  flutter build apk - Build Android APK"
+
 
