@@ -2,7 +2,7 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://iamdazkdev.github.io/Rental-Home-Project",
+  "homepage": "https://rental-home-iamdazk.surge.sh",
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
@@ -43,7 +43,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "surge build rental-home-iamdazk.surge.sh"
   },
   "eslintConfig": {
     "extends": [
@@ -64,6 +64,6 @@
     ]
   },
   "devDependencies": {
-    "gh-pages": "^6.3.0"
+    "surge": "^0.24.6"
   }
 }

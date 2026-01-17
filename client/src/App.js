@@ -64,8 +64,9 @@ import RoommatePostDetail from "./pages/roommate/RoommatePostDetail";
 import MyRoommateRequests from "./pages/roommate/MyRoommateRequests";
 import MyRoommatePosts from "./pages/roommate/MyRoommatePosts";
 
-// GitHub Pages basename (remove if using custom domain)
-const basename = process.env.NODE_ENV === 'production' ? '/Rental-Home-Project' : '';
+// Surge.sh deployment (no basename needed)
+// For GitHub Pages, use: const basename = '/Rental-Home-Project';
+const basename = '';
 
 function App() {
     return (
