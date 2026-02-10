@@ -4,6 +4,7 @@ import { FileText, Calendar, DollarSign, AlertCircle, CheckCircle, X, CheckCircl
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import Loader from '../../components/Loader';
+import API_BASE_URL from '../../config/api';
 import '../../styles/MyAgreements.scss';
 
 const MyAgreements = () => {
@@ -26,7 +27,7 @@ const MyAgreements = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:3001/room-rental/agreements/tenant/${user.id || user._id}`,
+        `${API_BASE_URL}/room-rental/agreements/tenant/${user.id || user._id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -61,7 +62,7 @@ const MyAgreements = () => {
     try {
       setAcceptLoading(true);
       const response = await fetch(
-        `http://localhost:3001/room-rental/agreements/${agreementToAccept._id}/accept/tenant`,
+        `${API_BASE_URL}/room-rental/agreements/${agreementToAccept._id}/accept/tenant`,
         {
           method: 'PUT',
           headers: {

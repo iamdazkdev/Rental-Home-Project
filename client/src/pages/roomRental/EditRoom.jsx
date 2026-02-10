@@ -14,9 +14,9 @@ import {
 } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import API_BASE_URL from '../../config/api';
 import '../../styles/EditRoom.scss';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 const EditRoom = () => {
   const { roomId } = useParams();
@@ -59,7 +59,7 @@ const EditRoom = () => {
   const fetchRoomDetails = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/listing/${roomId}`);
+      const response = await fetch(`${API_BASE_URL}/listing/${roomId}`);
       const data = await response.json();
 
       if (data) {
@@ -146,7 +146,7 @@ const EditRoom = () => {
         updateData.append('roomPhotos', photo);
       });
 
-      const response = await fetch(`${API_URL}/room-rental/rooms/${roomId}`, {
+      const response = await fetch(`${API_BASE_URL}/room-rental/rooms/${roomId}`, {
         method: 'PUT',
         body: updateData
       });
