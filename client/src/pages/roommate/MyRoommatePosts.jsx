@@ -3,6 +3,7 @@ import {useNavigate} from "react-router-dom";
 import {useSelector} from "react-redux";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import API_BASE_URL from "../../config/api";
 import "../../styles/MyRoommatePosts.scss";
 
 const MyRoommatePosts = () => {
@@ -25,7 +26,7 @@ const MyRoommatePosts = () => {
         setLoading(true);
         try {
             const response = await fetch(
-                `http://localhost:3001/roommate/posts/user/${userId}`
+                `${API_BASE_URL}/roommate/posts/user/${userId}`
             );
             const data = await response.json();
 
@@ -53,7 +54,7 @@ const MyRoommatePosts = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:3001/roommate/posts/${postId}/close`,
+                `${API_BASE_URL}/roommate/posts/${postId}/close`,
                 {
                     method: "PUT",
                     headers: {"Content-Type": "application/json"},
@@ -89,7 +90,7 @@ const MyRoommatePosts = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:3001/roommate/posts/${postId}/activate`,
+                `${API_BASE_URL}/roommate/posts/${postId}/activate`,
                 {
                     method: "PUT",
                     headers: {"Content-Type": "application/json"},
@@ -118,7 +119,7 @@ const MyRoommatePosts = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:3001/roommate/posts/${postId}`,
+                `${API_BASE_URL}/roommate/posts/${postId}`,
                 {
                     method: "DELETE",
                 }
