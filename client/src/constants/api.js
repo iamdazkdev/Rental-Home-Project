@@ -4,10 +4,11 @@
  */
 
 // Environment Variables
+const PRODUCTION_API_URL = "https://rental-home-project-qssf.onrender.com";
 const API_BASE_URL =
     process.env.REACT_APP_API_URL ||
     (process.env.NODE_ENV === "production"
-        ? "https://rental-home-project-qssf.onrender.com"
+        ? PRODUCTION_API_URL
         : "http://localhost:3001");
 const API_TIMEOUT = parseInt(process.env.REACT_APP_API_TIMEOUT);
 const MAX_FILE_SIZE = parseInt(process.env.REACT_APP_MAX_FILE_SIZE); // 10MB

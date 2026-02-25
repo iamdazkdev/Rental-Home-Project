@@ -107,8 +107,27 @@ test-scenarios:
 # Build client for production
 build-client:
 	@echo "🏗️ Building client for production..."
-	@cd client && npm run build
+	@cd client && NODE_ENV=production npm run build
 	@echo "✅ Client build complete!"
+
+# Clean and build client
+clean-build-client:
+	@echo "🧹 Cleaning and building client..."
+	@rm -rf client/build
+	@cd client && NODE_ENV=production npm run build
+	@echo "✅ Client cleaned and built!"
+
+# Deploy client to Surge
+deploy-surge: clean-build-client
+	@echo "🚀 Deploying to Surge..."
+	@cd client/build && SURGE_LOGIN=iamdazkdev@gmail.com SURGE_TOKEN=882a293949ba750610097c03264f9cca surge . rental-home-iamdazk.surge.sh
+	@echo "✅ Deployed to https://rental-home-iamdazk.surge.sh"
+
+# Deploy client to Vercel
+deploy-vercel: clean-build-client
+	@echo "🚀 Deploying to Vercel..."
+	@cd client && vercel --prod
+	@echo "✅ Deployed to Vercel!"
 
 # Build mobile for Android
 build-android:
@@ -175,9 +194,14 @@ help:
 	@echo "    make test-scenarios  - Run booking scenario tests"
 	@echo ""
 	@echo "  Building:"
-	@echo "    make build-client  - Build client for production"
-	@echo "    make build-android - Build Android APK"
-	@echo "    make build-ios     - Build iOS app"
+	@echo "    make build-client       - Build client for production"
+	@echo "    make clean-build-client - Clean and build client"
+	@echo "    make build-android      - Build Android APK"
+	@echo "    make build-ios          - Build iOS app"
+	@echo ""
+	@echo "  Deployment:"
+	@echo "    make deploy-surge  - Deploy client to Surge"
+	@echo "    make deploy-vercel - Deploy client to Vercel"
 	@echo ""
 	@echo "  Maintenance:"
 	@echo "    make clean    - Remove node_modules & build files"
