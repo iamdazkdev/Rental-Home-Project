@@ -3,6 +3,7 @@ import {useSelector} from "react-redux";
 import {useNavigate} from "react-router-dom";
 import "../../styles/VerificationManagement.scss";
 import VerificationReviewModal from "../../components/VerificationReviewModal";
+import API_BASE_URL from "../../config/api";
 
 const VerificationManagement = () => {
     const [verifications, setVerifications] = useState([]);
@@ -41,7 +42,7 @@ const VerificationManagement = () => {
         setLoading(true);
         try {
             const response = await fetch(
-                `http://localhost:3001/identity-verification/admin/all?status=${filter}`
+                `${API_BASE_URL}/identity-verification/admin/all?status=${filter}`
             );
 
             if (response.ok) {
@@ -79,7 +80,7 @@ const VerificationManagement = () => {
         setProcessing(true);
         try {
             const response = await fetch(
-                `http://localhost:3001/identity-verification/${selectedVerification._id}/review`,
+                `${API_BASE_URL}/identity-verification/${selectedVerification._id}/review`,
                 {
                     method: "PATCH",
                     headers: {"Content-Type": "application/json"},
