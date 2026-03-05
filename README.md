@@ -186,20 +186,24 @@ User Creates Post (Seeker/Provider)
 
 ### Frontend (Mobile)
 
-- **Flutter** 3.24+ - Cross-platform framework
-- **Dart** 3.4+ - Programming language
+- **Flutter** 3.24+ / **Dart** 3.0+ - Cross-platform framework
 - **BLoC / Cubit** - State management (flutter_bloc)
 - **Provider** - Lightweight state management
-- **http** - API communication
+- **Riverpod** - Reactive state management
+- **go_router** - Declarative routing
+- **http** / **dio** - API communication
 - **socket_io_client** - Real-time messaging
-- **Firebase Core** - Firebase SDK
-- **Firebase Messaging** - Push notifications (FCM)
+- **Firebase Core** + **Firebase Messaging** - Push notifications (FCM)
 - **flutter_local_notifications** - Local notifications
 - **image_picker** - Media upload
 - **flutter_secure_storage** - Secure token storage
 - **table_calendar** - Calendar widget for hosts
 - **shared_preferences** - Local data persistence
 - **cached_network_image** - Image caching
+- **google_maps_flutter** + **geolocator** - Maps & location
+- **lottie** + **animate_do** - Animations
+- **carousel_slider** - Image carousels
+- **google_fonts** - Custom typography (Poppins)
 
 ### Backend
 
@@ -217,8 +221,8 @@ User Creates Post (Seeker/Provider)
 
 ### Payment Integration
 
-- **VNPay** - Vietnamese payment gateway
-- Support for QR, card, and bank transfer
+- **VNPay** - Vietnamese payment gateway (QR, card, bank transfer)
+- **Stripe** - International payment gateway
 
 ### DevOps & Tools
 
@@ -252,7 +256,7 @@ cd Rental-Home-Project
 
 # Setup and start entire project
 make setup
-make start
+make start-all
 
 # Or individual commands
 make install-server    # Install server dependencies
@@ -360,91 +364,244 @@ flutter run
 
 ```
 Rental-Home-Project/
-├── client/                          # React Web Application
+├── client/                              # React Web Application
 │   ├── public/
-│   │   ├── assets/
+│   │   ├── assets/                      # Static assets (images, icons)
+│   │   ├── 200.html                     # SPA fallback (Surge.sh)
+│   │   ├── 404.html                     # Custom 404 page
+│   │   ├── CNAME                        # Surge.sh domain config
 │   │   ├── favicon.ico
 │   │   └── index.html
 │   ├── src/
-│   │   ├── components/              # Reusable UI components
+│   │   ├── components/                  # Reusable UI components (31 files)
+│   │   │   ├── admin/                   # Admin-specific components
 │   │   │   ├── Navbar.jsx
 │   │   │   ├── Footer.jsx
 │   │   │   ├── ListingCard.jsx
+│   │   │   ├── BookingWidget.jsx
+│   │   │   ├── CheckoutModal.jsx
+│   │   │   ├── IdentityVerificationForm.jsx
+│   │   │   ├── NotificationDropdown.jsx
+│   │   │   ├── ReviewModal.jsx
 │   │   │   └── ...
 │   │   ├── pages/
-│   │   │   ├── auth/                # Authentication pages
-│   │   │   ├── entirePlace/         # Entire Place Rental
-│   │   │   ├── roomRental/          # Room Rental
-│   │   │   ├── roommate/            # Roommate Matching
-│   │   │   ├── admin/               # Admin Dashboard
-│   │   │   ├── messages/            # Chat system
-│   │   │   └── ...
-│   │   ├── redux/                   # State management
-│   │   ├── styles/                  # SCSS stylesheets
-│   │   ├── utils/                   # Helper functions
-│   │   ├── config/                  # API endpoints
+│   │   │   ├── admin/                   # Admin Dashboard (5 files)
+│   │   │   ├── auth/                    # Authentication pages (4 files)
+│   │   │   ├── entirePlace/             # Entire Place Rental (4 files)
+│   │   │   ├── home/                    # Home page
+│   │   │   ├── host/                    # Host management (7 files)
+│   │   │   ├── listing/                 # Listing views (4 files)
+│   │   │   ├── messages/                # Chat system
+│   │   │   ├── payment/                 # Payment pages (2 files)
+│   │   │   ├── profile/                 # User profile
+│   │   │   ├── roomRental/              # Room Rental (15 files)
+│   │   │   ├── roommate/                # Roommate Matching (5 files)
+│   │   │   ├── search/                  # Search page
+│   │   │   ├── user/                    # User pages
+│   │   │   ├── verification/            # Identity verification
+│   │   │   └── PaymentResultPage.jsx
+│   │   ├── models/                      # Domain models (Booking, User, Listing, PaymentInfo, PaymentHistory)
+│   │   ├── redux/                       # Redux Toolkit state management
+│   │   ├── services/                    # API services (admin, calendar)
+│   │   ├── context/                     # React context (SocketContext)
+│   │   ├── constants/                   # API config & constants
+│   │   ├── styles/                      # SCSS stylesheets (79 files)
+│   │   ├── utils/                       # Helpers (payment, price, icons, concurrent booking)
+│   │   ├── data.js                      # Static data definitions
 │   │   ├── App.js
 │   │   └── index.js
+│   ├── Makefile                         # Client build & deploy commands
 │   └── package.json
 │
-├── server/                          # Node.js Backend
-│   ├── models/                      # Mongoose schemas
+├── server/                              # Node.js Backend
+│   ├── config/                          # Configuration
+│   │   ├── bookingIntentConfig.js       # BookingIntent timing settings
+│   │   └── firebase-service-account.json
+│   ├── constants/                       # Error codes & constants
+│   │   ├── errorCodes.js
+│   │   └── index.js
+│   ├── controllers/                     # Route controllers
+│   │   └── admin/
+│   ├── middleware/                       # Express middleware
+│   │   ├── auth.js                      # JWT verification
+│   │   └── admin/                       # Admin auth middleware
+│   ├── models/                          # Mongoose schemas (24 files)
 │   │   ├── User.js
 │   │   ├── Listing.js
 │   │   ├── Booking.js
 │   │   ├── BookingIntent.js
 │   │   ├── RoomRental.js
+│   │   ├── RoomRentalApplication.js
 │   │   ├── RoommatePost.js
-│   │   ├── Payment.js
-│   │   └── ...
-│   ├── routes/                      # API routes
+│   │   ├── RoommateMatch.js
+│   │   ├── RoommateRequest.js
+│   │   ├── PaymentHistory.js
+│   │   ├── PendingBooking.js
+│   │   ├── Notification.js
+│   │   ├── Review.js
+│   │   ├── Conversation.js
+│   │   ├── Message.js
+│   │   ├── IdentityVerification.js
+│   │   ├── Category.js
+│   │   ├── Facility.js
+│   │   ├── PropertyType.js
+│   │   ├── CustomPrice.js
+│   │   ├── BlockedDate.js
+│   │   └── User*/                       # User-specific variants (Category, Facility, PropertyType)
+│   ├── routes/                          # API routes (32 files)
+│   │   ├── admin/                       # Admin route modules
 │   │   ├── auth.js
-│   │   ├── listing.js
 │   │   ├── booking.js
+│   │   ├── bookingIntent.js
 │   │   ├── entirePlaceBooking.js
 │   │   ├── roomRental.js
+│   │   ├── roomRentalAdvanced.js
 │   │   ├── roommate.js
 │   │   ├── payment.js
+│   │   ├── paymentHistory.js
+│   │   ├── paymentReminder.js
+│   │   ├── calendar.js
+│   │   ├── listing.js
+│   │   ├── search.js
+│   │   ├── review.js
+│   │   ├── messages.js
+│   │   ├── notification.js
+│   │   ├── fcm.js
+│   │   ├── identityVerification.js
+│   │   ├── hostProfile.js
+│   │   ├── hostReviews.js
+│   │   ├── propertyManagement.js
+│   │   ├── categories.js
+│   │   ├── facilities.js
+│   │   ├── propertyTypes.js
 │   │   └── ...
-│   ├── services/                    # Business logic
+│   ├── services/                        # Business logic (12 files)
+│   │   ├── bookingService.js
+│   │   ├── concurrentBookingService.js
 │   │   ├── cloudinaryService.js
 │   │   ├── vnpayService.js
-│   │   ├── bookingService.js
-│   │   └── ...
-│   ├── middleware/
-│   │   └── auth.js                  # JWT verification
-│   ├── scripts/                     # Utility scripts
+│   │   ├── emailService.js
+│   │   ├── fcmService.js
+│   │   ├── notificationService.js
+│   │   ├── paymentReminderService.js
+│   │   ├── compatibilityService.js
+│   │   ├── roomRentalValidation.js
+│   │   ├── lockCleanupService.js
+│   │   └── monthlyRentScheduler.js
+│   ├── scripts/                         # Utility & test scripts (11 files)
+│   │   ├── migrateStaticData.js
+│   │   ├── migrateBookingStatus.js
+│   │   ├── createAdminAccount.js
 │   │   ├── testConcurrentBooking.js
+│   │   ├── testBookingScenarios.js
 │   │   └── ...
-│   ├── .env
-│   ├── index.js                     # Server entry point
+│   ├── tests/                           # Integration tests
+│   │   ├── paymentFlows.test.js
+│   │   └── paymentFlows.integration.test.js
+│   ├── utils/                           # Utilities
+│   │   └── logger.js
+│   ├── index.js                         # Server entry point
+│   ├── Makefile                         # Server commands
 │   └── package.json
 │
-├── mobile/                          # Flutter Mobile App
+├── mobile/                              # Flutter Mobile App
 │   ├── android/
 │   ├── ios/
 │   ├── lib/
-│   │   ├── main.dart
-│   │   ├── config/
-│   │   ├── models/
-│   │   ├── providers/
-│   │   ├── screens/
-│   │   ├── services/
-│   │   ├── widgets/
-│   │   └── utils/
+│   │   ├── main.dart                    # App entry point
+│   │   ├── firebase_options.dart        # Firebase configuration
+│   │   ├── config/                      # App config, themes, constants
+│   │   │   ├── api_config.dart
+│   │   │   ├── app_constants.dart
+│   │   │   ├── app_theme.dart
+│   │   │   └── app_themes.dart
+│   │   ├── core/                        # Core abstractions
+│   │   │   ├── constants/
+│   │   │   ├── enums/
+│   │   │   └── error/
+│   │   ├── data/                        # Data layer
+│   │   │   ├── datasources/
+│   │   │   └── repositories/
+│   │   ├── models/                      # Data models (12 files)
+│   │   │   ├── booking.dart
+│   │   │   ├── booking_intent.dart
+│   │   │   ├── calendar_models.dart
+│   │   │   ├── listing.dart
+│   │   │   ├── room_rental.dart
+│   │   │   ├── roommate.dart
+│   │   │   ├── review.dart
+│   │   │   ├── user.dart
+│   │   │   └── ...
+│   │   ├── presentation/               # Presentation layer (BLoC/Cubit)
+│   │   │   ├── booking/
+│   │   │   ├── chat/
+│   │   │   └── review/
+│   │   ├── providers/                   # State providers
+│   │   │   ├── auth_provider.dart
+│   │   │   ├── notification_provider.dart
+│   │   │   └── theme_provider.dart
+│   │   ├── screens/                     # App screens (21 screen groups)
+│   │   │   ├── auth/
+│   │   │   ├── bookings/
+│   │   │   ├── checkout/
+│   │   │   ├── explore/
+│   │   │   ├── home/
+│   │   │   ├── host/
+│   │   │   ├── hubs/
+│   │   │   ├── listings/
+│   │   │   ├── messages/
+│   │   │   ├── notifications/
+│   │   │   ├── payment/
+│   │   │   ├── profile/
+│   │   │   ├── properties/
+│   │   │   ├── review/ & reviews/
+│   │   │   ├── room_rental/
+│   │   │   ├── roommate/
+│   │   │   ├── search/
+│   │   │   ├── trips/
+│   │   │   ├── verification/
+│   │   │   ├── wishlist/
+│   │   │   ├── main_screen.dart
+│   │   │   └── splash_screen.dart
+│   │   ├── services/                    # API services (19 files)
+│   │   │   ├── auth_service.dart
+│   │   │   ├── booking_service.dart
+│   │   │   ├── booking_intent_service.dart
+│   │   │   ├── calendar_service.dart
+│   │   │   ├── chat_service.dart
+│   │   │   ├── fcm_service.dart
+│   │   │   ├── listing_service.dart
+│   │   │   ├── payment_service.dart
+│   │   │   ├── review_service.dart
+│   │   │   ├── room_rental_service.dart
+│   │   │   ├── roommate_service.dart
+│   │   │   ├── socket_service.dart
+│   │   │   └── ...
+│   │   ├── widgets/                     # Reusable widgets (9 files)
+│   │   └── utils/                       # Utilities (6 files)
 │   ├── assets/
+│   │   ├── images/
+│   │   ├── icons/
+│   │   ├── animations/
+│   │   └── fonts/
+│   ├── docs/                            # Mobile-specific docs
 │   ├── pubspec.yaml
-│   └── README.md
+│   └── Makefile
 │
-├── docs/                            # Documentation
+├── docs/                                # Project Documentation
 │   ├── BUSINESS_ANALYSIS.md
 │   ├── USE_CASES_CURRENT.md
-│   ├── SEQUENCE_DIAGRAMS.md
-│   ├── COMPARISON.md
-│   ├── PROJECT_REPORT.md
-│   └── ...
+│   ├── USE_CASES_ADDITIONAL.md
+│   ├── SEQUENCE_DIAGRAMS_CURRENT.md
+│   ├── SSE_REALTIME_NOTIFICATIONS.md
+│   └── PROJECT_COMPLETION_SUMMARY.md
 │
-├── Makefile                         # Build automation
+├── .github/                             # GitHub configuration
+│   └── workflows/
+├── Makefile                             # Root build automation
+├── DEPLOYMENT.md                        # Deployment guide
+├── DEPLOYMENT_QUICK_REFERENCE.md        # Quick deploy reference
+├── render.yaml                          # Render.com config
 ├── README.md
 └── package.json
 ```
@@ -713,6 +870,10 @@ Comprehensive documentation is available in the `docs/` folder:
 
 - **[BUSINESS_ANALYSIS.md](docs/BUSINESS_ANALYSIS.md)** - Detailed business logic and rules
 - **[USE_CASES_CURRENT.md](docs/USE_CASES_CURRENT.md)** - All use cases with pre/post conditions
+- **[USE_CASES_ADDITIONAL.md](docs/USE_CASES_ADDITIONAL.md)** - Additional use cases
+- **[SEQUENCE_DIAGRAMS_CURRENT.md](docs/SEQUENCE_DIAGRAMS_CURRENT.md)** - Sequence diagrams for system flows
+- **[SSE_REALTIME_NOTIFICATIONS.md](docs/SSE_REALTIME_NOTIFICATIONS.md)** - Real-time notification architecture
+- **[PROJECT_COMPLETION_SUMMARY.md](docs/PROJECT_COMPLETION_SUMMARY.md)** - Project completion summary
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - Detailed deployment guide for all platforms
 - **[DEPLOYMENT_QUICK_REFERENCE.md](DEPLOYMENT_QUICK_REFERENCE.md)** - Quick deployment reference
 

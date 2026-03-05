@@ -74,7 +74,6 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
       return;
     }
 
-    // TODO: Implement verification check when service is available
     setState(() {
       _isCheckingVerification = false;
       _isVerified = true; // Allow all users for now
