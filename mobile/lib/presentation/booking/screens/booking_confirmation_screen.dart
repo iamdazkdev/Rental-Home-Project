@@ -84,11 +84,11 @@ class BookingConfirmationScreen extends StatelessWidget {
   }
 
   String _getStatusMessage() {
-    if (booking.paymentMethod == PaymentMethod.vnpay &&
-        booking.paymentType == PaymentType.full) {
+    if (booking.paymentMethodEnum == PaymentMethod.vnpay &&
+        booking.paymentTypeEnum == PaymentType.full) {
       return 'Your payment was successful and booking is confirmed!';
-    } else if (booking.paymentMethod == PaymentMethod.vnpay &&
-        booking.paymentType == PaymentType.deposit) {
+    } else if (booking.paymentMethodEnum == PaymentMethod.vnpay &&
+        booking.paymentTypeEnum == PaymentType.deposit) {
       return 'Deposit paid successfully! Pay remaining amount before check-in.';
     } else {
       return 'Your booking request has been sent to the host.';
@@ -124,7 +124,7 @@ class BookingConfirmationScreen extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               'Total Amount',
-              _formatPrice(booking.finalTotalPrice),
+              _formatPrice(booking.finalTotalPrice ?? booking.totalPrice),
             ),
           ],
         ),
@@ -149,34 +149,36 @@ class BookingConfirmationScreen extends StatelessWidget {
             const Divider(height: 24),
             _buildDetailRow(
               'Payment Method',
-              booking.paymentMethod == PaymentMethod.vnpay ? 'VNPay' : 'Cash',
+              booking.paymentMethodEnum == PaymentMethod.vnpay
+                  ? 'VNPay'
+                  : 'Cash',
             ),
             const SizedBox(height: 12),
-            if (booking.paymentMethod == PaymentMethod.vnpay &&
-                booking.paymentType == PaymentType.full)
+            if (booking.paymentMethodEnum == PaymentMethod.vnpay &&
+                booking.paymentTypeEnum == PaymentType.full)
               _buildDetailRow(
                 'Paid (100%)',
-                _formatPrice(booking.finalTotalPrice),
+                _formatPrice(booking.finalTotalPrice ?? booking.totalPrice),
                 valueColor: Colors.green,
               ),
-            if (booking.paymentMethod == PaymentMethod.vnpay &&
-                booking.paymentType == PaymentType.deposit) ...[
+            if (booking.paymentMethodEnum == PaymentMethod.vnpay &&
+                booking.paymentTypeEnum == PaymentType.deposit) ...[
               _buildDetailRow(
-                'Deposit Paid (${booking.depositPercentage.toInt()}%)',
-                _formatPrice(booking.depositAmount),
+                'Deposit Paid (${(booking.depositPercentage ?? 30)}%)',
+                _formatPrice(booking.depositAmount ?? 0),
                 valueColor: Colors.green,
               ),
               const SizedBox(height: 12),
               _buildDetailRow(
                 'Remaining',
-                _formatPrice(booking.remainingAmount),
+                _formatPrice(booking.remainingAmount ?? 0),
                 valueColor: Colors.orange,
               ),
             ],
-            if (booking.paymentMethod == PaymentMethod.cash)
+            if (booking.paymentMethodEnum == PaymentMethod.cash)
               _buildDetailRow(
                 'Pay at Check-in',
-                _formatPrice(booking.finalTotalPrice),
+                _formatPrice(booking.finalTotalPrice ?? booking.totalPrice),
                 valueColor: Colors.orange,
               ),
             if (booking.transactionId != null) ...[

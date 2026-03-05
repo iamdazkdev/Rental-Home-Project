@@ -230,7 +230,7 @@ class BookingCubit extends Cubit<BookingState> {
 
   /// Handle state transitions based on backend response
   void _handleBookingStateTransition(BookingModel booking) {
-    final status = booking.bookingStatus;
+    final status = booking.statusEnum;
 
     switch (status) {
       case BookingStatus.agreementRequired:
@@ -246,10 +246,10 @@ class BookingCubit extends Cubit<BookingState> {
       case BookingStatus.partiallyPaid:
         emit(BookingPaymentRequired(
           booking: booking,
-          amountDue: booking.remainingAmount > 0
-              ? booking.remainingAmount
+          amountDue: (booking.remainingAmount ?? 0) > 0
+              ? (booking.remainingAmount ?? 0)
               : booking.totalPrice,
-          depositAmount: booking.depositAmount,
+          depositAmount: booking.depositAmount ?? 0,
           availablePaymentTypes: _getAvailablePaymentTypes(booking),
           paymentStatus: status == BookingStatus.partiallyPaid
               ? PaymentStatus.partiallyPaid
@@ -648,7 +648,7 @@ class BookingCubit extends Cubit<BookingState> {
 
   /// Get booking status based on booking model
   BookingStatus _getBookingStatus(BookingModel booking) {
-    return booking.bookingStatus;
+    return booking.statusEnum;
   }
 
   /// Get available actions for a booking based on its status
