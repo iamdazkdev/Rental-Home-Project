@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/auth_provider.dart';
+import '../../config/api_config.dart';
 import '../../config/app_theme.dart';
 import '../../models/booking.dart';
 import '../../services/booking_service.dart';
@@ -205,7 +206,7 @@ class _BookingCard extends StatelessWidget {
               child: CachedNetworkImage(
                 imageUrl: photoUrl.toString().startsWith('http')
                     ? photoUrl
-                    : 'http://localhost:3001/$photoUrl',
+                    : '${ApiConfig.baseUrl}/$photoUrl',
                 height: 150,
                 width: double.infinity,
                 fit: BoxFit.cover,

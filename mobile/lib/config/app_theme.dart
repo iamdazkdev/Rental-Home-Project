@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Static color constants and legacy lightTheme.
+///
+/// NOTE: 27+ screens import `AppTheme.primaryColor` etc. These are light-mode-
+/// only values and will not adapt in dark mode. Prefer using
+/// `Theme.of(context).colorScheme.*` or `Theme.of(context).textTheme.*`
+/// for dark mode compatibility.
+///
+/// The canonical themes used by [MaterialApp] live in [AppThemes].
 class AppTheme {
   // Colors
   static const Color primaryColor = Color(0xFFFF5A5F);
@@ -152,7 +160,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surfaceColor,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: borderColor),
@@ -258,4 +267,3 @@ class AppTheme {
     );
   }
 }
-

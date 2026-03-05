@@ -59,7 +59,8 @@ class _RoomRentalDetailScreenState extends State<RoomRentalDetailScreen> {
                   // Location
                   Row(
                     children: [
-                      const Icon(Icons.location_on, size: 18, color: Colors.grey),
+                      const Icon(Icons.location_on,
+                          size: 18, color: Colors.grey),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -119,9 +120,7 @@ class _RoomRentalDetailScreenState extends State<RoomRentalDetailScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: isOwnListing
-          ? null
-          : _buildBottomBar(user != null),
+      bottomNavigationBar: isOwnListing ? null : _buildBottomBar(user != null),
     );
   }
 
@@ -176,7 +175,7 @@ class _RoomRentalDetailScreenState extends State<RoomRentalDetailScreen> {
                     shape: BoxShape.circle,
                     color: _currentImageIndex == index
                         ? Colors.white
-                        : Colors.white.withOpacity(0.5),
+                        : Colors.white.withValues(alpha: 0.5),
                   ),
                 ),
               ),
@@ -190,7 +189,7 @@ class _RoomRentalDetailScreenState extends State<RoomRentalDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withOpacity(0.1),
+        color: AppTheme.primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -252,7 +251,8 @@ class _RoomRentalDetailScreenState extends State<RoomRentalDetailScreen> {
           children: [
             _buildDetailItem(Icons.bed, '${widget.room.bedCount} Bed'),
             const SizedBox(width: 24),
-            _buildDetailItem(Icons.bathtub, '${widget.room.bathroomCount} Bath'),
+            _buildDetailItem(
+                Icons.bathtub, '${widget.room.bathroomCount} Bath'),
             if (widget.room.roomArea != null) ...[
               const SizedBox(width: 24),
               _buildDetailItem(Icons.square_foot, '${widget.room.roomArea} m²'),
@@ -311,7 +311,7 @@ class _RoomRentalDetailScreenState extends State<RoomRentalDetailScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -321,9 +321,8 @@ class _RoomRentalDetailScreenState extends State<RoomRentalDetailScreen> {
         child: SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _isSubmitting
-                ? null
-                : () => _handleRequestToRent(isLoggedIn),
+            onPressed:
+                _isSubmitting ? null : () => _handleRequestToRent(isLoggedIn),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryColor,
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -424,7 +423,7 @@ class _RoomRentalDetailScreenState extends State<RoomRentalDetailScreen> {
                 const Text('Intended Stay Duration'),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<int>(
-                  value: stayDuration,
+                  initialValue: stayDuration,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -470,7 +469,8 @@ class _RoomRentalDetailScreenState extends State<RoomRentalDetailScreen> {
               onPressed: () {
                 if (moveInDate == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please select a move-in date')),
+                    const SnackBar(
+                        content: Text('Please select a move-in date')),
                   );
                   return;
                 }
@@ -534,4 +534,3 @@ class _RoomRentalDetailScreenState extends State<RoomRentalDetailScreen> {
     }
   }
 }
-

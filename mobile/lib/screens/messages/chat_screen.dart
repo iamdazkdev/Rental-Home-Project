@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import '../../config/api_config.dart';
 import '../../models/message.dart';
@@ -37,7 +37,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isSending = false;
   String? _currentUserId;
   String? _realConversationId; // Track real conversation ID after first message
-  IO.Socket? _socket;
+  io.Socket? _socket;
 
   @override
   void initState() {
@@ -108,9 +108,9 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       debugPrint('🔌 Connecting to Socket.IO...');
 
-      _socket = IO.io(
+      _socket = io.io(
         ApiConfig.baseUrl,
-        IO.OptionBuilder()
+        io.OptionBuilder()
             .setTransports(['websocket'])
             .disableAutoConnect()
             .build(),

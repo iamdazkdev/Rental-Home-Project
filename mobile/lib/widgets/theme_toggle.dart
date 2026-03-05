@@ -32,7 +32,7 @@ class ThemeToggle extends StatelessWidget {
             onChanged: (value) {
               themeProvider.toggleTheme();
             },
-            activeColor: Theme.of(context).primaryColor,
+            activeThumbColor: Theme.of(context).primaryColor,
           ),
         );
       },

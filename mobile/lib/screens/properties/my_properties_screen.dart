@@ -142,7 +142,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
       try {
         final success = await _listingService.deleteListing(listing.id);
 
-        if (success == true && mounted) {
+        if (success['success'] == true && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('✅ Listing deleted successfully'),

@@ -352,7 +352,7 @@ class _RoommatePostCard extends StatelessWidget {
   }
 
   Widget _buildTypeBadge() {
-    final isSeeker = post.postType == 'SEEKER';
+    final isSeeker = post.postType == RoommatePostType.seeker;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(

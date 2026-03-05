@@ -299,7 +299,7 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
   }
 
   Widget _buildTypeBadge() {
-    final isSeeker = _post!.postType == 'SEEKER';
+    final isSeeker = _post!.postType == RoommatePostType.seeker;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(

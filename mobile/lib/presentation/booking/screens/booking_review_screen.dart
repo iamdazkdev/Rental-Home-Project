@@ -41,19 +41,17 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        // Prevent back during payment processing
-        if (_isProcessingPayment) {
+    return PopScope(
+      canPop: !_isProcessingPayment,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _isProcessingPayment) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Please wait, payment is being processed...'),
               backgroundColor: Colors.orange,
             ),
           );
-          return false;
         }
-        return true;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -312,11 +310,13 @@ class _BookingReviewScreenState extends State<BookingReviewScreen> {
         ),
         child: Row(
           children: [
-            Radio<String>(
-              value: value,
-              groupValue: _selectedPaymentMethod,
-              onChanged: (val) => setState(() => _selectedPaymentMethod = val!),
-              activeColor: const Color(0xFF4CAF50),
+            Icon(
+              value == _selectedPaymentMethod
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+              color: value == _selectedPaymentMethod
+                  ? const Color(0xFF4CAF50)
+                  : Colors.grey,
             ),
             Icon(icon, color: const Color(0xFF4CAF50)),
             const SizedBox(width: 8),

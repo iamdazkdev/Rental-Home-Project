@@ -25,7 +25,7 @@ class PaymentProcessingScreen extends StatelessWidget {
                     height: 120,
                     child: CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xFF4CAF50).withOpacity(0.3),
+                        const Color(0xFF4CAF50).withValues(alpha: 0.3),
                       ),
                       strokeWidth: 2,
                     ),
@@ -35,7 +35,7 @@ class PaymentProcessingScreen extends StatelessWidget {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Color(0xFF4CAF50).withOpacity(0.1),
+                      color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -79,7 +79,8 @@ class PaymentProcessingScreen extends StatelessWidget {
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: Color(0xFF4CAF50).withOpacity(0.3 + (index * 0.2)),
+                      color: const Color(0xFF4CAF50)
+                          .withValues(alpha: 0.3 + (index * 0.2)),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -90,10 +91,10 @@ class PaymentProcessingScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 margin: const EdgeInsets.symmetric(horizontal: 40),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Colors.orange.withOpacity(0.3),
+                    color: Colors.orange.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),

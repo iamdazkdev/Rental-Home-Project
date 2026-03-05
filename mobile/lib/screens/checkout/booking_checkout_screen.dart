@@ -36,7 +36,8 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
   final BookingIntentService _bookingIntentService = BookingIntentService();
   final PaymentService _paymentService = PaymentService();
 
-  String _selectedPaymentMethod = 'vnpay_full'; // vnpay_full, vnpay_deposit, cash
+  String _selectedPaymentMethod =
+      'vnpay_full'; // vnpay_full, vnpay_deposit, cash
   bool _isSubmitting = false;
   String? availabilityError;
 
@@ -90,11 +91,12 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
         userId: user.id,
       );
 
-      if (!availabilityResult['available'] && availabilityResult['lockedBy'] != user.id) {
+      if (!availabilityResult['available'] &&
+          availabilityResult['lockedBy'] != user.id) {
         setState(() {
           _isSubmitting = false;
           availabilityError = availabilityResult['message'] ??
-            'This listing is currently being booked by another user. Please try again later.';
+              'This listing is currently being booked by another user. Please try again later.';
         });
         _showLockedDialog(availabilityResult['lockedUntil']);
         return;
@@ -110,7 +112,8 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
 
       if (_selectedPaymentMethod == 'vnpay_deposit') {
         depositPercentage = 30;
-        depositAmount = _paymentService.calculateDepositAmount(widget.totalPrice);
+        depositAmount =
+            _paymentService.calculateDepositAmount(widget.totalPrice);
         paymentAmount = depositAmount;
         remainingAmount = widget.totalPrice - depositAmount;
         paymentType = 'deposit';
@@ -246,7 +249,6 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
         }
         _showErrorDialog(paymentResult['message'] ?? 'Payment creation failed');
       }
-
     } catch (e) {
       setState(() => _isSubmitting = false);
       debugPrint('❌ Error during checkout: $e');
@@ -309,7 +311,8 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.check_circle, color: AppTheme.successColor, size: 28),
+            const Icon(Icons.check_circle,
+                color: AppTheme.successColor, size: 28),
             const SizedBox(width: 12),
             Text(title),
           ],
@@ -417,7 +420,8 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
     );
   }
 
-  Future<void> _handleDemoPaymentSuccess(String bookingId, String? intentId) async {
+  Future<void> _handleDemoPaymentSuccess(
+      String bookingId, String? intentId) async {
     // Show loading
     showDialog(
       context: context,
@@ -455,7 +459,8 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
             ),
           );
         } else {
-          _showErrorDialog(confirmResult['message'] ?? 'Payment confirmation failed');
+          _showErrorDialog(
+              confirmResult['message'] ?? 'Payment confirmation failed');
         }
       } else {
         // Fallback: Simulate processing
@@ -621,9 +626,11 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildDetailRow('Check-in', DateFormatter.formatDate(widget.startDate)),
+            _buildDetailRow(
+                'Check-in', DateFormatter.formatDate(widget.startDate)),
             const SizedBox(height: 8),
-            _buildDetailRow('Check-out', DateFormatter.formatDate(widget.endDate)),
+            _buildDetailRow(
+                'Check-out', DateFormatter.formatDate(widget.endDate)),
             const SizedBox(height: 8),
             _buildDetailRow('Số đêm', '${widget.dayCount} đêm'),
             const SizedBox(height: 8),
@@ -638,7 +645,8 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {bool isHighlight = false}) {
+  Widget _buildDetailRow(String label, String value,
+      {bool isHighlight = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -701,7 +709,8 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: method['color'].withOpacity(0.1),
+                        color:
+                            (method['color'] as Color).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -720,7 +729,8 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: isSelected ? method['color'] : Colors.black,
+                              color:
+                                  isSelected ? method['color'] : Colors.black,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -734,15 +744,13 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
                         ],
                       ),
                     ),
-                    Radio<String>(
-                      value: method['id'],
-                      groupValue: _selectedPaymentMethod,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedPaymentMethod = value!;
-                        });
-                      },
-                      activeColor: method['color'],
+                    Icon(
+                      method['id'] == _selectedPaymentMethod
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
+                      color: method['id'] == _selectedPaymentMethod
+                          ? method['color'] as Color
+                          : Colors.grey,
                     ),
                   ],
                 ),
@@ -756,7 +764,7 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
 
   Widget _buildPriceSummary(double paymentAmount) {
     return Card(
-      color: AppTheme.primaryColor.withAlpha((255*0.05).round()),
+      color: AppTheme.primaryColor.withAlpha((255 * 0.05).round()),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -770,7 +778,6 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
             if (_selectedPaymentMethod == 'vnpay_deposit') ...[
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -786,7 +793,8 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Tiền cọc (30%):', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Tiền cọc (30%):',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                   Text(
                     PriceFormatter.formatPrice(paymentAmount),
                     style: const TextStyle(
@@ -800,9 +808,11 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Còn lại (trả khi nhận phòng):', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                  Text('Còn lại (trả khi nhận phòng):',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                   Text(
-                    PriceFormatter.formatPrice(widget.totalPrice - paymentAmount),
+                    PriceFormatter.formatPrice(
+                        widget.totalPrice - paymentAmount),
                     style: TextStyle(color: Colors.grey[600], fontSize: 13),
                   ),
                 ],
@@ -811,7 +821,8 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Số tiền thanh toán:', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Số tiền thanh toán:',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                   Text(
                     PriceFormatter.formatPrice(paymentAmount),
                     style: const TextStyle(
@@ -871,4 +882,3 @@ class _BookingCheckoutScreenState extends State<BookingCheckoutScreen> {
     );
   }
 }
-

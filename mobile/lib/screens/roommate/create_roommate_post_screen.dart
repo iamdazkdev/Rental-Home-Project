@@ -80,41 +80,6 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
     });
   }
 
-  void _showVerificationRequired() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.verified_user, color: Colors.orange),
-            SizedBox(width: 12),
-            Text('Verification Required'),
-          ],
-        ),
-        content: const Text(
-          'To create a roommate post, you need to verify your identity first. This helps keep our community safe.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, '/identity-verification');
-            },
-            child: const Text('Verify Now'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _submitPost() async {
     if (!_formKey.currentState!.validate()) return;
 
