@@ -29,6 +29,8 @@ import UserList from "./pages/admin/UserList";
 import UserDetail from "./pages/admin/UserDetail";
 import VerificationManagement from "./pages/admin/VerificationManagement";
 import AdminRedirect from "./components/AdminRedirect";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import {SocketProvider} from "./context/SocketContext";
 
 // Identity Verification
@@ -74,6 +76,7 @@ function App() {
             <BrowserRouter basename={basename}>
                 <SocketProvider>
                     <Routes>
+                        {/* ========== PUBLIC ROUTES ========== */}
                         <Route
                             path="/"
                             element={
@@ -84,68 +87,68 @@ function App() {
                         />
                         <Route path="/register" element={<RegisterPage/>}/>
                         <Route path="/login" element={<LoginPage/>}/>
-                        <Route path="/create-listing" element={<CreateListingPage/>}/>
-                        <Route path="/edit-listing/:listingId" element={<CreateListingPage/>}/>
                         <Route path="/reset-password" element={<ResetPasswordPage/>}/>
                         <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
                         <Route path="/listing/:listingId" element={<ListDetailPage/>}/>
-                        <Route path="/booking/checkout" element={<BookingCheckoutPage/>}/>
-                        <Route path="/messages" element={<MessagesPage/>}/>
-                        <Route path="/messages/:conversationId" element={<MessagesPage/>}/>
-                        <Route path="/:userId/trips" element={<TripList/>}/>
-                        <Route path="/:userId/wishlist" element={<WishList/>}/>
-                        <Route path="/reservations" element={<ReservationList/>}/>
-                        <Route path="/booking-history" element={<UserBookingHistory/>}/>
-                        <Route path="/hosting-history" element={<HostBookingHistory/>}/>
-                        <Route path="/properties" element={<PropertyManagement/>}/>
-                        <Route path="/calendar/:listingId" element={<HostCalendar/>}/>
-                        <Route path="/host/:hostId" element={<HostProfile/>}/>
-                        <Route path="/profile/edit" element={<EditProfilePage/>}/>
                         <Route path="/search" element={<SearchPage/>}/>
+                        <Route path="/host/:hostId" element={<HostProfile/>}/>
                         <Route path="/payment/result" element={<PaymentResultPage/>}/>
-                        <Route path="/payment-reminder/:bookingId" element={<PaymentReminderPage/>}/>
-                        <Route path="/payment-reminder-result" element={<PaymentReminderResultPage/>}/>
-
-                        {/* Identity Verification */}
-                        <Route path="/identity-verification" element={<IdentityVerificationPage/>}/>
-
-                        {/* Entire Place Rental Routes */}
-                        <Route path="/entire-place" element={<EntirePlaceSearch/>}/>
-                        <Route path="/booking/review" element={<BookingReview/>}/>
                         <Route path="/payment/callback" element={<PaymentCallback/>}/>
-                        <Route path="/booking/confirmation" element={<BookingConfirmation/>}/>
-
-                        {/* Room Rental Routes (Process 2) */}
+                        <Route path="/entire-place" element={<EntirePlaceSearch/>}/>
                         <Route path="/room-rental" element={<RoomRentalSearch/>}/>
                         <Route path="/room-rental/:roomId" element={<RoomRentalDetail/>}/>
-                        <Route path="/room-rental/apply/:listingId" element={<RoomRentalApplicationPage/>}/>
-                        <Route path="/room-rental/applications" element={<HostApplicationDashboard/>}/>
-                        <Route path="/room-rental/my-applications" element={<TenantApplications/>}/>
-
-                        {/* Room Rental - Tenant Pages */}
-                        <Route path="/room-rental/my-requests" element={<MyRentalRequests/>}/>
-                        <Route path="/room-rental/my-agreements" element={<MyAgreements/>}/>
-                        <Route path="/room-rental/my-rentals" element={<MyRentals/>}/>
-                        <Route path="/room-rental/my-payments" element={<MyPayments/>}/>
-
-                        {/* Room Rental - Host Pages */}
-                        <Route path="/room-rental/my-rooms" element={<MyRooms/>}/>
-                        <Route path="/room-rental/edit/:roomId" element={<EditRoom/>}/>
-                        <Route path="/room-rental/host/requests" element={<HostRequests/>}/>
-                        <Route path="/room-rental/host/agreements" element={<HostAgreements/>}/>
-                        <Route path="/room-rental/host/rentals" element={<HostRentals/>}/>
-                        <Route path="/room-rental/host/payments" element={<HostPayments/>}/>
-
-                        {/* Roommate Matching Routes (Process 3 - NO PAYMENT, NO BOOKING) */}
                         <Route path="/roommate/search" element={<RoommateSearch/>}/>
-                        <Route path="/roommate/create" element={<RoommatePostForm/>}/>
-                        <Route path="/roommate/edit/:postId" element={<RoommatePostForm/>}/>
                         <Route path="/roommate/posts/:postId" element={<RoommatePostDetail/>}/>
-                        <Route path="/roommate/my-posts" element={<MyRoommatePosts/>}/>
-                        <Route path="/roommate/my-requests" element={<MyRoommateRequests/>}/>
 
-                        {/* Admin Routes - New Layout */}
-                        <Route path="/admin" element={<AdminLayout/>}>
+                        {/* ========== PROTECTED ROUTES (login required) ========== */}
+                        <Route path="/create-listing" element={<ProtectedRoute><CreateListingPage/></ProtectedRoute>}/>
+                        <Route path="/edit-listing/:listingId" element={<ProtectedRoute><CreateListingPage/></ProtectedRoute>}/>
+                        <Route path="/booking/checkout" element={<ProtectedRoute><BookingCheckoutPage/></ProtectedRoute>}/>
+                        <Route path="/messages" element={<ProtectedRoute><MessagesPage/></ProtectedRoute>}/>
+                        <Route path="/messages/:conversationId" element={<ProtectedRoute><MessagesPage/></ProtectedRoute>}/>
+                        <Route path="/:userId/trips" element={<ProtectedRoute><TripList/></ProtectedRoute>}/>
+                        <Route path="/:userId/wishlist" element={<ProtectedRoute><WishList/></ProtectedRoute>}/>
+                        <Route path="/reservations" element={<ProtectedRoute><ReservationList/></ProtectedRoute>}/>
+                        <Route path="/booking-history" element={<ProtectedRoute><UserBookingHistory/></ProtectedRoute>}/>
+                        <Route path="/hosting-history" element={<ProtectedRoute><HostBookingHistory/></ProtectedRoute>}/>
+                        <Route path="/properties" element={<ProtectedRoute><PropertyManagement/></ProtectedRoute>}/>
+                        <Route path="/calendar/:listingId" element={<ProtectedRoute><HostCalendar/></ProtectedRoute>}/>
+                        <Route path="/profile/edit" element={<ProtectedRoute><EditProfilePage/></ProtectedRoute>}/>
+                        <Route path="/payment-reminder/:bookingId" element={<ProtectedRoute><PaymentReminderPage/></ProtectedRoute>}/>
+                        <Route path="/payment-reminder-result" element={<ProtectedRoute><PaymentReminderResultPage/></ProtectedRoute>}/>
+
+                        {/* Identity Verification (protected) */}
+                        <Route path="/identity-verification" element={<ProtectedRoute><IdentityVerificationPage/></ProtectedRoute>}/>
+
+                        {/* Entire Place Rental (protected actions) */}
+                        <Route path="/booking/review" element={<ProtectedRoute><BookingReview/></ProtectedRoute>}/>
+                        <Route path="/booking/confirmation" element={<ProtectedRoute><BookingConfirmation/></ProtectedRoute>}/>
+
+                        {/* Room Rental - Tenant Pages (protected) */}
+                        <Route path="/room-rental/apply/:listingId" element={<ProtectedRoute><RoomRentalApplicationPage/></ProtectedRoute>}/>
+                        <Route path="/room-rental/applications" element={<ProtectedRoute><HostApplicationDashboard/></ProtectedRoute>}/>
+                        <Route path="/room-rental/my-applications" element={<ProtectedRoute><TenantApplications/></ProtectedRoute>}/>
+                        <Route path="/room-rental/my-requests" element={<ProtectedRoute><MyRentalRequests/></ProtectedRoute>}/>
+                        <Route path="/room-rental/my-agreements" element={<ProtectedRoute><MyAgreements/></ProtectedRoute>}/>
+                        <Route path="/room-rental/my-rentals" element={<ProtectedRoute><MyRentals/></ProtectedRoute>}/>
+                        <Route path="/room-rental/my-payments" element={<ProtectedRoute><MyPayments/></ProtectedRoute>}/>
+
+                        {/* Room Rental - Host Pages (protected) */}
+                        <Route path="/room-rental/my-rooms" element={<ProtectedRoute><MyRooms/></ProtectedRoute>}/>
+                        <Route path="/room-rental/edit/:roomId" element={<ProtectedRoute><EditRoom/></ProtectedRoute>}/>
+                        <Route path="/room-rental/host/requests" element={<ProtectedRoute><HostRequests/></ProtectedRoute>}/>
+                        <Route path="/room-rental/host/agreements" element={<ProtectedRoute><HostAgreements/></ProtectedRoute>}/>
+                        <Route path="/room-rental/host/rentals" element={<ProtectedRoute><HostRentals/></ProtectedRoute>}/>
+                        <Route path="/room-rental/host/payments" element={<ProtectedRoute><HostPayments/></ProtectedRoute>}/>
+
+                        {/* Roommate Matching (protected actions) */}
+                        <Route path="/roommate/create" element={<ProtectedRoute><RoommatePostForm/></ProtectedRoute>}/>
+                        <Route path="/roommate/edit/:postId" element={<ProtectedRoute><RoommatePostForm/></ProtectedRoute>}/>
+                        <Route path="/roommate/my-posts" element={<ProtectedRoute><MyRoommatePosts/></ProtectedRoute>}/>
+                        <Route path="/roommate/my-requests" element={<ProtectedRoute><MyRoommateRequests/></ProtectedRoute>}/>
+
+                        {/* ========== ADMIN ROUTES (admin role required) ========== */}
+                        <Route path="/admin" element={<AdminRoute><AdminLayout/></AdminRoute>}>
                             <Route index element={<AdminDashboard/>}/>
                             <Route path="dashboard" element={<AdminDashboard/>}/>
                             <Route path="users" element={<UserList/>}/>
@@ -153,8 +156,8 @@ function App() {
                             <Route path="verifications" element={<VerificationManagement/>}/>
                         </Route>
 
-                        {/* Admin Routes - Legacy */}
-                        <Route path="/admin/manage" element={<AdminManagement/>}/>
+                        {/* Admin Routes - Legacy (admin role required) */}
+                        <Route path="/admin/manage" element={<AdminRoute><AdminManagement/></AdminRoute>}/>
                     </Routes>
                 </SocketProvider>
             </BrowserRouter>

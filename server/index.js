@@ -6,7 +6,9 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const http = require("http");
 const {Server} = require("socket.io");
+const rateLimit = require("express-rate-limit");
 const logger = require("./utils/logger");
+const {authenticateToken, isAdmin} = require("./middleware/auth");
 
 // Override console to add timestamps to all logs
 logger.overrideConsole();
@@ -14,10 +16,25 @@ logger.overrideConsole();
 // Create HTTP server
 const server = http.createServer(app);
 
-// Setup Socket.io with CORS
+// CORS Configuration - Whitelist allowed origins
+const allowedOrigins = [
+    process.env.CLIENT_URL || "http://localhost:3000",
+    "http://localhost:3000",
+    "http://localhost:3001",
+    // Add mobile deep link schemes and production URLs here
+].filter(Boolean);
+
+// Setup Socket.io with CORS whitelist
 const io = new Server(server, {
     cors: {
-        origin: "*", // Allow all origins for local development (mobile devices)
+        origin: (origin, callback) => {
+            // Allow requests with no origin (mobile apps, curl, etc.)
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error("Not allowed by CORS"));
+        },
         methods: ["GET", "POST"],
         credentials: true,
     },
@@ -51,13 +68,66 @@ const {upload} = require("./services/cloudinaryService");
 
 // Middleware
 const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE;
-app.use(cors());
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, Postman, etc.)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+}));
 app.use(express.json({limit: MAX_FILE_SIZE}));
 app.use(express.urlencoded({limit: MAX_FILE_SIZE, extended: true}));
 app.use(express.static("public"));
 
-// Upload endpoint for general image uploads
-app.post("/upload", upload.single("image"), async (req, res) => {
+// ============================================
+// Rate Limiting
+// ============================================
+
+// Auth rate limiter: max 10 requests per 15 minutes per IP
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10,
+    message: {
+        success: false,
+        message: "Too many authentication attempts. Please try again after 15 minutes.",
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Payment rate limiter: max 20 requests per 15 minutes per IP
+const paymentLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    message: {
+        success: false,
+        message: "Too many payment requests. Please try again later.",
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// General API rate limiter: max 200 requests per 15 minutes per IP
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 200,
+    message: {
+        success: false,
+        message: "Too many requests. Please try again later.",
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Apply general rate limiter to all API routes
+app.use(apiLimiter);
+
+// Upload endpoint for general image uploads (protected)
+app.post("/upload", authenticateToken, upload.single("image"), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({
@@ -83,7 +153,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     }
 });
 
-// Health check endpoint for Railway
+// Health check endpoint for Railway (public)
 app.get("/health", (req, res) => {
     res.status(200).json({
         status: "OK",
@@ -92,60 +162,78 @@ app.get("/health", (req, res) => {
     });
 });
 
+// ============================================
 // Routes
-app.use("/auth", authRoutes);
+// ============================================
 
-// Admin Routes - using verbose working version
+// --- PUBLIC ROUTES (no auth required) ---
+app.use("/auth", authLimiter, authRoutes);
+app.use("/listing", listingRoutes); // GET is public, POST/PUT/DELETE protected inside route
+app.use("/search", searchRoutes);
+app.use("/host-reviews", hostReviewsRoutes); // Public reviews
+app.use("/static-data", staticDataRoutes);
+// Global templates (public read, admin manages writes)
+app.use("/categories", require("./routes/categories"));
+app.use("/property-types", require("./routes/propertyTypes"));
+app.use("/facilities", require("./routes/facilities"));
+
+// --- SEMI-PUBLIC ROUTES (specific endpoints public, rest protected) ---
+// VNPay callback routes must be public (VNPay server redirects/calls these)
+app.get("/payment/vnpay-return", paymentRoutes);
+app.post("/payment/vnpay-ipn", paymentRoutes);
+
+// --- PROTECTED ROUTES (auth required) ---
+
+// Admin Routes
 try {
     const adminRoutes = require("./routes/admin/index-verbose");
-    app.use("/admin", adminRoutes);
+    app.use("/admin", authenticateToken, isAdmin, adminRoutes);
     logger.success("Admin routes loaded successfully");
 } catch (error) {
     logger.error("Failed to load admin routes:");
     logger.error(error);
 }
 
-app.use("/listing", listingRoutes);
-app.use("/booking", bookingRoutes);
-app.use("/entire-place-booking", entirePlaceBookingRoutes); // New route for Entire Place Rental
-app.use("/room-rental", require("./routes/roomRental")); // Room Rental (Process 2) - Core
-app.use("/room-rental-advanced", require("./routes/roomRentalAdvanced")); // Room Rental (Process 2) - Advanced
-app.use("/roommate", require("./routes/roommate")); // Roommate Matching (Process 3) - NO PAYMENT, NO BOOKING
-app.use("/user", userRoutes);
-app.use("/notifications", notificationRoutes);
-app.use("/reviews", reviewRoutes);
-app.use("/history", bookingHistoryRoutes);
-app.use("/properties", propertyManagementRoutes);
-app.use("/host", hostProfileRoutes);
-app.use("/search", searchRoutes);
-app.use("/host-reviews", hostReviewsRoutes);
-app.use("/messages", messageRoutes);
-app.use("/payment", paymentRoutes);
-app.use("/payment-reminder", paymentReminderRoutes);
-app.use("/payment-history", require("./routes/paymentHistory"));
-app.use("/booking-intent", require("./routes/bookingIntent")); // Booking Intent for concurrent booking
-app.use("/concurrent-booking", require("./routes/concurrentBooking")); // Concurrent Booking Handling
-app.use("/calendar", calendarRoutes); // Host Calendar Management
-app.use("/fcm", fcmRoutes); // Firebase Cloud Messaging for Push Notifications
+// Booking & Payment (protected + rate limited)
+app.use("/booking", authenticateToken, bookingRoutes);
+app.use("/entire-place-booking", authenticateToken, entirePlaceBookingRoutes);
+app.use("/payment", authenticateToken, paymentLimiter, paymentRoutes);
+app.use("/payment-reminder", authenticateToken, paymentReminderRoutes);
+app.use("/payment-history", authenticateToken, require("./routes/paymentHistory"));
+app.use("/booking-intent", authenticateToken, require("./routes/bookingIntent"));
+app.use("/concurrent-booking", authenticateToken, require("./routes/concurrentBooking"));
 
-// Identity verification route - IMPORTANT for Shared Room & Roommate
+// Room Rental (protected)
+app.use("/room-rental", authenticateToken, require("./routes/roomRental"));
+app.use("/room-rental-advanced", authenticateToken, require("./routes/roomRentalAdvanced"));
+
+// Roommate Matching (protected)
+app.use("/roommate", authenticateToken, require("./routes/roommate"));
+
+// User & Profile (protected)
+app.use("/user", authenticateToken, userRoutes);
+app.use("/host", authenticateToken, hostProfileRoutes);
+app.use("/notifications", authenticateToken, notificationRoutes);
+app.use("/reviews", authenticateToken, reviewRoutes);
+app.use("/history", authenticateToken, bookingHistoryRoutes);
+app.use("/properties", authenticateToken, propertyManagementRoutes);
+app.use("/messages", authenticateToken, messageRoutes);
+app.use("/calendar", authenticateToken, calendarRoutes);
+app.use("/fcm", authenticateToken, fcmRoutes);
+
+// Identity verification (protected)
 try {
     const identityVerificationRoutes = require("./routes/identityVerification");
-    app.use("/identity-verification", identityVerificationRoutes);
+    app.use("/identity-verification", authenticateToken, identityVerificationRoutes);
     logger.success("Identity Verification route loaded successfully");
 } catch (error) {
     logger.error("Failed to load Identity Verification route:", error.message);
 }
 
-app.use("/static-data", staticDataRoutes); // Static data API (categories, types, facilities)
-// Global templates (admin manages)
-app.use("/categories", require("./routes/categories"));
-app.use("/property-types", require("./routes/propertyTypes"));
-app.use("/facilities", require("./routes/facilities"));
-// User-specific data (each user manages their own)
-app.use("/user-categories", require("./routes/userCategories"));
-app.use("/user-property-types", require("./routes/userPropertyTypes"));
-app.use("/user-facilities", require("./routes/userFacilities"));
+// User-specific data (protected)
+app.use("/user-categories", authenticateToken, require("./routes/userCategories"));
+app.use("/user-property-types", authenticateToken, require("./routes/userPropertyTypes"));
+app.use("/user-facilities", authenticateToken, require("./routes/userFacilities"));
 
 // 404 handler - must be before global error handler
 app.use((req, res, next) => {
