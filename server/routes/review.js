@@ -2,8 +2,8 @@ const router = require("express").Router();
 const mongoose = require("mongoose");
 const Review = require("../models/Review");
 const Booking = require("../models/Booking");
-const Notification = require("../models/Notification");
 const { HTTP_STATUS } = require("../constants");
+const createNotification = require("../utils/createNotification");
 
 // CREATE REVIEW
 router.post("/", async (req, res) => {
@@ -114,13 +114,13 @@ router.post("/", async (req, res) => {
     const recipientId = isCustomer ? booking.hostId._id : booking.customerId._id;
     const recipientName = isCustomer ? booking.hostId : booking.customerId;
 
-    await createNotification(
-      recipientId,
-      "new_review",
-      booking._id,
-      `${isCustomer ? booking.customerId.firstName : booking.hostId.firstName} has left a review for your ${isCustomer ? 'listing' : 'stay'} at "${booking.listingId.title}"`,
-      isCustomer ? `/reservations` : `/${booking.customerId._id}/trips`
-    );
+    await createNotification({
+      userId: recipientId,
+      type: "new_review",
+      bookingId: booking._id,
+      message: `${isCustomer ? booking.customerId.firstName : booking.hostId.firstName} has left a review for your ${isCustomer ? 'listing' : 'stay'} at "${booking.listingId.title}"`,
+      link: isCustomer ? `/reservations` : `/${booking.customerId._id}/trips`,
+    });
 
     console.log(`✅ Review created: ${savedReview._id} by ${reviewerId}`);
 
@@ -308,22 +308,5 @@ router.delete("/:reviewId", async (req, res) => {
     });
   }
 });
-
-// Helper function to create notification
-const createNotification = async (userId, type, bookingId, message, link = "") => {
-  try {
-    const notification = new Notification({
-      userId,
-      type,
-      bookingId,
-      message,
-      link,
-    });
-    await notification.save();
-    console.log(`✅ Notification created for user ${userId}: ${type}`);
-  } catch (error) {
-    console.error("❌ Error creating notification:", error);
-  }
-};
 
 module.exports = router;

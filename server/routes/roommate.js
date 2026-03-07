@@ -3,29 +3,7 @@ const RoommatePost = require("../models/RoommatePost");
 const RoommateRequest = require("../models/RoommateRequest");
 const RoommateMatch = require("../models/RoommateMatch");
 const User = require("../models/User");
-
-// Helper function to create notifications
-const createNotification = async (userId, type, message, link, roommatePostId = null) => {
-    try {
-        const Notification = require("../models/Notification");
-        const notificationData = {
-            userId,
-            type,
-            message,
-            link,
-        };
-
-        // Add roommatePostId if provided (for Process 3 notifications)
-        if (roommatePostId) {
-            notificationData.roommatePostId = roommatePostId;
-        }
-
-        await Notification.create(notificationData);
-        console.log(`📬 Notification created for user ${userId}`);
-    } catch (error) {
-        console.error("❌ Error creating notification:", error);
-    }
-};
+const createNotification = require("../utils/createNotification");
 
 // ========================================
 // 1. CREATE ROOMMATE POST
@@ -641,13 +619,13 @@ router.post("/requests/send", async (req, res) => {
             .populate("postId", "title postType");
 
         // Send notification
-        await createNotification(
-            post.userId,
-            "roommate_request",
-            `You have a new roommate request for "${post.title}"`,
-            `/roommate/requests/${request._id}`,
-            postId
-        );
+        await createNotification({
+            userId: post.userId,
+            type: "roommate_request",
+            message: `You have a new roommate request for "${post.title}"`,
+            link: `/roommate/requests/${request._id}`,
+            roommatePostId: postId,
+        });
 
         console.log("✅ Roommate request sent:", request._id);
 
@@ -811,13 +789,13 @@ router.patch("/requests/:requestId/accept", async (req, res) => {
         );
 
         // Send notification to sender
-        await createNotification(
-            request.senderId,
-            "roommate_accepted",
-            `Your roommate request has been accepted for "${post.title}"!`,
-            `/roommate/matches/${match._id}`,
-            request.postId._id
-        );
+        await createNotification({
+            userId: request.senderId,
+            type: "roommate_accepted",
+            message: `Your roommate request has been accepted for "${post.title}"!`,
+            link: `/roommate/matches/${match._id}`,
+            roommatePostId: request.postId._id,
+        });
 
         console.log("✅ Request accepted, match created:", match._id);
 
@@ -882,13 +860,13 @@ router.patch("/requests/:requestId/reject", async (req, res) => {
         await request.save();
 
         // Send notification to sender
-        await createNotification(
-            request.senderId,
-            "roommate_rejected",
-            `Your roommate request for "${request.postId.title}" was not accepted`,
-            `/roommate/requests/${request._id}`,
-            request.postId._id
-        );
+        await createNotification({
+            userId: request.senderId,
+            type: "roommate_rejected",
+            message: `Your roommate request for "${request.postId.title}" was not accepted`,
+            link: `/roommate/requests/${request._id}`,
+            roommatePostId: request.postId._id,
+        });
 
         console.log("✅ Request rejected");
 

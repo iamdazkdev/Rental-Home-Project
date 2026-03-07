@@ -1,21 +1,7 @@
 const router = require("express").Router();
 const { RentalAgreement, RentalPayment, RentalStatus } = require("../models/RoomRental");
-const Notification = require("../models/Notification");
 const { canTerminateRental } = require("../services/roomRentalValidation");
-
-// Helper: Create notification
-const createNotification = async (userId, type, message, link) => {
-  try {
-    await Notification.create({
-      userId,
-      type,
-      message,
-      link,
-    });
-  } catch (error) {
-    console.error("Error creating notification:", error);
-  }
-};
+const createNotification = require("../utils/createNotification");
 
 // Helper: Generate monthly rent for next month
 const generateMonthlyRent = (year, month, agreement) => {
@@ -78,12 +64,12 @@ router.post("/monthly-rent/generate", async (req, res) => {
         generatedPayments.push(payment);
 
         // Notify tenant
-        await createNotification(
-          agreement.tenantId,
-          "rent_due",
-          `Monthly rent for ${monthStr} is due on ${new Date(paymentData.dueDate).toLocaleDateString()}`,
-          `/room-rental/payments/${payment._id}`
-        );
+        await createNotification({
+          userId: agreement.tenantId,
+          type: "rent_due",
+          message: `Monthly rent for ${monthStr} is due on ${new Date(paymentData.dueDate).toLocaleDateString()}`,
+          link: `/room-rental/payments/${payment._id}`,
+        });
 
         console.log(`✅ Generated monthly rent for agreement ${agreement._id}, month ${monthStr}`);
       } catch (error) {
@@ -216,12 +202,12 @@ router.post("/termination/request", async (req, res) => {
 
     // Notify the other party
     const otherParty = requestedBy === "tenant" ? agreement.hostId : agreement.tenantId;
-    await createNotification(
-      otherParty,
-      "termination_requested",
-      `${requestedBy === "tenant" ? "Tenant" : "Host"} has requested to terminate the rental. Expected move-out: ${expectedMoveOutDate.toLocaleDateString()}`,
-      `/room-rental/status/${rentalStatus._id}`
-    );
+    await createNotification({
+      userId: otherParty,
+      type: "termination_requested",
+      message: `${requestedBy === "tenant" ? "Tenant" : "Host"} has requested to terminate the rental. Expected move-out: ${expectedMoveOutDate.toLocaleDateString()}`,
+      link: `/room-rental/status/${rentalStatus._id}`,
+    });
 
     res.status(200).json({
       success: true,
@@ -297,12 +283,12 @@ router.put("/move-out/:statusId/confirm", async (req, res) => {
     console.log("✅ Rental completed and terminated");
 
     // Notify tenant
-    await createNotification(
-      rentalStatus.tenantId,
-      "rental_completed",
-      `Move-out confirmed. Rental completed. ${depositRefundAmount ? `Deposit refund: ${depositRefundAmount}` : ""}`,
-      `/room-rental/status/${rentalStatus._id}`
-    );
+    await createNotification({
+      userId: rentalStatus.tenantId,
+      type: "rental_completed",
+      message: `Move-out confirmed. Rental completed. ${depositRefundAmount ? `Deposit refund: ${depositRefundAmount}` : ""}`,
+      link: `/room-rental/status/${rentalStatus._id}`,
+    });
 
     res.status(200).json({
       success: true,

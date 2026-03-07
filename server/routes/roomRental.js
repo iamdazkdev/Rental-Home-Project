@@ -1,8 +1,8 @@
 const router = require("express").Router();
+const mongoose = require("mongoose");
 const {RentalRequest, RentalAgreement, RentalPayment, RentalStatus} = require("../models/RoomRental");
 const Listing = require("../models/Listing");
 const User = require("../models/User");
-const Notification = require("../models/Notification");
 const {upload} = require("../services/cloudinaryService");
 const {
     validateRentalRequest,
@@ -11,65 +11,14 @@ const {
     canTerminateRental,
     isRoomAvailable,
 } = require("../services/roomRentalValidation");
+const createNotification = require("../utils/createNotification");
 
 // Helper: Validate ObjectId
 const isValidObjectId = (id) => {
     if (!id || id === 'undefined' || id === 'null') {
         return false;
     }
-    return /^[0-9a-fA-F]{24}$/.test(id);
-};
-
-// Helper: Create notification for Room Rental
-const createNotification = async (userId, type, message, link, rentalRequestId = null) => {
-    try {
-        // Validate notification type for Room Rental
-        const validRentalTypes = [
-            "rental_request",
-            "rental_accepted",
-            "rental_approved",
-            "rental_rejected",
-            "rental_cancelled",
-            "rental_agreement_created",
-            "rental_agreement_signed",
-            "rental_agreement_confirmed",
-            "rental_agreement_active",
-            "rental_agreement_tenant_accepted",
-            "rental_move_in",
-            "rental_move_in_confirmed",
-            "rental_move_out",
-            "rental_payment_due",
-            "rental_payment_received",
-            "rental_payment_confirmed",
-            "rental_terminated",
-            "rental_termination_request",
-            "system_notification"
-        ];
-
-        if (!validRentalTypes.includes(type)) {
-            console.warn(`⚠️ Invalid notification type for Room Rental: ${type}`);
-            return;
-        }
-
-        const notificationData = {
-            userId,
-            type,
-            message,
-            link: link || "",
-        };
-
-        // Add rentalRequestId if provided (for Room Rental notifications)
-        if (rentalRequestId) {
-            notificationData.rentalRequestId = rentalRequestId;
-        }
-
-        const notification = await Notification.create(notificationData);
-        console.log(`✅ Notification created for user ${userId}, type: ${type}, id: ${notification._id}`);
-    } catch (error) {
-        console.error("❌ Error creating Room Rental notification:", error.message);
-        // Log more details for debugging
-        console.error("Notification data attempted:", {userId, type, message, link, rentalRequestId});
-    }
+    return mongoose.isValidObjectId(id);
 };
 
 // ============================================

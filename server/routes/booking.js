@@ -6,23 +6,8 @@ const User = require("../models/User");
 const Listing = require("../models/Listing");
 const Review = require("../models/Review");
 const { HTTP_STATUS } = require("../constants");
-
-// Helper function to create notification
-const createNotification = async (userId, type, bookingId, message, link = "") => {
-  try {
-    const notification = new Notification({
-      userId,
-      type,
-      bookingId,
-      message,
-      link,
-    });
-    await notification.save();
-    console.log(`✅ Notification created for user ${userId}: ${type}`);
-  } catch (error) {
-    console.error("❌ Error creating notification:", error);
-  }
-};
+const createNotification = require("../utils/createNotification");
+const apiResponse = require("../utils/apiResponse");
 
 // Helper function to calculate extension price (30% of daily rate)
 const calculateExtensionPrice = (listingPrice, additionalDays) => {
@@ -91,13 +76,13 @@ router.post("/create", async (req, res) => {
     const savedBooking = await newBooking.save();
 
     // Create notification for host
-    await createNotification(
-      hostId,
-      "booking_request",
-      savedBooking._id,
-      `${customer.firstName} ${customer.lastName} has requested to book "${listing.title}" from ${startDate} to ${endDate}`,
-      `/reservations`
-    );
+    await createNotification({
+      userId: hostId,
+      type: "booking_request",
+      bookingId: savedBooking._id,
+      message: `${customer.firstName} ${customer.lastName} has requested to book "${listing.title}" from ${startDate} to ${endDate}`,
+      link: `/reservations`,
+    });
 
     console.log(`✅ Booking created: ${savedBooking._id} - Status: pending`);
 
@@ -160,13 +145,13 @@ router.patch("/:bookingId/accept", async (req, res) => {
     await booking.save();
 
     // Create notification for customer
-    await createNotification(
-      booking.customerId._id,
-      "booking_accepted",
-      booking._id,
-      `Your booking request for "${booking.listingId.title}" has been accepted! 🎉`,
-      `/${booking.customerId._id}/trips`
-    );
+    await createNotification({
+      userId: booking.customerId._id,
+      type: "booking_accepted",
+      bookingId: booking._id,
+      message: `Your booking request for "${booking.listingId.title}" has been accepted! 🎉`,
+      link: `/${booking.customerId._id}/trips`,
+    });
 
     console.log(`✅ Booking ${bookingId} accepted`);
 
@@ -211,13 +196,13 @@ router.patch("/:bookingId/reject", async (req, res) => {
     await booking.save();
 
     // Create notification for customer
-    await createNotification(
-      booking.customerId._id,
-      "booking_rejected",
-      booking._id,
-      `Your booking request for "${booking.listingId.title}" has been rejected. Reason: ${booking.rejectionReason}`,
-      `/${booking.customerId._id}/trips`
-    );
+    await createNotification({
+      userId: booking.customerId._id,
+      type: "booking_rejected",
+      bookingId: booking._id,
+      message: `Your booking request for "${booking.listingId.title}" has been rejected. Reason: ${booking.rejectionReason}`,
+      link: `/${booking.customerId._id}/trips`,
+    });
 
     console.log(`✅ Booking ${bookingId} rejected`);
 
@@ -263,13 +248,13 @@ router.patch("/:bookingId/checkout", async (req, res) => {
     await booking.save();
 
     // Create notification for customer
-    await createNotification(
-      booking.customerId._id,
-      "booking_checked_out",
-      booking._id,
-      `You have successfully checked out from "${booking.listingId.title}". Please leave a review!`,
-      `/${booking.customerId._id}/trips`
-    );
+    await createNotification({
+      userId: booking.customerId._id,
+      type: "booking_checked_out",
+      bookingId: booking._id,
+      message: `You have successfully checked out from "${booking.listingId.title}". Please leave a review!`,
+      link: `/${booking.customerId._id}/trips`,
+    });
 
     console.log(`✅ Booking ${bookingId} checked out`);
 
@@ -334,13 +319,13 @@ router.post("/:bookingId/extension", async (req, res) => {
 
     // Create notification for host
     const customer = await User.findById(booking.customerId);
-    await createNotification(
-      booking.hostId,
-      "extension_request",
-      booking._id,
-      `${customer.firstName} ${customer.lastName} has requested to extend their stay by ${additionalDays} days (+$${additionalPrice})`,
-      `/reservations`
-    );
+    await createNotification({
+      userId: booking.hostId,
+      type: "extension_request",
+      bookingId: booking._id,
+      message: `${customer.firstName} ${customer.lastName} has requested to extend their stay by ${additionalDays} days (+$${additionalPrice})`,
+      link: `/reservations`,
+    });
 
     console.log(`✅ Extension request created for booking ${bookingId}`);
 
@@ -396,13 +381,13 @@ router.patch("/:bookingId/extension/:extensionIndex/approve", async (req, res) =
     await booking.save();
 
     // Create notification for customer
-    await createNotification(
-      booking.customerId._id,
-      "extension_approved",
-      booking._id,
-      `Your extension request for "${booking.listingId.title}" has been approved! New checkout: ${extension.requestedEndDate}`,
-      `/${booking.customerId._id}/trips`
-    );
+    await createNotification({
+      userId: booking.customerId._id,
+      type: "extension_approved",
+      bookingId: booking._id,
+      message: `Your extension request for "${booking.listingId.title}" has been approved! New checkout: ${extension.requestedEndDate}`,
+      link: `/${booking.customerId._id}/trips`,
+    });
 
     console.log(`✅ Extension approved for booking ${bookingId}`);
 
@@ -456,13 +441,13 @@ router.patch("/:bookingId/extension/:extensionIndex/reject", async (req, res) =>
     await booking.save();
 
     // Create notification for customer
-    await createNotification(
-      booking.customerId._id,
-      "extension_rejected",
-      booking._id,
-      `Your extension request for "${booking.listingId.title}" has been rejected. Reason: ${extension.rejectionReason}`,
-      `/${booking.customerId._id}/trips`
-    );
+    await createNotification({
+      userId: booking.customerId._id,
+      type: "extension_rejected",
+      bookingId: booking._id,
+      message: `Your extension request for "${booking.listingId.title}" has been rejected. Reason: ${extension.rejectionReason}`,
+      link: `/${booking.customerId._id}/trips`,
+    });
 
     console.log(`✅ Extension rejected for booking ${bookingId}`);
 
@@ -516,13 +501,13 @@ router.patch("/:bookingId/cancel", async (req, res) => {
     await booking.save();
 
     // Create notification for host
-    await createNotification(
-      booking.hostId._id,
-      "booking_cancelled",
-      booking._id,
-      `${booking.customerId.firstName} ${booking.customerId.lastName} has cancelled their booking request for "${booking.listingId.title}"`,
-      `/reservations`
-    );
+    await createNotification({
+      userId: booking.hostId._id,
+      type: "booking_cancelled",
+      bookingId: booking._id,
+      message: `${booking.customerId.firstName} ${booking.customerId.lastName} has cancelled their booking request for "${booking.listingId.title}"`,
+      link: `/reservations`,
+    });
 
     console.log(`✅ Booking ${bookingId} cancelled by guest ${customerId}`);
 
