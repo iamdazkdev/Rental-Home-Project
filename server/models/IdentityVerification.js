@@ -57,7 +57,6 @@ const IdentityVerificationSchema = new mongoose.Schema(
 );
 
 // Index for faster queries
-IdentityVerificationSchema.index({ userId: 1 });
 IdentityVerificationSchema.index({ status: 1 });
 
 const IdentityVerification = mongoose.model(

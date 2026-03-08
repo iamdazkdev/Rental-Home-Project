@@ -1,183 +1,44 @@
-require('dotenv').config();
+require("dotenv").config();
 
-const express = require("express");
-const app = express();
-const mongoose = require("mongoose");
-const cors = require("cors");
 const http = require("http");
-const {Server} = require("socket.io");
+const mongoose = require("mongoose");
+const { Server } = require("socket.io");
 const logger = require("./utils/logger");
 
-// Override console to add timestamps to all logs
-logger.overrideConsole();
+// Import the configured Express app
+const app = require("./app");
 
 // Create HTTP server
 const server = http.createServer(app);
 
-// Setup Socket.io with CORS
+// ============================================
+// SOCKET.IO SETUP
+// ============================================
+const allowedOrigins = [
+    process.env.CLIENT_URL,
+    "http://localhost:3000",
+    "http://localhost:3001",
+].filter(Boolean);
+
 const io = new Server(server, {
     cors: {
-        origin: "*", // Allow all origins for local development (mobile devices)
+        origin: (origin, callback) => {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error(`CORS: origin ${origin} not allowed`));
+        },
         methods: ["GET", "POST"],
         credentials: true,
     },
 });
 
-// Import routes
-const authRoutes = require("./routes/auth.js");
-const listingRoutes = require("./routes/listing.js");
-const bookingRoutes = require("./routes/booking.js");
-const entirePlaceBookingRoutes = require("./routes/entirePlaceBooking.js");
-const userRoutes = require("./routes/user.js");
-const notificationRoutes = require("./routes/notification.js");
-const reviewRoutes = require("./routes/review.js");
-const bookingHistoryRoutes = require("./routes/bookingHistory.js");
-const propertyManagementRoutes = require("./routes/propertyManagement.js");
-const hostProfileRoutes = require("./routes/hostProfile.js");
-const searchRoutes = require("./routes/search.js");
-const hostReviewsRoutes = require("./routes/hostReviews.js");
-const messageRoutes = require("./routes/messages.js");
-const paymentRoutes = require("./routes/payment.js");
-const paymentReminderRoutes = require("./routes/paymentReminder.js");
-const staticDataRoutes = require("./routes/staticData.js");
-const calendarRoutes = require("./routes/calendar.js");
-const fcmRoutes = require("./routes/fcm.js");
-
-// Import services
-const {startPaymentReminderScheduler} = require("./services/paymentReminderService");
-const {startMonthlyRentScheduler} = require("./services/monthlyRentScheduler");
-const {startLockCleanupJob} = require("./services/lockCleanupService");
-const {upload} = require("./services/cloudinaryService");
-
-// Middleware
-const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE;
-app.use(cors());
-app.use(express.json({limit: MAX_FILE_SIZE}));
-app.use(express.urlencoded({limit: MAX_FILE_SIZE, extended: true}));
-app.use(express.static("public"));
-
-// Upload endpoint for general image uploads
-app.post("/upload", upload.single("image"), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                message: "No file uploaded",
-            });
-        }
-
-        logger.upload("Image uploaded to Cloudinary:", req.file.path);
-
-        res.status(200).json({
-            success: true,
-            message: "Image uploaded successfully",
-            imageUrl: req.file.path,
-        });
-    } catch (error) {
-        logger.error("Error uploading image:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to upload image",
-            error: error.message,
-        });
-    }
-});
-
-// Health check endpoint for Railway
-app.get("/health", (req, res) => {
-    res.status(200).json({
-        status: "OK",
-        message: "Rento Server is running",
-        timestamp: new Date().toISOString(),
-    });
-});
-
-// Routes
-app.use("/auth", authRoutes);
-
-// Admin Routes - using verbose working version
-try {
-    const adminRoutes = require("./routes/admin/index-verbose");
-    app.use("/admin", adminRoutes);
-    logger.success("Admin routes loaded successfully");
-} catch (error) {
-    logger.error("Failed to load admin routes:");
-    logger.error(error);
-}
-
-app.use("/listing", listingRoutes);
-app.use("/booking", bookingRoutes);
-app.use("/entire-place-booking", entirePlaceBookingRoutes); // New route for Entire Place Rental
-app.use("/room-rental", require("./routes/roomRental")); // Room Rental (Process 2) - Core
-app.use("/room-rental-advanced", require("./routes/roomRentalAdvanced")); // Room Rental (Process 2) - Advanced
-app.use("/roommate", require("./routes/roommate")); // Roommate Matching (Process 3) - NO PAYMENT, NO BOOKING
-app.use("/user", userRoutes);
-app.use("/notifications", notificationRoutes);
-app.use("/reviews", reviewRoutes);
-app.use("/history", bookingHistoryRoutes);
-app.use("/properties", propertyManagementRoutes);
-app.use("/host", hostProfileRoutes);
-app.use("/search", searchRoutes);
-app.use("/host-reviews", hostReviewsRoutes);
-app.use("/messages", messageRoutes);
-app.use("/payment", paymentRoutes);
-app.use("/payment-reminder", paymentReminderRoutes);
-app.use("/payment-history", require("./routes/paymentHistory"));
-app.use("/booking-intent", require("./routes/bookingIntent")); // Booking Intent for concurrent booking
-app.use("/concurrent-booking", require("./routes/concurrentBooking")); // Concurrent Booking Handling
-app.use("/calendar", calendarRoutes); // Host Calendar Management
-app.use("/fcm", fcmRoutes); // Firebase Cloud Messaging for Push Notifications
-
-// Identity verification route - IMPORTANT for Shared Room & Roommate
-try {
-    const identityVerificationRoutes = require("./routes/identityVerification");
-    app.use("/identity-verification", identityVerificationRoutes);
-    logger.success("Identity Verification route loaded successfully");
-} catch (error) {
-    logger.error("Failed to load Identity Verification route:", error.message);
-}
-
-app.use("/static-data", staticDataRoutes); // Static data API (categories, types, facilities)
-// Global templates (admin manages)
-app.use("/categories", require("./routes/categories"));
-app.use("/property-types", require("./routes/propertyTypes"));
-app.use("/facilities", require("./routes/facilities"));
-// User-specific data (each user manages their own)
-app.use("/user-categories", require("./routes/userCategories"));
-app.use("/user-property-types", require("./routes/userPropertyTypes"));
-app.use("/user-facilities", require("./routes/userFacilities"));
-
-// 404 handler - must be before global error handler
-app.use((req, res, next) => {
-    res.status(404).json({
-        success: false,
-        message: `Cannot ${req.method} ${req.url}`,
-        error: "Route not found",
-    });
-});
-
-// Global error handler - must be after all routes
-app.use((err, req, res, next) => {
-    logger.error("Global error handler:", err);
-
-    // Ensure we always return JSON, not HTML
-    res.status(err.status || 500).json({
-        success: false,
-        message: err.message || "Internal Server Error",
-        error: process.env.NODE_ENV === "development" ? {
-            stack: err.stack,
-            name: err.name,
-        } : undefined,
-    });
-});
-
 // Make io available to routes
 app.set("io", io);
 
-// Socket.io connection handling
-const onlineUsers = new Map(); // userId -> socketId
-
-// Make onlineUsers accessible from io instance
+// Online users tracking
+const onlineUsers = new Map();
 io.onlineUsers = onlineUsers;
 
 io.on("connection", (socket) => {
@@ -188,7 +49,6 @@ io.on("connection", (socket) => {
         onlineUsers.set(userId, socket.id);
         logger.socket(`User ${userId} is online (${socket.id})`);
 
-        // Broadcast to all users that this user is online
         socket.broadcast.emit("user_status_change", {
             userId,
             status: "online",
@@ -197,10 +57,9 @@ io.on("connection", (socket) => {
 
     // Send message
     socket.on("send_message", async (data) => {
-        const {receiverId, message} = data;
+        const { receiverId, message } = data;
         logger.message("Message from", data.senderId, "to", receiverId);
 
-        // Send to receiver if online
         const receiverSocketId = onlineUsers.get(receiverId);
         if (receiverSocketId) {
             io.to(receiverSocketId).emit("receive_message", message);
@@ -212,7 +71,7 @@ io.on("connection", (socket) => {
     });
 
     // Typing indicator
-    socket.on("typing", ({receiverId, isTyping, conversationId}) => {
+    socket.on("typing", ({ receiverId, isTyping, conversationId }) => {
         const receiverSocketId = onlineUsers.get(receiverId);
         if (receiverSocketId) {
             io.to(receiverSocketId).emit("user_typing", {
@@ -226,17 +85,13 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         logger.socket("User disconnected:", socket.id);
 
-        // Find and remove user from online users
         for (const [userId, socketId] of onlineUsers.entries()) {
             if (socketId === socket.id) {
                 onlineUsers.delete(userId);
-
-                // Broadcast to all users that this user is offline
                 socket.broadcast.emit("user_status_change", {
                     userId,
                     status: "offline",
                 });
-
                 logger.socket(`User ${userId} went offline`);
                 break;
             }
@@ -244,45 +99,43 @@ io.on("connection", (socket) => {
     });
 });
 
-// ENV VARIABLES
-const PORT = process.env.PORT;
+// ============================================
+// DATABASE + SERVER START
+// ============================================
+const PORT = process.env.PORT || 3001;
 const DB_NAME = process.env.DB_NAME;
+const HOST = process.env.HOST || "0.0.0.0";
 
-//MONGODB CONNECTION
 mongoose
-    .connect(process.env.MONGO_URL, {dbName: DB_NAME})
+    .connect(process.env.MONGO_URL, { dbName: DB_NAME })
     .then(() => {
-        const HOST = process.env.HOST || "0.0.0.0";
         server.listen(PORT, HOST, () => {
             logger.success(`Server running on http://${HOST}:${PORT}`);
             logger.socket("Socket.io enabled for real-time chat");
 
-            // Initialize FCM (Firebase Cloud Messaging)
+            // Initialize FCM
             try {
-                const fcmService = require('./services/fcmService');
-
-                // Try to load service account JSON file (local development)
+                const fcmService = require("./services/fcmService");
                 let serviceAccount = null;
                 try {
-                    serviceAccount = require('./config/firebase-service-account.json');
-                    logger.info('Service account JSON file found');
+                    serviceAccount = require("./config/firebase-service-account.json");
+                    logger.info("Service account JSON file found");
                 } catch (err) {
-                    logger.info('No service account JSON file (will use env vars if available)');
+                    logger.info("No service account JSON file (will use env vars if available)");
                 }
-
                 fcmService.initialize(serviceAccount);
             } catch (error) {
-                logger.warn('⚠️ FCM initialization failed:', error.message);
-                logger.warn('   Push notifications will not work');
+                logger.warn("⚠️ FCM initialization failed:", error.message);
+                logger.warn("   Push notifications will not work");
             }
 
-            // Start payment reminder scheduler
+            // Start schedulers
+            const { startPaymentReminderScheduler } = require("./services/paymentReminderService");
+            const { startMonthlyRentScheduler } = require("./services/monthlyRentScheduler");
+            const { startLockCleanupJob } = require("./services/lockCleanupService");
+
             startPaymentReminderScheduler();
-
-            // Start monthly rent scheduler (for Room Rental)
             startMonthlyRentScheduler();
-
-            // Start booking lock cleanup job (for Concurrent Booking Handling)
             startLockCleanupJob();
         });
     })

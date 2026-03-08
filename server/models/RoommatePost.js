@@ -6,7 +6,6 @@ const RoommatePostSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     postType: {
       type: String,
@@ -116,7 +115,6 @@ const RoommatePostSchema = new mongoose.Schema(
       type: String,
       enum: ["ACTIVE", "MATCHED", "CLOSED"],
       default: "ACTIVE",
-      index: true,
     },
     // Match info
     matchedWith: {

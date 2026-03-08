@@ -301,7 +301,6 @@ RentalPaymentSchema.index({ agreementId: 1, status: 1 });
 RentalPaymentSchema.index({ tenantId: 1, dueDate: 1 });
 
 RentalStatusSchema.index({ roomId: 1, status: 1 });
-RentalStatusSchema.index({ agreementId: 1 });
 
 const RentalRequest = mongoose.model("RentalRequest", RentalRequestSchema);
 const RentalAgreement = mongoose.model("RentalAgreement", RentalAgreementSchema);

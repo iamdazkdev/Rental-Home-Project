@@ -6,7 +6,6 @@ const RoommateMatchSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "RoommatePost",
       required: true,
-      index: true,
     },
     userAId: {
       type: mongoose.Schema.Types.ObjectId,
