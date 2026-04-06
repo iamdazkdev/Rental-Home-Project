@@ -124,8 +124,10 @@ ios/Runner/GeneratedPluginRegistrant.*
 .vscode/.server-controller-port.log
 .vscode/server-controller-port.log
 
-# Documentation files (except README.md)
+# Documentation files (except README.md and docs/)
 *.md
 !README.md
+!docs/*.md
+!docs/**/*.md
 
 server/config/firebase-service-account.json
