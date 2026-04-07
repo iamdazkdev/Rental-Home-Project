@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState, useRef} from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import {CheckCircle, Loader, XCircle} from 'lucide-react';
 import API_BASE_URL from '../../config/api';
@@ -11,6 +11,15 @@ const PaymentCallback = () => {
     const [status, setStatus] = useState('processing'); // processing, success, failed
     const [booking, setBooking] = useState(null);
     const [error, setError] = useState('');
+    const timeoutRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     const handlePaymentReturn = useCallback(async () => {
         try {
@@ -60,7 +69,7 @@ const PaymentCallback = () => {
             setStatus('success');
 
             // Redirect to confirmation page after 2 seconds
-            setTimeout(() => {
+            timeoutRef.current = setTimeout(() => {
                 navigate('/booking/confirmation', {
                     state: {
                         booking: bookingData,

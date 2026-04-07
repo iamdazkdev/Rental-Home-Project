@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useSocket } from "../../context/SocketContext";
+import useAuthStore from "../../stores/useAuthStore";
+import useMessagesWebsocket from "./hooks/useMessagesWebsocket";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Loader from "../../components/Loader";
@@ -12,8 +14,13 @@ const MessagesPage = () => {
   const { conversationId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const user = useSelector((state) => state.user);
+
+  // Try Zustand first, fallback to Redux for dual-support
+  const zustandUser = useAuthStore((state) => state.user);
+  const reduxUser = useSelector((state) => state.user);
+  const user = zustandUser || reduxUser;
   const userId = user?._id || user?.id;
+
   const { socket, isUserOnline } = useSocket();
 
   const [conversations, setConversations] = useState([]);
@@ -22,10 +29,8 @@ const MessagesPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
   const [showConversationsList, setShowConversationsList] = useState(true);
   const messagesEndRef = useRef(null);
-  const typingTimeoutRef = useRef(null);
   const messageInputRef = useRef(null);
 
   // Get data from Contact Host button
@@ -183,41 +188,7 @@ const MessagesPage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Socket listeners
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("receive_message", (message) => {
-      console.log("📨 Received message:", message);
-
-      if (message.conversationId === selectedConversation?.conversationId) {
-        setMessages((prev) => [...prev, message]);
-      }
-
-      // Update conversation list
-      fetchConversations();
-    });
-
-    socket.on("user_typing", ({ conversationId: typingConvId, isTyping: typing }) => {
-      if (typingConvId === selectedConversation?.conversationId) {
-        setIsTyping(typing);
-      }
-    });
-
-    socket.on("new_message_notification", ({ senderId, conversationId: notifConvId }) => {
-      // Update unread count
-      fetchConversations();
-    });
-
-    return () => {
-      socket.off("receive_message");
-      socket.off("user_typing");
-      socket.off("new_message_notification");
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, selectedConversation]);
-
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     if (!userId) {
       console.warn("⚠️ Cannot fetch conversations: userId is undefined");
       setLoading(false);
@@ -243,7 +214,15 @@ const MessagesPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  // Use the custom hook for WebSockets
+  const { isTyping, handleTypingEvent } = useMessagesWebsocket(
+    socket,
+    selectedConversation,
+    setMessages,
+    fetchConversations
+  );
 
   const fetchMessages = async (convId) => {
     if (!userId) {
@@ -356,29 +335,12 @@ const MessagesPage = () => {
 
   const handleTyping = (e) => {
     setNewMessage(e.target.value);
-
     if (!socket || !selectedConversation) return;
 
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    // Emit typing start
-    socket.emit("typing", {
-      receiverId: selectedConversation.otherUser._id,
-      isTyping: true,
-      conversationId: selectedConversation.conversationId,
-    });
-
-    // Emit typing stop after 1 second
-    typingTimeoutRef.current = setTimeout(() => {
-      socket.emit("typing", {
-        receiverId: selectedConversation.otherUser._id,
-        isTyping: false,
-        conversationId: selectedConversation.conversationId,
-      });
-    }, 1000);
+    handleTypingEvent(
+      selectedConversation.otherUser._id,
+      selectedConversation.conversationId
+    );
   };
 
   const formatTime = (dateString) => {

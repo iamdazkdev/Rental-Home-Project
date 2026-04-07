@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "../../styles/Register.scss";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setLogin } from "../../redux/state";
+import { setLogin as setReduxLogin } from "../../redux/state";
+import useAuthStore from "../../stores/useAuthStore";
 import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 
 const RegisterPage = () => {
@@ -46,6 +47,16 @@ const RegisterPage = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const setZustandLogin = useAuthStore((state) => state.setLogin);
+
+  const timeoutRef = useRef(null);
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -91,20 +102,21 @@ const RegisterPage = () => {
           if (loginResponse.ok) {
             // Login successful - dispatch to Redux and redirect to home
             dispatch(
-              setLogin({
+              setReduxLogin({
                 user: loginData.user,
                 token: loginData.token,
               })
             );
+            setZustandLogin(loginData.user, loginData.token);
 
             // Redirect to home page
-            setTimeout(() => {
+            timeoutRef.current = setTimeout(() => {
               navigate("/");
             }, 500);
           } else {
             // Login failed after registration - redirect to login page
             setSuccess("Account created! Please login to continue.");
-            setTimeout(() => {
+            timeoutRef.current = setTimeout(() => {
               navigate("/login");
             }, 1500);
           }
@@ -112,7 +124,7 @@ const RegisterPage = () => {
           console.error("Auto-login error:", loginError);
           // If auto-login fails, redirect to login page
           setSuccess("Account created! Please login to continue.");
-          setTimeout(() => {
+          timeoutRef.current = setTimeout(() => {
             navigate("/login");
           }, 1500);
         }
