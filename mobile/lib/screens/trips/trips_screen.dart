@@ -1,35 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../providers/auth_provider.dart';
+
 import '../../config/app_theme.dart';
-import '../../models/booking.dart';
-import '../../services/booking_service.dart';
+import '../../features/booking/domain/entities/booking_entity.dart';
+import '../../features/booking/presentation/cubit/booking_cubit.dart';
+import '../../features/booking/presentation/cubit/booking_state.dart';
 import '../../utils/date_formatter.dart';
 import '../../utils/price_formatter.dart';
-import '../checkout/checkout_screen.dart';
-import '../../widgets/cancel_booking_bottom_sheet.dart';
 
-class TripsScreen extends StatefulWidget {
+class TripsScreen extends StatelessWidget {
   const TripsScreen({super.key});
 
   @override
-  State<TripsScreen> createState() => _TripsScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => GetIt.I<BookingCubit>()..loadUserBookings(),
+      child: const _TripsView(),
+    );
+  }
 }
 
-class _TripsScreenState extends State<TripsScreen>
-    with SingleTickerProviderStateMixin {
-  final BookingService _bookingService = BookingService();
-  late TabController _tabController;
+class _TripsView extends StatefulWidget {
+  const _TripsView();
 
-  List<Booking> _trips = [];
-  bool _isLoading = true;
+  @override
+  State<_TripsView> createState() => _TripsViewState();
+}
+
+class _TripsViewState extends State<_TripsView>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadTrips();
   }
 
   @override
@@ -38,59 +45,24 @@ class _TripsScreenState extends State<TripsScreen>
     super.dispose();
   }
 
-  Future<void> _loadTrips() async {
-    final user = context.read<AuthProvider>().user;
-    if (user == null) return;
-
-    setState(() => _isLoading = true);
-
-    final trips = await _bookingService.getUserTrips(user.id);
-
-    debugPrint('🎯 Loaded ${trips.length} trips');
-    for (var i = 0; i < trips.length; i++) {
-      final trip = trips[i];
-      debugPrint(
-          '  Trip $i: status=${trip.status}, start=${trip.startDate}, end=${trip.endDate}');
-    }
-
-    setState(() {
-      _trips = trips;
-      _isLoading = false;
-    });
-
-    debugPrint(
-        '📊 Filtered: ${_upcomingTrips.length} upcoming, ${_pastTrips.length} past');
-  }
-
-  List<Booking> get _upcomingTrips {
+  List<BookingEntity> _upcomingTrips(List<BookingEntity> trips) {
     final now = DateTime.now();
-    return _trips.where((trip) {
-      // Show pending, approved bookings that haven't ended yet
-      final isActiveFutureBooking =
-          (trip.isPending || trip.isApproved || trip.isCheckedIn) &&
-              trip.endDate.isAfter(now);
-
-      debugPrint(
-          '  Upcoming check: ${trip.effectiveStatus}, ends ${trip.endDate}, now $now, include: $isActiveFutureBooking');
-      return isActiveFutureBooking;
+    return trips.where((trip) {
+      return (trip.isPending || trip.isApproved || trip.isCheckedIn) &&
+          trip.endDate.isAfter(now);
     }).toList();
   }
 
-  List<Booking> get _pastTrips {
+  List<BookingEntity> _pastTrips(List<BookingEntity> trips) {
     final now = DateTime.now();
-    return _trips.where((trip) {
-      // Show completed, checked out, rejected, cancelled, or past bookings
-      final isPastBooking = trip.isCompleted ||
+    return trips.where((trip) {
+      return trip.isCompleted ||
           trip.isCheckedOut ||
           trip.isRejected ||
           trip.isCancelled ||
           trip.isExpired ||
           trip.endDate.isBefore(now) ||
           trip.endDate.isAtSameMomentAs(now);
-
-      debugPrint(
-          '  Past check: ${trip.effectiveStatus}, ends ${trip.endDate}, now $now, include: $isPastBooking');
-      return isPastBooking;
     }).toList();
   }
 
@@ -107,19 +79,55 @@ class _TripsScreenState extends State<TripsScreen>
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
+      body: BlocBuilder<BookingCubit, BookingState>(
+        builder: (context, state) {
+          if (state is BookingLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is BookingError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Text(state.message),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () =>
+                        context.read<BookingCubit>().loadUserBookings(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (state is BookingsLoaded) {
+            final upcoming = _upcomingTrips(state.bookings);
+            final past = _pastTrips(state.bookings);
+
+            return TabBarView(
               controller: _tabController,
               children: [
-                _buildTripsList(_upcomingTrips, isUpcoming: true),
-                _buildTripsList(_pastTrips, isUpcoming: false),
+                _buildTripsList(context, upcoming, isUpcoming: true),
+                _buildTripsList(context, past, isUpcoming: false),
               ],
-            ),
+            );
+          }
+
+          return const Center(child: Text('No trips found'));
+        },
+      ),
     );
   }
 
-  Widget _buildTripsList(List<Booking> trips, {required bool isUpcoming}) {
+  Widget _buildTripsList(
+    BuildContext context,
+    List<BookingEntity> trips, {
+    required bool isUpcoming,
+  }) {
     if (trips.isEmpty) {
       return Center(
         child: Column(
@@ -143,15 +151,13 @@ class _TripsScreenState extends State<TripsScreen>
     }
 
     return RefreshIndicator(
-      onRefresh: _loadTrips,
+      onRefresh: () async =>
+          context.read<BookingCubit>().loadUserBookings(),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: trips.length,
         itemBuilder: (context, index) {
-          return _BookingCard(
-            booking: trips[index],
-            onRefresh: _loadTrips,
-          );
+          return _BookingCard(booking: trips[index]);
         },
       ),
     );
@@ -159,13 +165,9 @@ class _TripsScreenState extends State<TripsScreen>
 }
 
 class _BookingCard extends StatelessWidget {
-  final Booking booking;
-  final VoidCallback onRefresh;
+  final BookingEntity booking;
 
-  const _BookingCard({
-    required this.booking,
-    required this.onRefresh,
-  });
+  const _BookingCard({required this.booking});
 
   Color _getStatusColor() {
     if (booking.isPending) return AppTheme.warningColor;
@@ -181,14 +183,17 @@ class _BookingCard extends StatelessWidget {
     if (booking.isRejected) return 'Rejected';
     if (booking.isCompleted) return 'Completed';
     if (booking.isCheckedOut) return 'Checked Out';
+    if (booking.isCancelled) return 'Cancelled';
     return booking.effectiveStatus;
   }
 
   @override
   Widget build(BuildContext context) {
-    final listing = booking.listing as Map?;
-    final listingTitle = listing?['title'] ?? 'Property';
-    final listingPhotos = listing?['listingPhotoPaths'] as List?;
+    final listingData = booking.listing;
+    final listingTitle =
+        listingData?['title'] as String? ?? 'Property';
+    final listingPhotos =
+        listingData?['listingPhotoPaths'] as List?;
     final photoUrl =
         listingPhotos?.isNotEmpty == true ? listingPhotos!.first : null;
 
@@ -204,7 +209,7 @@ class _BookingCard extends StatelessWidget {
                   const BorderRadius.vertical(top: Radius.circular(12)),
               child: CachedNetworkImage(
                 imageUrl: photoUrl.toString().startsWith('http')
-                    ? photoUrl
+                    ? photoUrl.toString()
                     : 'http://localhost:3001/$photoUrl',
                 height: 150,
                 width: double.infinity,
@@ -225,19 +230,12 @@ class _BookingCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title and Status
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        listingTitle,
-                        style: Theme.of(context).textTheme.titleMedium,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                // Title
+                Text(
+                  listingTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
 
                 const SizedBox(height: 8),
@@ -261,7 +259,8 @@ class _BookingCard extends StatelessWidget {
                 // Nights
                 Row(
                   children: [
-                    const Icon(Icons.nights_stay, size: 16, color: Colors.grey),
+                    const Icon(Icons.nights_stay,
+                        size: 16, color: Colors.grey),
                     const SizedBox(width: 4),
                     Text(
                       '${booking.numberOfNights} nights',
@@ -272,7 +271,7 @@ class _BookingCard extends StatelessWidget {
 
                 const SizedBox(height: 8),
 
-                // Total Price
+                // Total Price + Status
                 Row(
                   children: [
                     Expanded(
@@ -304,7 +303,7 @@ class _BookingCard extends StatelessWidget {
                   ],
                 ),
 
-                // Payment Info for Deposit Bookings
+                // Deposit Payment Info
                 if (booking.isDepositPayment && booking.isPartiallyPaid) ...[
                   const SizedBox(height: 8),
                   Container(
@@ -318,12 +317,12 @@ class _BookingCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        const Row(
                           children: [
-                            const Icon(Icons.info_outline,
+                            Icon(Icons.info_outline,
                                 size: 16, color: Colors.orange),
-                            const SizedBox(width: 4),
-                            const Text(
+                            SizedBox(width: 4),
+                            Text(
                               'Payment Info',
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
@@ -337,12 +336,12 @@ class _BookingCard extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Deposit Paid (${booking.depositPercentage ?? 30}%):',
+                              'Deposit Paid (${booking.depositPercentage}%):',
                               style: const TextStyle(fontSize: 12),
                             ),
                             Text(
                               PriceFormatter.formatPriceInteger(
-                                  booking.depositAmount?.toInt() ?? 0),
+                                  booking.depositAmount),
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -361,7 +360,7 @@ class _BookingCard extends StatelessWidget {
                             ),
                             Text(
                               PriceFormatter.formatPriceInteger(
-                                  booking.effectiveRemainingAmount.toInt()),
+                                  booking.effectiveRemainingAmount),
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -390,302 +389,18 @@ class _BookingCard extends StatelessWidget {
                         SizedBox(width: 4),
                         Text(
                           'Payment: Cash at check-in',
-                          style: TextStyle(fontSize: 12, color: Colors.green),
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.green),
                         ),
                       ],
                     ),
                   ),
                 ],
-
-                // Action Buttons
-                const SizedBox(height: 12),
-                _buildActionButtons(context),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context) {
-    // Show Cancel button for pending bookings
-    if (booking.isPending) {
-      return SizedBox(
-        width: double.infinity,
-        child: OutlinedButton.icon(
-          onPressed: () => _showCancelBookingSheet(context),
-          icon: const Icon(Icons.cancel_outlined, size: 18),
-          label: const Text('Cancel Request'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppTheme.errorColor,
-            side: BorderSide(color: AppTheme.errorColor),
-          ),
-        ),
-      );
-    }
-
-    // Show Checkout/Extend buttons for approved bookings
-    if (!booking.isApproved) {
-      return const SizedBox.shrink();
-    }
-
-    final canCheckout = booking.canCheckout && !booking.isCheckedOut;
-    final canExtend = booking.canExtend;
-
-    if (!canCheckout && !canExtend) {
-      return const SizedBox.shrink();
-    }
-
-    return Row(
-      children: [
-        if (canCheckout)
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => _showCheckoutDialog(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text(
-                'Checkout',
-                style: TextStyle(fontSize: 14),
-              ),
-            ),
-          ),
-        if (canCheckout && canExtend) const SizedBox(width: 8),
-        if (canExtend)
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => _showExtendStayDialog(context),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.primaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text(
-                'Extend',
-                style: TextStyle(fontSize: 14),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  void _showCancelBookingSheet(BuildContext context) async {
-    // Convert Booking model to Map for the bottom sheet
-    final bookingMap = {
-      '_id': booking.id,
-      'startDate': DateFormatter.formatDate(booking.startDate),
-      'endDate': DateFormatter.formatDate(booking.endDate),
-      'totalPrice': booking.totalPrice,
-      'listingId': booking.listing,
-    };
-
-    final result = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.9,
-        child: CancelBookingBottomSheet(booking: bookingMap),
-      ),
-    );
-
-    // Refresh trips if cancellation was successful
-    if (result == true) {
-      onRefresh();
-    }
-  }
-
-  void _showCheckoutDialog(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CheckoutScreen(
-          booking: booking,
-          onSuccess: onRefresh,
-        ),
-      ),
-    );
-  }
-
-  void _showExtendStayDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => _ExtendStayDialog(
-        booking: booking,
-        onSuccess: onRefresh,
-      ),
-    );
-  }
-}
-
-// Extend Stay Dialog
-class _ExtendStayDialog extends StatefulWidget {
-  final Booking booking;
-  final VoidCallback onSuccess;
-
-  const _ExtendStayDialog({
-    required this.booking,
-    required this.onSuccess,
-  });
-
-  @override
-  State<_ExtendStayDialog> createState() => _ExtendStayDialogState();
-}
-
-class _ExtendStayDialogState extends State<_ExtendStayDialog> {
-  final BookingService _bookingService = BookingService();
-  int _additionalDays = 1;
-  bool _isSubmitting = false;
-
-  double get _extensionCost {
-    final listing = widget.booking.listing as Map?;
-    final pricePerNight = listing?['price']?.toDouble() ??
-        widget.booking.totalPrice / widget.booking.numberOfNights;
-    return pricePerNight * _additionalDays * 1.3; // 30% surcharge
-  }
-
-  Future<void> _extendStay() async {
-    setState(() => _isSubmitting = true);
-
-    final result = await _bookingService.extendStay(
-      bookingId: widget.booking.id,
-      additionalDays: _additionalDays,
-    );
-
-    if (mounted) {
-      setState(() => _isSubmitting = false);
-
-      if (result['success']) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Extension request sent to host!'),
-            backgroundColor: AppTheme.successColor,
-          ),
-        );
-        widget.onSuccess();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Extension request failed'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final newEndDate =
-        widget.booking.endDate.add(Duration(days: _additionalDays));
-
-    return AlertDialog(
-      title: const Text('Extend Stay'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Current checkout: ${DateFormatter.formatDate(widget.booking.endDate)}',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Additional Days',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              IconButton(
-                onPressed: _additionalDays > 1
-                    ? () => setState(() => _additionalDays--)
-                    : null,
-                icon: const Icon(Icons.remove_circle_outline),
-              ),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    '$_additionalDays days',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () => setState(() => _additionalDays++),
-                icon: const Icon(Icons.add_circle_outline),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppTheme.backgroundColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('New checkout:'),
-                    Text(
-                      DateFormatter.formatDate(newEndDate),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Extension cost:'),
-                    Text(
-                      PriceFormatter.formatPriceInteger(_extensionCost),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  '(30% surcharge)',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _isSubmitting ? null : _extendStay,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.primaryColor,
-            foregroundColor: Colors.white,
-          ),
-          child: _isSubmitting
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Request Extension'),
-        ),
-      ],
     );
   }
 }
