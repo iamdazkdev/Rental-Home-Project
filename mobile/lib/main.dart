@@ -8,9 +8,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
 import 'config/app_themes.dart';
+import 'core/di/injection.dart';
 import 'data/repositories/booking_repository.dart';
 import 'data/repositories/message_repository.dart';
 import 'firebase_options.dart';
+import 'features/auth/presentation/cubit/auth_bloc.dart';
 import 'models/booking.dart';
 import 'presentation/booking/cubit/booking_cubit.dart';
 import 'presentation/booking/screens/booking_confirmation_screen.dart';
@@ -45,9 +47,11 @@ void main() async {
     );
     debugPrint('✅ Firebase initialized');
   } catch (e) {
-    // Firebase already initialized (hot reload or already running)
     debugPrint('⚠️ Firebase already initialized: $e');
   }
+
+  // Initialize Dependency Injection mapping (Clean Architecture)
+  configureDependencies();
 
   // Initialize storage
   await StorageService().init();
@@ -130,7 +134,8 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()), // Legacy
+        BlocProvider(create: (_) => getIt<AuthBloc>()..add(AuthCheckRequested())), // New Setup
         ChangeNotifierProvider(
             create: (_) => NotificationProvider()..initialize()),
         // Add BookingCubit as global provider
