@@ -1,150 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/app_constants.dart';
 import '../../config/app_theme.dart';
+import '../../core/di/injection.dart';
+import '../../features/home/presentation/cubit/home_cubit.dart';
 import '../../models/listing.dart';
 import '../../models/roommate.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
-import '../../services/listing_service.dart';
-import '../../services/roommate_service.dart';
 import '../../services/wishlist_service.dart';
 import '../../utils/price_formatter.dart';
 import '../listings/listing_detail_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../roommate/roommate_post_detail_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider<HomeCubit>(
+      create: (_) => getIt<HomeCubit>()..loadData(),
+      child: const _HomeScreenView(),
+    );
+  }
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final ListingService _listingService = ListingService();
-  final RoommateService _roommateService = RoommateService();
-
-  String _selectedCategory = 'All';
-  String? _selectedType; // null means "All"
-
-  List<Listing> _listings = [];
-  List<RoommatePost> _roommatePosts = [];
-  bool _isLoading = true;
-
-  // Helper to check if showing roommate posts
-  bool get _isShowingRoommatePosts => _selectedType == 'A Shared Room';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadListings();
-  }
-
-  Future<void> _loadListings() async {
-    debugPrint(
-        '🏠 HomeScreen: Loading data for category: $_selectedCategory, type: $_selectedType');
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    // Get current user ID
-    final authProvider = context.read<AuthProvider>();
-    final currentUserId = authProvider.user?.id;
-
-    // If "A Shared Room" is selected, load roommate posts instead
-    if (_selectedType == 'A Shared Room') {
-      debugPrint('🏠 HomeScreen: Loading roommate posts via search API');
-
-      try {
-        // Call search API without any filters to get all active posts
-        List<RoommatePost> posts = await _roommateService.searchPosts();
-
-        debugPrint(
-            '🏠 HomeScreen: Received ${posts.length} roommate posts from API');
-
-        // Filter out current user's own posts
-        if (currentUserId != null) {
-          final beforeCount = posts.length;
-          posts = posts.where((post) {
-            final isOwnPost = post.userId == currentUserId;
-            if (isOwnPost) {
-              debugPrint('🚫 Filtering out own roommate post: ${post.title}');
-            }
-            return !isOwnPost;
-          }).toList();
-          debugPrint(
-              '🏠 HomeScreen: After filtering own posts: ${posts.length}/$beforeCount posts');
-        }
-
-        setState(() {
-          _roommatePosts = posts;
-          _listings = []; // Clear listings when showing roommate posts
-          _isLoading = false;
-        });
-
-        if (posts.isEmpty) {
-          debugPrint('⚠️ HomeScreen: No roommate posts found after filtering!');
-        } else {
-          debugPrint(
-              '✅ HomeScreen: Successfully loaded ${posts.length} roommate posts');
-        }
-      } catch (e) {
-        debugPrint('❌ Error loading roommate posts: $e');
-        setState(() {
-          _roommatePosts = [];
-          _isLoading = false;
-        });
-      }
-
-      return;
-    }
-
-    // Otherwise, load regular listings
-    debugPrint('🏠 HomeScreen: Loading regular listings');
-
-    List<Listing> listings = await _listingService.getListings(
-      category: _selectedCategory == 'All' ? null : _selectedCategory,
-    );
-
-    debugPrint(
-        '🏠 HomeScreen: Received ${listings.length} listings before filtering');
-
-    // Filter out current user's own listings
-    if (currentUserId != null) {
-      listings = listings.where((listing) {
-        final isOwnListing = listing.creator == currentUserId;
-        if (isOwnListing) {
-          debugPrint('🚫 Filtering out own listing: ${listing.title}');
-        }
-        return !isOwnListing;
-      }).toList();
-      debugPrint(
-          '🏠 HomeScreen: After filtering own listings: ${listings.length} listings');
-    }
-
-    // Filter by type locally if selected (but not "A Shared Room")
-    if (_selectedType != null && _selectedType != 'A Shared Room') {
-      listings =
-          listings.where((listing) => listing.type == _selectedType).toList();
-      debugPrint(
-          '🏠 HomeScreen: Filtered to ${listings.length} listings of type: $_selectedType');
-    }
-
-    debugPrint('🏠 HomeScreen: Final count: ${listings.length} listings');
-
-    setState(() {
-      _listings = listings;
-      _roommatePosts = []; // Clear roommate posts when showing listings
-      _isLoading = false;
-    });
-
-    if (listings.isEmpty) {
-      debugPrint('⚠️ HomeScreen: No listings found!');
-    }
-  }
+class _HomeScreenView extends StatelessWidget {
+  const _HomeScreenView();
 
   @override
   Widget build(BuildContext context) {
@@ -163,11 +48,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          // Notification icon with badge
           Consumer<NotificationProvider>(
             builder: (context, notificationProvider, child) {
               final unreadCount = notificationProvider.unreadCount;
-
               return Stack(
                 children: [
                   IconButton(
@@ -223,164 +106,168 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
         ],
       ),
-      body: Column(
-        children: [
-          // Categories
-          Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).dividerColor,
-                  width: 1,
-                ),
-              ),
-            ),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: AppConstants.categories.length,
-              itemBuilder: (context, index) {
-                final category = AppConstants.categories[index];
-                final isSelected = category == _selectedCategory;
+      body: BlocBuilder<HomeCubit, HomeState>(
+        builder: (context, state) {
+          final cubit = context.read<HomeCubit>();
+          final isLoading = state is HomeLoading;
+          final currentCategory = cubit.currentCategory;
+          final currentType = cubit.currentType;
 
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(category),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedCategory = category;
-                      });
-                      _loadListings();
-                    },
-                    backgroundColor: Theme.of(context).colorScheme.surface,
-                    selectedColor:
-                        Theme.of(context).primaryColor.withValues(alpha: 0.2),
-                    labelStyle: TextStyle(
-                      color: isSelected
-                          ? Theme.of(context).primaryColor
-                          : Theme.of(context).textTheme.bodyMedium?.color,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    side: BorderSide(
-                      color: isSelected
-                          ? Theme.of(context).primaryColor
-                          : Theme.of(context).dividerColor,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // Property Types Filter
-          Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              border: Border(
-                top:
-                    BorderSide(color: Theme.of(context).dividerColor, width: 1),
-                bottom:
-                    BorderSide(color: Theme.of(context).dividerColor, width: 1),
-              ),
-            ),
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                // All Types
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: const Text('All Types'),
-                    selected: _selectedType == null,
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedType = null;
-                      });
-                      _loadListings();
-                    },
-                    backgroundColor: Theme.of(context).colorScheme.surface,
-                    selectedColor:
-                        Theme.of(context).primaryColor.withValues(alpha: 0.2),
-                    checkmarkColor: Theme.of(context).primaryColor,
-                    labelStyle: TextStyle(
-                      color: _selectedType == null
-                          ? Theme.of(context).primaryColor
-                          : Theme.of(context).textTheme.bodyMedium?.color,
-                      fontWeight: _selectedType == null
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                      fontSize: 13,
-                    ),
-                    side: BorderSide(
-                      color: _selectedType == null
-                          ? Theme.of(context).primaryColor
-                          : Theme.of(context).dividerColor,
+          return Column(
+            children: [
+              // Categories
+              Container(
+                height: 60,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Theme.of(context).dividerColor,
+                      width: 1,
                     ),
                   ),
                 ),
-                // Property Types
-                ...AppConstants.propertyTypes.map((type) {
-                  final isSelected = type == _selectedType;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      label: Text(type),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedType = selected ? type : null;
-                        });
-                        _loadListings();
-                      },
-                      backgroundColor: Theme.of(context).colorScheme.surface,
-                      selectedColor:
-                          Theme.of(context).primaryColor.withValues(alpha: 0.2),
-                      checkmarkColor: Theme.of(context).primaryColor,
-                      labelStyle: TextStyle(
-                        color: isSelected
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).textTheme.bodyMedium?.color,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.normal,
-                        fontSize: 13,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: AppConstants.categories.length,
+                  itemBuilder: (context, index) {
+                    final category = AppConstants.categories[index];
+                    final isSelected = category == currentCategory;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(category),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          cubit.setFilter(category, currentType);
+                        },
+                        backgroundColor: Theme.of(context).colorScheme.surface,
+                        selectedColor:
+                            Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                        labelStyle: TextStyle(
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(context).textTheme.bodyMedium?.color,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                        side: BorderSide(
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(context).dividerColor,
+                        ),
                       ),
-                      side: BorderSide(
-                        color: isSelected
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).dividerColor,
+                    );
+                  },
+                ),
+              ),
+
+              // Property Types Filter
+              Container(
+                height: 60,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(color: Theme.of(context).dividerColor, width: 1),
+                    bottom: BorderSide(color: Theme.of(context).dividerColor, width: 1),
+                  ),
+                ),
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    // All Types
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: const Text('All Types'),
+                        selected: currentType == null,
+                        onSelected: (selected) {
+                          cubit.setFilter(currentCategory, null);
+                        },
+                        backgroundColor: Theme.of(context).colorScheme.surface,
+                        selectedColor:
+                            Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                        checkmarkColor: Theme.of(context).primaryColor,
+                        labelStyle: TextStyle(
+                          color: currentType == null
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(context).textTheme.bodyMedium?.color,
+                          fontWeight: currentType == null
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                          fontSize: 13,
+                        ),
+                        side: BorderSide(
+                          color: currentType == null
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(context).dividerColor,
+                        ),
                       ),
                     ),
-                  );
-                }).toList(),
-              ],
-            ),
-          ),
+                    // Property Types
+                    ...AppConstants.propertyTypes.map((type) {
+                      final isSelected = type == currentType;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          label: Text(type),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            cubit.setFilter(currentCategory, selected ? type : null);
+                          },
+                          backgroundColor: Theme.of(context).colorScheme.surface,
+                          selectedColor:
+                              Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                          checkmarkColor: Theme.of(context).primaryColor,
+                          labelStyle: TextStyle(
+                            color: isSelected
+                                ? Theme.of(context).primaryColor
+                                : Theme.of(context).textTheme.bodyMedium?.color,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.normal,
+                            fontSize: 13,
+                          ),
+                          side: BorderSide(
+                            color: isSelected
+                                ? Theme.of(context).primaryColor
+                                : Theme.of(context).dividerColor,
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
 
-          // Listings or Roommate Posts
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _isShowingRoommatePosts
-                    ? _buildRoommatePostsGrid()
-                    : _buildListingsGrid(),
-          ),
-        ],
+              // Content based on State
+              Expanded(
+                child: Builder(builder: (context) {
+                  if (isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state is HomeError) {
+                    return Center(child: Text(state.message));
+                  } else if (state is HomeListingsLoaded) {
+                    return _buildListingsGrid(context, state.listings, currentType);
+                  } else if (state is HomeRoommatesLoaded) {
+                    return _buildRoommatePostsGrid(context, state.posts);
+                  }
+                  return const SizedBox.shrink();
+                }),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  // Build listings grid
-  Widget _buildListingsGrid() {
-    if (_listings.isEmpty) {
+  Widget _buildListingsGrid(BuildContext context, List<Listing> listings, String? currentType) {
+    if (listings.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -388,17 +275,14 @@ class _HomeScreenState extends State<HomeScreen> {
             Icon(
               Icons.home_work_outlined,
               size: 80,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.3),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
               'No listings available',
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            if (_selectedType != null) ...[
+            if (currentType != null) ...[
               const SizedBox(height: 8),
               Text(
                 'Try changing the property type filter',
@@ -411,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadListings,
+      onRefresh: () async => context.read<HomeCubit>().loadData(),
       child: GridView.builder(
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -420,18 +304,17 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),
-        itemCount: _listings.length,
+        itemCount: listings.length,
         itemBuilder: (context, index) {
-          final listing = _listings[index];
+          final listing = listings[index];
           return _ListingCard(listing: listing);
         },
       ),
     );
   }
 
-  // Build roommate posts grid
-  Widget _buildRoommatePostsGrid() {
-    if (_roommatePosts.isEmpty) {
+  Widget _buildRoommatePostsGrid(BuildContext context, List<RoommatePost> posts) {
+    if (posts.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -439,10 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Icon(
               Icons.people_outline,
               size: 80,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.3),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -460,7 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadListings,
+      onRefresh: () async => context.read<HomeCubit>().loadData(),
       child: GridView.builder(
         padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -469,9 +349,9 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),
-        itemCount: _roommatePosts.length,
+        itemCount: posts.length,
         itemBuilder: (context, index) {
-          final post = _roommatePosts[index];
+          final post = posts[index];
           return _RoommatePostCard(post: post);
         },
       ),
@@ -481,9 +361,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class _ListingCard extends StatefulWidget {
   final Listing listing;
-
   const _ListingCard({required this.listing});
-
   @override
   State<_ListingCard> createState() => _ListingCardState();
 }
@@ -510,50 +388,32 @@ class _ListingCardState extends State<_ListingCard> {
 
   Future<void> _toggleWishlist() async {
     if (_isToggling) return;
-
     setState(() => _isToggling = true);
-
     final result = await _wishlistService.toggleWishlist(widget.listing.id);
-
     if (result['success']) {
-      setState(() {
-        _isInWishlist = !_isInWishlist;
-      });
-
-      // Update user wishlist in provider
+      setState(() { _isInWishlist = !_isInWishlist; });
       if (!mounted) return;
       final authProvider = context.read<AuthProvider>();
       final updatedUser = authProvider.user!.copyWith(
         wishlist: List<String>.from(result['wishlist']),
       );
       authProvider.updateUser(updatedUser);
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                _isInWishlist ? 'Added to wishlist' : 'Removed from wishlist'),
+            content: Text(_isInWishlist ? 'Added to wishlist' : 'Removed from wishlist'),
             duration: const Duration(seconds: 1),
           ),
         );
       }
     }
-
     setState(() => _isToggling = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                ListingDetailScreen(listingId: widget.listing.id),
-          ),
-        );
-      },
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ListingDetailScreen(listingId: widget.listing.id))),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
@@ -563,10 +423,8 @@ class _ListingCardState extends State<_ListingCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image with wishlist button
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               child: Stack(
                 children: [
                   widget.listing.mainPhoto != null
@@ -575,34 +433,9 @@ class _ListingCardState extends State<_ListingCard> {
                           height: 120,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 120,
-                              color: Theme.of(context).colorScheme.surface,
-                              child: Icon(
-                                Icons.home_work_outlined,
-                                size: 40,
-                                color: Theme.of(context)
-                                    .iconTheme
-                                    .color
-                                    ?.withValues(alpha: 0.3),
-                              ),
-                            );
-                          },
+                          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
                         )
-                      : Container(
-                          height: 120,
-                          color: Theme.of(context).colorScheme.surface,
-                          child: Icon(
-                            Icons.home_work_outlined,
-                            size: 40,
-                            color: Theme.of(context)
-                                .iconTheme
-                                .color
-                                ?.withValues(alpha: 0.3),
-                          ),
-                        ),
-                  // Wishlist button
+                      : _buildPlaceholder(),
                   Positioned(
                     top: 8,
                     right: 8,
@@ -611,32 +444,17 @@ class _ListingCardState extends State<_ListingCard> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .cardColor
-                              .withValues(alpha: 0.9),
+                          color: Theme.of(context).cardColor.withValues(alpha: 0.9),
                           shape: BoxShape.circle,
                           boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2)),
                           ],
                         ),
                         child: _isToggling
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              )
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                             : Icon(
-                                _isInWishlist
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                color: _isInWishlist
-                                    ? Theme.of(context).primaryColor
-                                    : Theme.of(context).iconTheme.color,
+                                _isInWishlist ? Icons.favorite : Icons.favorite_border,
+                                color: _isInWishlist ? Theme.of(context).primaryColor : Theme.of(context).iconTheme.color,
                                 size: 20,
                               ),
                       ),
@@ -645,7 +463,6 @@ class _ListingCardState extends State<_ListingCard> {
                 ],
               ),
             ),
-            // Details
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8),
@@ -656,41 +473,21 @@ class _ListingCardState extends State<_ListingCard> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          widget.listing.title,
-                          style: Theme.of(context).textTheme.titleMedium,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        Text(widget.listing.title, style: Theme.of(context).textTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 4),
-                        Text(
-                          widget.listing.shortAddress,
-                          style: Theme.of(context).textTheme.bodySmall,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        Text(widget.listing.shortAddress, style: Theme.of(context).textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
                       ],
                     ),
                     Row(
                       children: [
                         Flexible(
                           child: Text(
-                            formatVND(widget.listing.price,
-                                showCurrency: false),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                  color: AppTheme.primaryColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            formatVND(widget.listing.price, showCurrency: false),
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Text(
-                          ' VND/${widget.listing.priceType ?? 'night'}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
+                        Text(' VND/${widget.listing.priceType ?? 'night'}', style: Theme.of(context).textTheme.bodySmall),
                       ],
                     ),
                   ],
@@ -702,34 +499,24 @@ class _ListingCardState extends State<_ListingCard> {
       ),
     );
   }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      height: 120,
+      color: Theme.of(context).colorScheme.surface,
+      child: Icon(Icons.home_work_outlined, size: 40, color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.3)),
+    );
+  }
 }
 
-// Roommate Post Card Widget
 class _RoommatePostCard extends StatelessWidget {
   final RoommatePost post;
-
   const _RoommatePostCard({required this.post});
-
-  String _getPostTypeLabel() {
-    switch (post.postType) {
-      case RoommatePostType.seeker:
-        return 'Looking for place';
-      case RoommatePostType.provider:
-        return 'Have a place';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RoommatePostDetailScreen(postId: post.id),
-          ),
-        );
-      },
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => RoommatePostDetailScreen(postId: post.id))),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
@@ -739,122 +526,53 @@ class _RoommatePostCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
-              child: Builder(
-                builder: (context) {
-                  // ...existing code...
-
-                  if (post.photos.isEmpty) {
-                    return Container(
-                      height: 120,
-                      color: Theme.of(context).colorScheme.surface,
-                      child: Center(
-                        child: Icon(
-                          Icons.people_outline,
-                          size: 40,
-                          color: Theme.of(context)
-                              .iconTheme
-                              .color
-                              ?.withValues(alpha: 0.3),
-                        ),
-                      ),
-                    );
-                  }
-
-                  return Image.network(
-                    post.photos.first,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: Builder(builder: (context) {
+                if (post.photos.isEmpty) {
+                  return Container(
                     height: 120,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        height: 120,
-                        color: Theme.of(context).colorScheme.surface,
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      debugPrint('❌ Failed to load roommate photo: $error');
-                      return Container(
-                        height: 120,
-                        color: Theme.of(context).colorScheme.surface,
-                        child: Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            size: 40,
-                            color: Theme.of(context)
-                                .iconTheme
-                                .color
-                                ?.withValues(alpha: 0.3),
-                          ),
-                        ),
-                      );
-                    },
+                    color: Theme.of(context).colorScheme.surface,
+                    child: Center(child: Icon(Icons.people_outline, size: 40, color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.3))),
                   );
-                },
-              ),
+                }
+                return Image.network(
+                  post.photos.first,
+                  height: 120,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 120,
+                    color: Theme.of(context).colorScheme.surface,
+                    child: Center(child: Icon(Icons.broken_image, size: 40, color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.3))),
+                  ),
+                );
+              }),
             ),
-            // Details
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Post type badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: post.postType == RoommatePostType.provider
-                            ? Theme.of(context)
-                                .primaryColor
-                                .withValues(alpha: 0.1)
-                            : Theme.of(context)
-                                .colorScheme
-                                .secondary
-                                .withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        _getPostTypeLabel(),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: post.postType == RoommatePostType.provider
-                                  ? Theme.of(context).primaryColor
-                                  : Theme.of(context).colorScheme.secondary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(post.title, style: Theme.of(context).textTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on_outlined, size: 14, color: Theme.of(context).iconTheme.color),
+                            const SizedBox(width: 4),
+                            Expanded(child: Text(post.locationString, style: Theme.of(context).textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
                     Text(
-                      post.title,
-                      style: Theme.of(context).textTheme.titleSmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      post.city,
-                      style: Theme.of(context).textTheme.bodySmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const Spacer(),
-                    // Budget
-                    Text(
-                      '${formatVND(post.budgetMin, showCurrency: false)} - ${formatVND(post.budgetMax, showCurrency: false)} VND',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      '${formatVND(post.budgetMin, showCurrency: false)} - ${formatVND(post.budgetMax, showCurrency: true)}',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../config/app_theme.dart';
+import '../../features/auth/presentation/cubit/auth_bloc.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,37 +25,33 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-
-    final authProvider = context.read<AuthProvider>();
-
-    final success = await authProvider.login(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
-
-    if (!mounted) return;
-
-    if (success) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    } else {
-      debugPrint('Login failed: ${authProvider.error}');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.error ?? 'Login failed'),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
-    }
+    context.read<AuthBloc>().add(AuthLoginRequested(
+          _emailController.text.trim(),
+          _passwordController.text,
+        ));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthAuthenticated) {
+          Navigator.of(context).pushReplacementNamed('/home');
+        } else if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -142,11 +138,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
                 // Login Button
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, _) {
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    final isLoading = state is AuthLoading;
                     return ElevatedButton(
-                      onPressed: authProvider.isLoading ? null : _handleLogin,
-                      child: authProvider.isLoading
+                      onPressed: isLoading ? null : _handleLogin,
+                      child: isLoading
                           ? const SizedBox(
                               height: 20,
                               width: 20,
@@ -177,6 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
