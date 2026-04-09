@@ -934,6 +934,140 @@ class BookingService {
             throw error;
         }
     }
+
+    async getUserBookings(userId, role, status) {
+        let query = {};
+        if (role === 'host') {
+            query.hostId = userId;
+        } else {
+            query.customerId = userId;
+        }
+
+        if (status) {
+            const statuses = status.split(',');
+            query.bookingStatus = { $in: statuses };
+        }
+
+        return await Booking.find(query)
+            .populate('customerId', 'firstName lastName email profileImagePath')
+            .populate('hostId', 'firstName lastName email profileImagePath')
+            .populate('listingId')
+            .sort({ createdAt: -1 });
+    }
+
+    async getBookingById(bookingId, userId, role) {
+        const booking = await Booking.findById(bookingId)
+            .populate('customerId', 'firstName lastName email profileImagePath phone')
+            .populate('hostId', 'firstName lastName email profileImagePath phone')
+            .populate('listingId');
+
+        if (!booking) {
+            const error = new Error('Booking not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        if (
+            booking.customerId._id.toString() !== userId &&
+            booking.hostId._id.toString() !== userId &&
+            role !== 'admin'
+        ) {
+            const error = new Error('Unauthorized');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        return booking;
+    }
+
+    async extendBooking(bookingId, customerId, newEndDate, additionalNights) {
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            const error = new Error('Booking not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        if (booking.customerId.toString() !== customerId) {
+            const error = new Error('Unauthorized');
+            error.statusCode = 403;
+            throw error;
+        }
+        if (booking.bookingStatus !== 'checked_in') {
+            const error = new Error('Can only extend active bookings');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        const listing = await Listing.findById(booking.listingId);
+        const additionalPrice = additionalNights * listing.price;
+
+        booking.extensionRequests.push({
+            requestedEndDate: newEndDate,
+            additionalDays: additionalNights,
+            additionalPrice,
+            status: 'pending',
+            requestedAt: new Date()
+        });
+
+        await booking.save();
+        await notificationService.sendExtensionRequest(booking);
+        return booking;
+    }
+
+    async approveExtension(bookingId, hostId, extensionId) {
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            const error = new Error('Booking not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        if (booking.hostId.toString() !== hostId) {
+            const error = new Error('Unauthorized');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        const extension = booking.extensionRequests.id(extensionId);
+        if (!extension) {
+            const error = new Error('Extension request not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        extension.status = 'approved';
+        extension.approvedAt = new Date();
+        await booking.save();
+        await notificationService.sendExtensionApproved(booking, extension);
+        return booking;
+    }
+
+    async rejectExtension(bookingId, hostId, extensionId, reason) {
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            const error = new Error('Booking not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        if (booking.hostId.toString() !== hostId) {
+            const error = new Error('Unauthorized');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        const extension = booking.extensionRequests.id(extensionId);
+        if (!extension) {
+            const error = new Error('Extension request not found');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        extension.status = 'rejected';
+        extension.rejectedAt = new Date();
+        extension.rejectionReason = reason;
+        await booking.save();
+        await notificationService.sendExtensionRejected(booking, extension, reason);
+        return booking;
+    }
 }
 
 module.exports = new BookingService();

@@ -1,5 +1,13 @@
 const router = require("express").Router();
 const { upload } = require("../services/cloudinaryService");
+const { validate } = require("../middleware/validateHandler");
+const { 
+  registerSchema, 
+  loginSchema, 
+  forgotPasswordSchema, 
+  verifyResetTokenSchema, 
+  resetPasswordSchema 
+} = require("../validators/auth.validator");
 const ctrl = require("../controllers/auth.controller");
 
 /* REGISTER — with profile image upload */
@@ -16,18 +24,18 @@ router.post("/register", (req, res, next) => {
         }
         next();
     });
-}, ctrl.register);
+}, validate(registerSchema), ctrl.register);
 
 /* LOGIN */
-router.post("/login", ctrl.login);
+router.post("/login", validate(loginSchema), ctrl.login);
 
 /* FORGOT PASSWORD */
-router.post("/forgot-password", ctrl.forgotPassword);
+router.post("/forgot-password", validate(forgotPasswordSchema), ctrl.forgotPassword);
 
 /* VERIFY RESET TOKEN */
-router.get("/verify-reset-token", ctrl.verifyResetToken);
+router.get("/verify-reset-token", validate(verifyResetTokenSchema), ctrl.verifyResetToken);
 
 /* RESET PASSWORD */
-router.post("/reset-password", ctrl.resetPassword);
+router.post("/reset-password", validate(resetPasswordSchema), ctrl.resetPassword);
 
 module.exports = router;
