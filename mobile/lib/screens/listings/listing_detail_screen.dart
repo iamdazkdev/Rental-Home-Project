@@ -32,7 +32,6 @@ class ListingDetailScreen extends StatefulWidget {
 }
 
 class _ListingDetailScreenState extends State<ListingDetailScreen> {
-class _ListingDetailScreenState extends State<ListingDetailScreen> {
   final ReviewService _reviewService = ReviewService();
   late final ListingCubit _listingCubit;
   
@@ -137,8 +136,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
           final isOwnListing = user?.id == _listing!.creatorId;
 
           return Scaffold(
-        slivers: [
-          // Image Carousel
+            body: CustomScrollView(
+              slivers: [
+                // Image Carousel
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
@@ -492,6 +492,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               ),
             )
           : null,
+          );
+        },
       ),
     );
   }

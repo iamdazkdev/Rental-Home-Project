@@ -1,7 +1,6 @@
 import 'package:injectable/injectable.dart';
-
-import 'entities/listing_entity.dart';
-import 'repositories/i_listing_repository.dart';
+import '../entities/listing_entity.dart';
+import '../repositories/i_listing_repository.dart';
 
 @injectable
 class ListingUseCases {
