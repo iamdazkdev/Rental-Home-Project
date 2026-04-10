@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+
 import '../../config/app_theme.dart';
 import '../../config/app_constants.dart';
-import '../../models/listing.dart';
-import '../../services/listing_service.dart';
+import '../../features/properties/domain/entities/listing_entity.dart';
+import '../../features/properties/presentation/cubits/listing_cubit/listing_cubit.dart';
+import '../../features/properties/presentation/cubits/listing_cubit/listing_state.dart';
 import '../listings/listing_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -13,11 +17,9 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final ListingService _listingService = ListingService();
   final TextEditingController _searchController = TextEditingController();
+  late final ListingCubit _listingCubit;
 
-  List<Listing> _searchResults = [];
-  bool _isSearching = false;
   bool _hasSearched = false;
 
   // Filters
@@ -30,13 +32,18 @@ class _SearchScreenState extends State<SearchScreen> {
   int _minBathrooms = 0;
   List<String> _selectedAmenities = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _listingCubit = GetIt.I<ListingCubit>();
+  }
+
   Future<void> _performSearch() async {
     setState(() {
-      _isSearching = true;
       _hasSearched = true;
     });
 
-    final results = await _listingService.searchListings(
+    _listingCubit.searchListings(
       query: _searchController.text.trim(),
       category: _selectedCategory,
       type: _selectedType,
@@ -47,11 +54,6 @@ class _SearchScreenState extends State<SearchScreen> {
       minBathrooms: _minBathrooms,
       amenities: _selectedAmenities,
     );
-
-    setState(() {
-      _searchResults = results;
-      _isSearching = false;
-    });
   }
 
   void _showFilters() {
@@ -101,61 +103,75 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search'),
-      ),
-      body: Column(
-        children: [
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search by location, title...',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() {});
-                              },
-                            )
-                          : null,
+    return BlocProvider.value(
+      value: _listingCubit,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Search'),
+        ),
+        body: Column(
+          children: [
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search by location, title...',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {});
+                                },
+                              )
+                            : null,
+                      ),
+                      onSubmitted: (_) => _performSearch(),
+                      onChanged: (_) => setState(() {}),
                     ),
-                    onSubmitted: (_) => _performSearch(),
-                    onChanged: (_) => setState(() {}),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  onPressed: _showFilters,
-                  icon: const Icon(Icons.tune),
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: Colors.white,
+                  const SizedBox(width: 8),
+                  IconButton.filled(
+                    onPressed: _showFilters,
+                    icon: const Icon(Icons.tune),
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          // Results
-          Expanded(
-            child: _isSearching
-                ? const Center(child: CircularProgressIndicator())
-                : !_hasSearched
-                    ? _buildInitialState()
-                    : _searchResults.isEmpty
-                        ? _buildEmptyState()
-                        : _buildResults(),
-          ),
-        ],
+            // Results
+            Expanded(
+              child: BlocBuilder<ListingCubit, ListingState>(
+                builder: (context, state) {
+                  if (state is ListingLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (state is ListingError) {
+                    return Center(child: Text(state.message));
+                  }
+
+                  if (state is ListingsLoaded) {
+                    if (state.listings.isEmpty) return _buildEmptyState();
+                    return _buildResults(state.listings);
+                  }
+
+                  return _buildInitialState();
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -202,7 +218,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildResults() {
+  Widget _buildResults(List<ListingEntity> searchResults) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -211,9 +227,9 @@ class _SearchScreenState extends State<SearchScreen> {
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
-      itemCount: _searchResults.length,
+      itemCount: searchResults.length,
       itemBuilder: (context, index) {
-        final listing = _searchResults[index];
+        final listing = searchResults[index];
         return GestureDetector(
           onTap: () {
             Navigator.push(

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../models/listing.dart';
+import '../../../features/properties/domain/entities/listing_entity.dart';
 import '../../../utils/price_formatter.dart';
 
 /// Booking Widget for Entire Place Rental
 /// Shows date picker and initiates booking flow
 class BookingWidget extends StatefulWidget {
-  final ListingModel listing;
+  final ListingEntity listing;
 
   const BookingWidget({
     super.key,

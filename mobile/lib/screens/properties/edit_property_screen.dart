@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+
 import '../../config/app_theme.dart';
-import '../../services/listing_service.dart';
+import '../../features/properties/domain/usecases/listing_usecases.dart';
+import '../../features/properties/presentation/cubits/host_management_cubit/host_management_cubit.dart';
+import '../../features/properties/presentation/cubits/host_management_cubit/host_management_state.dart';
 
 class EditPropertyScreen extends StatefulWidget {
   final String propertyId;
@@ -14,7 +19,8 @@ class EditPropertyScreen extends StatefulWidget {
 
 class _EditPropertyScreenState extends State<EditPropertyScreen> {
   final _formKey = GlobalKey<FormState>();
-  final ListingService _listingService = ListingService();
+  late final HostManagementCubit _hostManagementCubit;
+  late final ListingUseCases _listingUseCases;
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -59,6 +65,8 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
   @override
   void initState() {
     super.initState();
+    _hostManagementCubit = GetIt.I<HostManagementCubit>();
+    _listingUseCases = GetIt.I<ListingUseCases>();
     _initControllers();
     _loadPropertyData();
   }
@@ -79,7 +87,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
 
     try {
       final property =
-          await _listingService.getListingDetails(widget.propertyId);
+          await _listingUseCases.executeGetListingDetails(widget.propertyId);
 
       if (property != null && mounted) {
         setState(() {
@@ -117,8 +125,11 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
   }
 
   Future<void> _saveChanges() async {
-    if (!_formKey.currentState!.validate()) return;
+    // We trigger the cubit update instead of doing it inline
+  }
 
+  void _triggerUpdateListing() {
+    if (!_formKey.currentState!.validate()) return;
     setState(() => _isSaving = true);
 
     try {
@@ -151,38 +162,16 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
       debugPrint('   - Guests: ${listingData['guestCount']} 👥');
       debugPrint('   - Amenities: ${listingData['amenities']}');
 
-      final result = await _listingService.updateListing(
+      _hostManagementCubit.updateListing(
         widget.propertyId,
         listingData,
         null, // No new images for now
       );
 
-      debugPrint('✅ Update result: ${result['success']}');
-      if (result['message'] != null) {
-        debugPrint('   Message: ${result['message']}');
-      }
-
-      if (mounted) {
-        if (result['success'] == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Property updated successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          Navigator.pop(context, true); // Return true to trigger reload
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('❌ ${result['message'] ?? 'Failed to update'}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
     } catch (e) {
-      debugPrint('❌ Error updating property: $e');
+      debugPrint('❌ Error starting update: $e');
       if (mounted) {
+        setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to update property: $e'),
@@ -190,10 +179,27 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+    }
+  }
+
+  void _onStateChanged(BuildContext context, HostManagementState state) {
+    if (state is HostActionSuccess) {
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✅ Property updated successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context, true); // Return true to trigger reload
+    } else if (state is HostManagementError) {
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ ${state.message}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -212,8 +218,12 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
+    return BlocProvider.value(
+      value: _hostManagementCubit,
+      child: BlocListener<HostManagementCubit, HostManagementState>(
+        listener: _onStateChanged,
+        child: Scaffold(
+          backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text(
           'Edit Entire Place Listing',
@@ -235,7 +245,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
         actions: [
           if (!_isLoading)
             TextButton.icon(
-              onPressed: _isSaving ? null : _saveChanges,
+              onPressed: _isSaving ? null : _triggerUpdateListing,
               icon: _isSaving
                   ? const SizedBox(
                       width: 16,
@@ -400,6 +410,8 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                 ),
               ),
             ),
+        ),
+      ),
     );
   }
 

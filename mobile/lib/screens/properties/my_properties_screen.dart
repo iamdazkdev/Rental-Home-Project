@@ -3,10 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+
 import '../../config/app_theme.dart';
-import '../../models/listing.dart';
+import '../../features/properties/domain/entities/listing_entity.dart';
+import '../../features/properties/presentation/cubits/host_management_cubit/host_management_cubit.dart';
+import '../../features/properties/presentation/cubits/host_management_cubit/host_management_state.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/listing_service.dart';
 import '../host/host_calendar_screen.dart';
 import '../listings/listing_detail_screen.dart';
 import 'edit_property_screen.dart';
@@ -20,12 +24,12 @@ class MyPropertiesScreen extends StatefulWidget {
 
 class _MyPropertiesScreenState extends State<MyPropertiesScreen>
     with SingleTickerProviderStateMixin {
-  final ListingService _listingService = ListingService();
+  late final HostManagementCubit _hostManagementCubit;
   late TabController _tabController;
 
-  List<Listing> _allListings = [];
-  List<Listing> _activeListings = [];
-  List<Listing> _inactiveListings = [];
+  List<ListingEntity> _allListings = [];
+  List<ListingEntity> _activeListings = [];
+  List<ListingEntity> _inactiveListings = [];
   bool _isLoading = true;
 
   // Format price helper
@@ -38,6 +42,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _hostManagementCubit = GetIt.I<HostManagementCubit>();
     _loadMyProperties();
   }
 
@@ -47,78 +52,47 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
     super.dispose();
   }
 
-  Future<void> _loadMyProperties() async {
-    setState(() => _isLoading = true);
-
+  void _loadMyProperties() {
     final user = context.read<AuthProvider>().user;
-    if (user == null) {
-      setState(() => _isLoading = false);
-      return;
+    if (user != null) {
+      _hostManagementCubit.fetchHostProperties(user.id);
     }
+  }
 
-    try {
-      final listings = await _listingService.getMyListings(user.id);
-
-      debugPrint('📊 Total listings fetched: ${listings.length}');
-      for (var listing in listings) {
-        debugPrint(
-            '  - ${listing.title}: type="${listing.type}", isActive=${listing.isActive}');
-      }
-
-      // Filter only Entire Place listings (exclude Room(s))
-      // Check for both "Entire Place" and "An entire place" to be safe
+  void _onStateChanged(BuildContext context, HostManagementState state) {
+    if (state is HostPropertiesLoaded) {
+      final listings = state.properties;
       final entirePlaceListings = listings.where((l) {
         final type = l.type.toLowerCase();
         return type.contains('entire') || type == 'entire place';
       }).toList();
 
-      debugPrint('🏡 Entire Place listings: ${entirePlaceListings.length}');
-
       setState(() {
         _allListings = entirePlaceListings;
         _activeListings = entirePlaceListings.where((l) => l.isActive).toList();
-        _inactiveListings =
-            entirePlaceListings.where((l) => !l.isActive).toList();
-        _isLoading = false;
+        _inactiveListings = entirePlaceListings.where((l) => !l.isActive).toList();
       });
-
-      debugPrint(
-          '✅ Active: ${_activeListings.length}, Inactive: ${_inactiveListings.length}');
-    } catch (e) {
-      debugPrint('❌ Error loading entire place listings: $e');
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _toggleListingStatus(Listing listing) async {
-    try {
-      final newStatus = !(listing.isActive);
-      final success = await _listingService.updateListingStatus(
-        listing.id,
-        newStatus,
+    } else if (state is HostActionSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✅ ${state.message}'),
+          backgroundColor: Colors.green,
+        ),
       );
-
-      if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              newStatus ? '✅ Listing activated' : '📴 Listing deactivated',
-            ),
-            backgroundColor: newStatus ? Colors.green : Colors.orange,
-          ),
-        );
-        await _loadMyProperties();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
-      }
+      _loadMyProperties();
+    } else if (state is HostManagementError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${state.message}')),
+      );
     }
   }
 
-  Future<void> _deleteListing(Listing listing) async {
+  void _toggleListingStatus(ListingEntity listing) {
+    // willBeHidden is derived from wanting to hide it if its currently active
+    _hostManagementCubit.toggleListingVisibility(listing.id, listing.isActive);
+  }
+
+  Future<void> _deleteListing(ListingEntity listing) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -139,29 +113,11 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
     );
 
     if (confirm == true) {
-      try {
-        final success = await _listingService.deleteListing(listing.id);
-
-        if (success == true && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Listing deleted successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          await _loadMyProperties();
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${e.toString()}')),
-          );
-        }
-      }
+      _hostManagementCubit.deleteListing(listing.id);
     }
   }
 
-  void _navigateToEdit(Listing listing) {
+  void _navigateToEdit(ListingEntity listing) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -177,31 +133,39 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Entire Place Listings'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(text: 'Active (${_activeListings.length})'),
-            Tab(text: 'Inactive (${_inactiveListings.length})'),
-          ],
-        ),
-      ),
-      body: _buildBody(),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.pushNamed(context, '/create-listing');
+    return BlocProvider.value(
+      value: _hostManagementCubit,
+      child: BlocConsumer<HostManagementCubit, HostManagementState>(
+        listener: _onStateChanged,
+        builder: (context, state) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('My Entire Place Listings'),
+              bottom: TabBar(
+                controller: _tabController,
+                tabs: [
+                  Tab(text: 'Active (${_activeListings.length})'),
+                  Tab(text: 'Inactive (${_inactiveListings.length})'),
+                ],
+              ),
+            ),
+            body: _buildBody(state),
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.pushNamed(context, '/create-listing');
+              },
+              backgroundColor: AppTheme.primaryColor,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Entire Place'),
+            ),
+          );
         },
-        backgroundColor: AppTheme.primaryColor,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Entire Place'),
       ),
     );
   }
 
-  Widget _buildBody() {
-    if (_isLoading) {
+  Widget _buildBody(HostManagementState state) {
+    if (state is HostManagementLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -255,7 +219,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
     );
   }
 
-  Widget _buildListingsList(List<Listing> listings) {
+  Widget _buildListingsList(List<ListingEntity> listings) {
     if (listings.isEmpty) {
       return Center(
         child: Text(
@@ -266,7 +230,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
     }
 
     return RefreshIndicator(
-      onRefresh: _loadMyProperties,
+      onRefresh: () async => _loadMyProperties(),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: listings.length,
@@ -275,7 +239,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
     );
   }
 
-  Widget _buildListingCard(Listing listing) {
+  Widget _buildListingCard(ListingEntity listing) {
     final isActive = listing.isActive;
 
     return Card(

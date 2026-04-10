@@ -12,6 +12,13 @@
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 
+import '../../features/properties/data/datasources/listing_remote_datasource.dart';
+import '../../features/properties/data/repositories/listing_repository_impl.dart';
+import '../../features/properties/domain/repositories/i_listing_repository.dart';
+import '../../features/properties/domain/usecases/listing_usecases.dart';
+import '../../features/properties/presentation/cubits/listing_cubit/listing_cubit.dart';
+import '../../features/properties/presentation/cubits/host_management_cubit/host_management_cubit.dart';
+
 import '../../features/auth/data/datasources/auth_remote_datasource.dart'
     as _i161;
 import '../../features/auth/data/repositories/auth_repository_impl.dart'
@@ -57,6 +64,19 @@ extension GetItInjectableX on _i174.GetIt {
         () => _i465.GetRoommatePostsUseCase(gh<_i0.IHomeRepository>()));
     gh.lazySingleton<_i787.IAuthRepository>(
         () => _i153.AuthRepositoryImpl(gh<_i161.IAuthRemoteDataSource>()));
+        
+    // Properties Module (Manual Injection)
+    gh.lazySingleton<ListingRemoteDataSource>(
+        () => ListingRemoteDataSourceImpl());
+    gh.lazySingleton<IListingRepository>(
+        () => ListingRepositoryImpl(gh<ListingRemoteDataSource>()));
+    gh.factory<ListingUseCases>(
+        () => ListingUseCases(gh<IListingRepository>()));
+    gh.factory<ListingCubit>(
+        () => ListingCubit(gh<ListingUseCases>()));
+    gh.factory<HostManagementCubit>(
+        () => HostManagementCubit(gh<ListingUseCases>()));
+
     gh.factory<_i1015.CreateCashBookingUseCase>(
         () => _i1015.CreateCashBookingUseCase(gh<_i740.IBookingRepository>()));
     gh.factory<_i1015.CreateBookingIntentUseCase>(() =>

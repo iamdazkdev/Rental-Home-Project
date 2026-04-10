@@ -3,12 +3,16 @@ import 'package:carousel_slider/carousel_slider.dart' as carousel;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+
+import '../../features/properties/domain/entities/listing_entity.dart';
+import '../../features/properties/presentation/cubits/listing_cubit/listing_cubit.dart';
+import '../../features/properties/presentation/cubits/listing_cubit/listing_state.dart';
 import '../../models/conversation.dart';
-import '../../models/listing.dart';
 import '../../models/review.dart';
 import '../../presentation/booking/widgets/booking_widget.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/listing_service.dart';
 import '../../services/review_service.dart';
 import '../../utils/amenity_icons.dart';
 import '../../utils/price_formatter.dart';
@@ -28,9 +32,11 @@ class ListingDetailScreen extends StatefulWidget {
 }
 
 class _ListingDetailScreenState extends State<ListingDetailScreen> {
-  final ListingService _listingService = ListingService();
+class _ListingDetailScreenState extends State<ListingDetailScreen> {
   final ReviewService _reviewService = ReviewService();
-  Listing? _listing;
+  late final ListingCubit _listingCubit;
+  
+  ListingEntity? _listing;
   bool _isLoading = true;
   int _currentImageIndex = 0;
   List<Review> _listingReviews = [];
@@ -39,39 +45,30 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _listingCubit = GetIt.I<ListingCubit>();
     _loadListingDetails();
   }
 
   Future<void> _loadListingDetails() async {
-    setState(() => _isLoading = true);
+    // Let ListingCubit fetch details
+    _listingCubit.getListingDetails(widget.listingId);
 
-    final listing = await _listingService.getListingDetails(widget.listingId);
-
-    // Fetch listing reviews
-    List<Review> reviews = [];
-    double avgRating = 0.0;
-
-    if (listing != null) {
-      try {
-        // Fetch reviews
-        reviews = await _reviewService.getListingReviews(widget.listingId);
-
-        // Calculate average rating
-        if (reviews.isNotEmpty) {
-          avgRating = reviews.map((r) => r.rating).reduce((a, b) => a + b) /
-              reviews.length;
-        }
-      } catch (e) {
-        debugPrint('Error loading reviews: $e');
+    // Fetch listing reviews independently
+    try {
+      final reviews = await _reviewService.getListingReviews(widget.listingId);
+      double avgRating = 0.0;
+      if (reviews.isNotEmpty) {
+        avgRating = reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
       }
+      if (mounted) {
+        setState(() {
+          _listingReviews = reviews;
+          _averageRating = avgRating;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading reviews: $e');
     }
-
-    setState(() {
-      _listing = listing;
-      _listingReviews = reviews;
-      _averageRating = avgRating;
-      _isLoading = false;
-    });
   }
 
   void _showBookingBottomSheet(BuildContext context) {
@@ -104,27 +101,42 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthProvider>().user;
+    return BlocProvider.value(
+      value: _listingCubit,
+      child: BlocConsumer<ListingCubit, ListingState>(
+        listener: (context, state) {
+          if (state is ListingDetailsLoaded) {
+            setState(() {
+              _listing = state.listing;
+              _isLoading = false;
+            });
+          } else if (state is ListingError) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        },
+        builder: (context, state) {
+          final user = context.watch<AuthProvider>().user;
 
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+          if (_isLoading || state is ListingLoading) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
 
-    if (_listing == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Listing Not Found')),
-        body: const Center(
-          child: Text('This listing could not be found.'),
-        ),
-      );
-    }
+          if (_listing == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Listing Not Found')),
+              body: const Center(
+                child: Text('This listing could not be found.'),
+              ),
+            );
+          }
 
-    final isOwnListing = user?.id == _listing!.creator;
+          final isOwnListing = user?.id == _listing!.creatorId;
 
-    return Scaffold(
-      body: CustomScrollView(
+          return Scaffold(
         slivers: [
           // Image Carousel
           SliverAppBar(
@@ -409,7 +421,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
 
                           // Sort user IDs to match backend conversation ID generation
                           final userId = user!.id;
-                          final hostId = _listing!.creator;
+                          final hostId = _listing!.creatorId;
                           final sortedIds = [userId, hostId]..sort();
 
                           // Generate conversation ID matching backend logic
@@ -422,7 +434,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                             id: conversationId,
                             conversationId: conversationId,
                             otherUser: OtherUser(
-                              id: _listing!.creator,
+                              id: _listing!.creatorId,
                               firstName: firstName,
                               lastName: lastName,
                               profileImagePath:
@@ -444,7 +456,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                             MaterialPageRoute(
                               builder: (context) => ChatScreen(
                                 conversationId: tempConversation.id,
-                                otherUserId: _listing!.creator,
+                                otherUserId: _listing!.creatorId,
                                 otherUserName: _listing!.hostName,
                                 otherUserAvatar: _listing!.hostProfileImage,
                                 listingId: _listing!.id,
@@ -480,6 +492,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
               ),
             )
           : null,
+      ),
     );
   }
 
@@ -503,7 +516,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => HostProfileScreen(hostId: _listing!.creator),
+            builder: (context) => HostProfileScreen(hostId: _listing!.creatorId),
           ),
         );
       },
