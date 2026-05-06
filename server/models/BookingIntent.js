@@ -18,14 +18,12 @@ const BookingIntentSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      index: true,
     },
     // Alternative ID for VNPay transactions
     tempOrderId: {
       type: String,
       unique: true,
       sparse: true,
-      index: true,
     },
     customerId: {
       type: mongoose.Schema.Types.ObjectId,

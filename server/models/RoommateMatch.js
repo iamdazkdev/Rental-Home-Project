@@ -11,7 +11,6 @@ const RoommateMatchSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     userBId: {
       type: mongoose.Schema.Types.ObjectId,

@@ -9,14 +9,12 @@ const blockedDateSchema = new mongoose.Schema({
     listingId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Listing',
-        required: true,
-        index: true
+        required: true
     },
     hostId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
-        index: true
+        required: true
     },
     startDate: {
         type: Date,
