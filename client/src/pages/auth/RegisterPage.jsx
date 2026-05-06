@@ -3,7 +3,6 @@ import "../../styles/Register.scss";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setLogin as setReduxLogin } from "../../redux/state";
-import useAuthStore from "../../stores/useAuthStore";
 import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 
 const RegisterPage = () => {
@@ -47,7 +46,6 @@ const RegisterPage = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const setZustandLogin = useAuthStore((state) => state.setLogin);
 
   const timeoutRef = useRef(null);
   useEffect(() => {
@@ -107,7 +105,6 @@ const RegisterPage = () => {
                 token: loginData.token,
               })
             );
-            setZustandLogin(loginData.user, loginData.token);
 
             // Redirect to home page
             timeoutRef.current = setTimeout(() => {

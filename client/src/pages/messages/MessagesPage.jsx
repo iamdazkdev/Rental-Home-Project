@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useSocket } from "../../context/SocketContext";
-import useAuthStore from "../../stores/useAuthStore";
 import useMessagesWebsocket from "./hooks/useMessagesWebsocket";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -15,10 +14,7 @@ const MessagesPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Try Zustand first, fallback to Redux for dual-support
-  const zustandUser = useAuthStore((state) => state.user);
-  const reduxUser = useSelector((state) => state.user);
-  const user = zustandUser || reduxUser;
+  const user = useSelector((state) => state.user);
   const userId = user?._id || user?.id;
 
   const { socket, isUserOnline } = useSocket();

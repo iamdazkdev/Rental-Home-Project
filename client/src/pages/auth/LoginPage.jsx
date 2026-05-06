@@ -3,7 +3,6 @@ import "../../styles/Login.scss";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setLogin as setReduxLogin } from "../../redux/state";
-import useAuthStore from "../../stores/useAuthStore";
 import {
   API_ENDPOINTS,
   DEFAULT_HEADERS,
@@ -22,7 +21,6 @@ const LoginPage = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const setZustandLogin = useAuthStore((state) => state.setLogin);
 
   const timeoutRef = useRef(null);
 
@@ -89,8 +87,6 @@ const LoginPage = () => {
               token: data.token,
             })
           );
-          // Dual-write to Zustand
-          setZustandLogin(data.user, data.token);
         }
 
         // Redirect to home page after 1.5 seconds
