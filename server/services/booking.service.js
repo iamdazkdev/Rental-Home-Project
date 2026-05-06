@@ -4,8 +4,8 @@ const PendingBooking = require('../models/PendingBooking');
 const Listing = require('../models/Listing');
 const User = require('../models/User');
 const PaymentHistory = require('../models/PaymentHistory');
-const notificationService = require('./notificationService');
-const vnpayService = require('./vnpayService');
+const notificationService = require('./notification.service');
+const vnpayService = require('./vnpay.service');
 const {BOOKING_INTENT_TIMEOUT_MS} = require('../config/bookingIntentConfig');
 
 /**
@@ -1065,7 +1065,7 @@ class BookingService {
         extension.rejectedAt = new Date();
         extension.rejectionReason = reason;
         await booking.save();
-        await notificationService.sendExtensionRejected(booking, extension, reason);
+        await notificationService.sendExtensionRejected(booking, reason);
         return booking;
     }
 }

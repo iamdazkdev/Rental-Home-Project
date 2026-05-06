@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const { RentalAgreement, RentalPayment, RentalStatus } = require("../models/RoomRental");
-const { canTerminateRental } = require("../services/roomRentalValidation");
+const { canTerminateRental } = require("../validators/roomRental.validator");
 const createNotification = require("../utils/createNotification");
 
 // Helper: Generate monthly rent for next month

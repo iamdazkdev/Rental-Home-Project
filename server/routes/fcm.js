@@ -99,7 +99,7 @@ router.post('/test', async (req, res) => {
             });
         }
 
-        const fcmService = require('../services/fcmService');
+        const fcmService = require('../services/fcm.service');
 
         const result = await fcmService.sendToUser(userId, {
             title: title || 'Test Notification',

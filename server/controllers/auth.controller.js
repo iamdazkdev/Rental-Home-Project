@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const { sendPasswordResetEmail } = require("../services/emailService");
+const { sendPasswordResetEmail } = require("../services/email.service");
 
 // ============================================
 // VALIDATION HELPERS

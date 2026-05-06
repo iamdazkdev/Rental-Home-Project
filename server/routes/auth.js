@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { upload } = require("../services/cloudinaryService");
+const { upload } = require("../services/cloudinary.service");
 const { validate } = require("../middleware/validateHandler");
 const { 
   registerSchema, 

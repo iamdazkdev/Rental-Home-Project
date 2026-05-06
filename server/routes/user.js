@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const { asyncHandler } = require("../middleware/errorHandler");
 const { validate } = require("../middleware/validateHandler");
-const { uploadUserProfile } = require("../services/cloudinaryService");
+const { uploadUserProfile } = require("../services/cloudinary.service");
 const { getUserSchema, updateProfileSchema, getTripsSchema, toggleWishlistSchema } = require("../validators/user.validator");
 const userController = require("../controllers/user.controller");
 

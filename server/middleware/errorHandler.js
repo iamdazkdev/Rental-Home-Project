@@ -1,4 +1,5 @@
 const logger = require("../utils/logger");
+const HttpError = require("../utils/HttpError");
 
 /**
  * Async handler wrapper — eliminates try/catch boilerplate in controllers.
@@ -53,6 +54,16 @@ const errorHandler = (err, req, res, next) => {
         return res.status(401).json({
             success: false,
             message: "Token expired",
+        });
+    }
+
+    // Custom HttpError
+    if (err instanceof HttpError) {
+        return res.status(err.statusCode).json({
+            success: false,
+            error: err.code,
+            message: err.message,
+            details: err.details,
         });
     }
 

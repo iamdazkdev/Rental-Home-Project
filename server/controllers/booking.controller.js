@@ -1,5 +1,5 @@
-const bookingService = require('../services/bookingService');
-const vnpayService = require('../services/vnpayService');
+const bookingService = require('../services/booking.service');
+const vnpayService = require('../services/vnpay.service');
 const { HTTP_STATUS } = require("../constants");
 
 const createIntent = async (req, res) => {

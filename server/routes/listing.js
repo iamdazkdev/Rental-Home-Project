@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const { asyncHandler } = require("../middleware/errorHandler");
 const { validate } = require("../middleware/validateHandler");
-const { upload } = require("../services/cloudinaryService");
+const { upload } = require("../services/cloudinary.service");
 const { createListingSchema, updateListingSchema } = require("../validators/listing.validator");
 const listingController = require("../controllers/listing.controller");
 

@@ -7,7 +7,7 @@
 
 const cron = require("node-cron");
 const mongoose = require("mongoose");
-const {releaseExpiredIntents} = require("./concurrentBookingService");
+const {releaseExpiredIntents} = require("./concurrentBooking.service");
 
 let cleanupJob = null;
 

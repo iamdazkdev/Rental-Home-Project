@@ -3,7 +3,7 @@
  * Tests bookingService methods
  */
 
-const bookingService = require('../services/bookingService');
+const bookingService = require('../services/booking.service');
 const Booking = require('../models/Booking');
 const BookingIntent = require('../models/BookingIntent');
 const Listing = require('../models/Listing');

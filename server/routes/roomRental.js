@@ -3,14 +3,14 @@ const mongoose = require("mongoose");
 const {RentalRequest, RentalAgreement, RentalPayment, RentalStatus} = require("../models/RoomRental");
 const Listing = require("../models/Listing");
 const User = require("../models/User");
-const {upload} = require("../services/cloudinaryService");
+const {upload} = require("../services/cloudinary.service");
 const {
     validateRentalRequest,
     validateAgreementAcceptance,
     validatePaymentCreation,
     canTerminateRental,
     isRoomAvailable,
-} = require("../services/roomRentalValidation");
+} = require("../validators/roomRental.validator");
 const createNotification = require("../utils/createNotification");
 
 // Helper: Validate ObjectId

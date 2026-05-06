@@ -8,7 +8,7 @@ const logger = require("./utils/logger");
 const { authenticateToken, isAdmin } = require("./middleware/auth");
 const { authLimiter, paymentLimiter, apiLimiter } = require("./middleware/rateLimiter");
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
-const { upload } = require("./services/cloudinaryService");
+const { upload } = require("./services/cloudinary.service");
 
 // Create Express app
 const app = express();

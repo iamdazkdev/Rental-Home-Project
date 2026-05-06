@@ -1,5 +1,5 @@
 const paymentReminderService = require("../services/paymentReminder.service");
-const vnpayService = require("../services/vnpayService");
+const vnpayService = require("../services/vnpay.service");
 const { HTTP_STATUS } = require("../constants");
 
 const vnpayCallback = async (req, res) => {

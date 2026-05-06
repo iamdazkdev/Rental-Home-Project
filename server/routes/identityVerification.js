@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const multer = require("multer");
 const IdentityVerification = require("../models/IdentityVerification");
-const { uploadToCloudinary } = require("../services/cloudinaryService");
+const { uploadToCloudinary } = require("../services/cloudinary.service");
 
 // Verify uploadToCloudinary function exists
 console.log("🔍 [Identity Verification] uploadToCloudinary function:", typeof uploadToCloudinary);
