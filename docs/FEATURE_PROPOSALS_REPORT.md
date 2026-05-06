@@ -25,7 +25,7 @@ Tuy nhiên, để nền tảng thực sự đạt mức **Production-ready** và
 - *(Tính năng mở rộng)*: Analytics Dashboard, Đa ngôn ngữ (i18n).
 
 ---
-Ok
+
 ## II. ĐỀ XUẤT TÍNH NĂNG THEO MỨC ĐỘ ƯU TIÊN
 
 ### 🔥 1. ƯU TIÊN CAO (Phase 1 - Must-haves)
