@@ -424,7 +424,7 @@ class _RoomRentalDetailScreenState extends State<RoomRentalDetailScreen> {
                 const Text('Intended Stay Duration'),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<int>(
-                  value: stayDuration,
+                  initialValue: stayDuration,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),

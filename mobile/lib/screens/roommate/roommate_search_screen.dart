@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 
-import '../../models/roommate.dart';
+import '../../features/roommate/domain/entities/roommate_entity.dart';
+import '../../features/roommate/presentation/cubits/roommate_search_cubit.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/roommate_service.dart';
 import '../../utils/price_formatter.dart';
 import 'create_roommate_post_screen.dart';
 import 'roommate_post_detail_screen.dart';
@@ -16,10 +17,7 @@ class RoommateSearchScreen extends StatefulWidget {
 }
 
 class _RoommateSearchScreenState extends State<RoommateSearchScreen> {
-  final RoommateService _roommateService = RoommateService();
-
-  List<RoommatePost> _posts = [];
-  bool _isLoading = true;
+  late final RoommateSearchCubit _searchCubit;
 
   String _selectedPostType = 'ALL';
   String _selectedCity = '';
@@ -27,84 +25,90 @@ class _RoommateSearchScreenState extends State<RoommateSearchScreen> {
   @override
   void initState() {
     super.initState();
+    _searchCubit = GetIt.I<RoommateSearchCubit>();
     _loadPosts();
   }
 
-  Future<void> _loadPosts() async {
-    setState(() => _isLoading = true);
-
-    final posts = await _roommateService.searchPosts(
-      postType: _selectedPostType != 'ALL' ? _selectedPostType : null,
+  void _loadPosts() {
+    _searchCubit.searchPosts(
+      type: _selectedPostType != 'ALL' ? _selectedPostType : null,
       city: _selectedCity.isNotEmpty ? _selectedCity : null,
     );
-
-    // Filter out current user's own posts
-    if (!mounted) return;
-    final user = context.read<AuthProvider>().user;
-    final filteredPosts =
-        user != null ? posts.where((p) => p.userId != user.id).toList() : posts;
-
-    setState(() {
-      _posts = filteredPosts;
-      _isLoading = false;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Find Roommate'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CreateRoommatePostScreen(),
-                ),
-              ).then((_) => _loadPosts());
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Filters
-          _buildFilters(),
+    return BlocProvider.value(
+      value: _searchCubit,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Find Roommate'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateRoommatePostScreen(),
+                  ),
+                ).then((_) => _loadPosts());
+              },
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Filters
+            _buildFilters(),
 
-          // Posts List
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _posts.isEmpty
-                    ? _buildEmptyState()
-                    : RefreshIndicator(
-                        onRefresh: _loadPosts,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _posts.length,
-                          itemBuilder: (context, index) {
-                            return _RoommatePostCard(
-                              post: _posts[index],
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        RoommatePostDetailScreen(
-                                      postId: _posts[index].id,
-                                    ),
+            // Posts List
+            Expanded(
+              child: BlocBuilder<RoommateSearchCubit, RoommateSearchState>(
+                builder: (context, state) {
+                  if (state is RoommateSearchLoading || state is RoommateSearchInitial) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (state is RoommateSearchError) {
+                    return Center(child: Text(state.message));
+                  } else if (state is RoommateSearchLoaded) {
+                    final currentUser = context.watch<AuthProvider>().user;
+                    final filteredPosts = currentUser != null
+                        ? state.posts.where((p) => p.userId != currentUser.id).toList()
+                        : state.posts;
+
+                    if (filteredPosts.isEmpty) {
+                      return _buildEmptyState();
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: () async => _loadPosts(),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filteredPosts.length,
+                        itemBuilder: (context, index) {
+                          return _RoommatePostCard(
+                            post: filteredPosts[index],
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RoommatePostDetailScreen(
+                                    postId: filteredPosts[index].id,
                                   ),
-                                );
-                              },
-                            );
-                          },
-                        ),
+                                ),
+                              );
+                            },
+                          );
+                        },
                       ),
-          ),
-        ],
+                    );
+                  }
+                  return const SizedBox();
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -218,7 +222,7 @@ class _RoommateSearchScreenState extends State<RoommateSearchScreen> {
 }
 
 class _RoommatePostCard extends StatelessWidget {
-  final RoommatePost post;
+  final RoommateEntity post;
   final VoidCallback onTap;
 
   const _RoommatePostCard({
@@ -271,7 +275,7 @@ class _RoommatePostCard extends StatelessWidget {
                       color: Theme.of(context)
                           .iconTheme
                           .color
-                          ?.withValues(alpha: 0.6)),
+                          ?.withOpacity(0.6)),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
@@ -292,7 +296,7 @@ class _RoommatePostCard extends StatelessWidget {
                       color: Theme.of(context)
                           .iconTheme
                           .color
-                          ?.withValues(alpha: 0.6)),
+                          ?.withOpacity(0.6)),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
@@ -313,7 +317,7 @@ class _RoommatePostCard extends StatelessWidget {
                       color: Theme.of(context)
                           .iconTheme
                           .color
-                          ?.withValues(alpha: 0.6)),
+                          ?.withOpacity(0.6)),
                   const SizedBox(width: 4),
                   Text(
                     'Move-in: ${post.formattedMoveInDate}',
@@ -328,7 +332,12 @@ class _RoommatePostCard extends StatelessWidget {
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
-                  children: post.lifestyle.displayList.take(3).map((display) {
+                  children: [
+                    post.lifestyle.sleepScheduleDisplay,
+                    post.lifestyle.smokingDisplay,
+                    post.lifestyle.petsDisplay,
+                    post.lifestyle.cleanlinessDisplay,
+                  ].take(3).map((display) {
                     return Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
@@ -352,13 +361,13 @@ class _RoommatePostCard extends StatelessWidget {
   }
 
   Widget _buildTypeBadge() {
-    final isSeeker = post.postType == 'SEEKER';
+    final isSeeker = post.isSeeker;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: isSeeker
-            ? Colors.blue.withValues(alpha: 0.1)
-            : Colors.green.withValues(alpha: 0.1),
+            ? Colors.blue.withOpacity(0.1)
+            : Colors.green.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -383,3 +392,4 @@ class _RoommatePostCard extends StatelessWidget {
     );
   }
 }
+

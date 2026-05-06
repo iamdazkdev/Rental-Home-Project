@@ -1,10 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 
-import '../../models/roommate.dart';
+import '../../features/roommate/domain/entities/roommate_entity.dart';
+import '../../features/roommate/presentation/cubits/roommate_search_cubit.dart';
+import '../../features/roommate/domain/usecases/roommate_usecases.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/roommate_service.dart';
 import '../../utils/price_formatter.dart';
 
 class RoommatePostDetailScreen extends StatefulWidget {
@@ -21,39 +23,34 @@ class RoommatePostDetailScreen extends StatefulWidget {
 }
 
 class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
-  final RoommateService _roommateService = RoommateService();
+  late final RoommateSearchCubit _searchCubit;
+  late final RoommateUseCases _roommateUseCases;
 
-  RoommatePost? _post;
+  RoommateEntity? _post;
   bool _isLoading = true;
   bool _isSendingRequest = false;
 
   @override
   void initState() {
     super.initState();
+    _searchCubit = GetIt.I<RoommateSearchCubit>();
+    _roommateUseCases = GetIt.I<RoommateUseCases>();
     _loadPost();
   }
 
-  Future<void> _loadPost() async {
-    setState(() => _isLoading = true);
-
-    final post = await _roommateService.getPostDetail(widget.postId);
-
-    setState(() {
-      _post = post;
-      _isLoading = false;
-    });
+  void _loadPost() {
+    _searchCubit.getPostDetails(widget.postId);
   }
 
   Future<void> _sendRequest() async {
     final user = context.read<AuthProvider>().user;
-    if (user == null) {
+    if (user == null || _post == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please login to send a request')),
       );
       return;
     }
 
-    // Show message dialog
     final message = await showDialog<String>(
       context: context,
       builder: (context) => _SendRequestDialog(),
@@ -63,7 +60,7 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
 
     setState(() => _isSendingRequest = true);
 
-    final result = await _roommateService.sendRequest(
+    final result = await _roommateUseCases.sendRequest(
       postId: widget.postId,
       senderId: user.id,
       receiverId: _post!.userId,
@@ -72,7 +69,7 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
 
     setState(() => _isSendingRequest = false);
 
-    if (result['success']) {
+    if (result['success'] == true) {
       _showSuccessDialog();
     } else {
       if (!mounted) return;
@@ -111,8 +108,6 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
 
   void _contactUser() {
     if (_post == null) return;
-
-    // TODO: Implement chat feature
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Chat feature coming soon'),
@@ -123,24 +118,41 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
+    return BlocProvider.value(
+      value: _searchCubit,
+      child: BlocConsumer<RoommateSearchCubit, RoommateSearchState>(
+        listener: (context, state) {
+          if (state is RoommatePostDetailsLoaded) {
+            setState(() {
+              _post = state.post;
+              _isLoading = false;
+            });
+          } else if (state is RoommateSearchError) {
+            setState(() => _isLoading = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (_isLoading || state is RoommateSearchLoading) {
+            return Scaffold(
+              appBar: AppBar(),
+              body: const Center(child: CircularProgressIndicator()),
+            );
+          }
 
-    if (_post == null) {
-      return Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: Text('Post not found')),
-      );
-    }
+          if (_post == null) {
+            return Scaffold(
+              appBar: AppBar(),
+              body: const Center(child: Text('Post not found')),
+            );
+          }
 
-    final user = context.read<AuthProvider>().user;
-    final isOwnPost = user?.id == _post!.userId;
+          final user = context.read<AuthProvider>().user;
+          final isOwnPost = user?.id == _post!.userId;
 
-    return Scaffold(
+          return Scaffold(
       body: CustomScrollView(
         slivers: [
           // Image Header
@@ -295,11 +307,14 @@ class _RoommatePostDetailScreenState extends State<RoommatePostDetailScreen> {
         ],
       ),
       bottomNavigationBar: isOwnPost ? null : _buildBottomBar(),
+          );
+        },
+      ),
     );
   }
 
   Widget _buildTypeBadge() {
-    final isSeeker = _post!.postType == 'SEEKER';
+    final isSeeker = _post!.isSeeker;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(

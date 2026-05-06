@@ -27,8 +27,9 @@ class RoommateService {
 
       final queryParams = <String, String>{};
       if (city != null && city.isNotEmpty) queryParams['city'] = city;
-      if (postType != null && postType.isNotEmpty)
+      if (postType != null && postType.isNotEmpty) {
         queryParams['postType'] = postType;
+      }
       if (budgetMin != null) queryParams['budgetMin'] = budgetMin.toString();
       if (budgetMax != null) queryParams['budgetMax'] = budgetMax.toString();
       if (genderPreference != null && genderPreference.isNotEmpty) {

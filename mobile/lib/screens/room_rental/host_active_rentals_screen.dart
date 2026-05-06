@@ -150,7 +150,7 @@ class _HostActiveRentalsScreenState extends State<HostActiveRentalsScreen> {
                 const Text('Payment Type'),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: paymentType,
+                  initialValue: paymentType,
                   decoration:
                       const InputDecoration(border: OutlineInputBorder()),
                   items: const [

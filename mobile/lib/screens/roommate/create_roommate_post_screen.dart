@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 
+import '../../features/roommate/presentation/cubits/roommate_management_cubit.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/roommate_service.dart';
 
 class CreateRoommatePostScreen extends StatefulWidget {
   const CreateRoommatePostScreen({super.key});
@@ -14,10 +15,9 @@ class CreateRoommatePostScreen extends StatefulWidget {
 
 class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
   final _formKey = GlobalKey<FormState>();
-  final RoommateService _roommateService = RoommateService();
+  late final RoommateManagementCubit _managementCubit;
 
   int _currentStep = 0;
-  bool _isSubmitting = false;
   bool _isCheckingVerification = false;
   bool _isVerified = true; // Set to true by default for now
 
@@ -49,6 +49,7 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
   @override
   void initState() {
     super.initState();
+    _managementCubit = GetIt.I<RoommateManagementCubit>();
     _checkVerification();
   }
 
@@ -81,84 +82,38 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
     });
   }
 
-  void _showVerificationRequired() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.verified_user, color: Colors.orange),
-            SizedBox(width: 12),
-            Text('Verification Required'),
-          ],
-        ),
-        content: const Text(
-          'To create a roommate post, you need to verify your identity first. This helps keep our community safe.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, '/identity-verification');
-            },
-            child: const Text('Verify Now'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _submitPost() async {
+  void _submitPost() {
     if (!_formKey.currentState!.validate()) return;
 
     final user = context.read<AuthProvider>().user;
     if (user == null) return;
 
-    setState(() => _isSubmitting = true);
-
-    final result = await _roommateService.createPost(
-      userId: user.id,
-      postType: _postType,
-      title: _titleController.text.trim(),
-      description: _descriptionController.text.trim(),
-      city: _cityController.text.trim(),
-      province: _provinceController.text.trim(),
-      country: 'Vietnam',
-      budgetMin: double.tryParse(_budgetMinController.text) ?? 0,
-      budgetMax: double.tryParse(_budgetMaxController.text) ?? 0,
-      moveInDate: _moveInDate,
-      genderPreference: _genderPreference,
-      ageRangeMin: int.tryParse(_ageMinController.text),
-      ageRangeMax: int.tryParse(_ageMaxController.text),
-      lifestyle: {
+    final postData = {
+      'userId': user.id,
+      'postType': _postType,
+      'title': _titleController.text.trim(),
+      'description': _descriptionController.text.trim(),
+      'city': _cityController.text.trim(),
+      'province': _provinceController.text.trim(),
+      'country': 'Vietnam',
+      'budgetMin': double.tryParse(_budgetMinController.text) ?? 0,
+      'budgetMax': double.tryParse(_budgetMaxController.text) ?? 0,
+      'moveInDate': _moveInDate.toIso8601String(),
+      'genderPreference': _genderPreference,
+      'ageRangeMin': int.tryParse(_ageMinController.text),
+      'ageRangeMax': int.tryParse(_ageMaxController.text),
+      'lifestyle': {
         'sleepSchedule': _sleepSchedule,
         'smoking': _smoking,
         'cleanliness': _cleanliness,
         'personality': _personality,
       },
-      preferredContact: _preferredContact,
-      phoneNumber: _phoneController.text.trim(),
-      emailAddress: _emailController.text.trim(),
-    );
+      'preferredContact': _preferredContact,
+      'phoneNumber': _phoneController.text.trim(),
+      'emailAddress': _emailController.text.trim(),
+    };
 
-    setState(() => _isSubmitting = false);
-
-    if (result['success']) {
-      _showSuccessDialog();
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'Failed to create post')),
-      );
-    }
+    _managementCubit.createPost(postData, []); // Empty images for now
   }
 
   void _showSuccessDialog() {
@@ -233,52 +188,67 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create Roommate Post'),
-      ),
-      body: Form(
-        key: _formKey,
-        child: Stepper(
-          currentStep: _currentStep,
-          onStepContinue: () {
-            if (_currentStep < 3) {
-              setState(() => _currentStep++);
-            } else {
-              _submitPost();
-            }
-          },
-          onStepCancel: () {
-            if (_currentStep > 0) {
-              setState(() => _currentStep--);
-            }
-          },
-          controlsBuilder: (context, details) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: _isSubmitting ? null : details.onStepContinue,
-                    child: _isSubmitting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(_currentStep == 3 ? 'Create Post' : 'Continue'),
-                  ),
-                  if (_currentStep > 0) ...[
-                    const SizedBox(width: 12),
-                    TextButton(
-                      onPressed: details.onStepCancel,
-                      child: const Text('Back'),
-                    ),
-                  ],
-                ],
-              ),
+    return BlocProvider.value(
+      value: _managementCubit,
+      child: BlocConsumer<RoommateManagementCubit, RoommateManagementState>(
+        listener: (context, state) {
+          if (state is RoommateActionSuccess) {
+            _showSuccessDialog();
+          } else if (state is RoommateManagementError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
             );
-          },
+          }
+        },
+        builder: (context, state) {
+          final isSubmitting = state is RoommateManagementLoading;
+
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Create Roommate Post'),
+            ),
+            body: Form(
+              key: _formKey,
+              child: Stepper(
+                currentStep: _currentStep,
+                onStepContinue: () {
+                  if (_currentStep < 3) {
+                    setState(() => _currentStep++);
+                  } else {
+                    _submitPost();
+                  }
+                },
+                onStepCancel: () {
+                  if (_currentStep > 0) {
+                    setState(() => _currentStep--);
+                  }
+                },
+                controlsBuilder: (context, details) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: isSubmitting ? null : details.onStepContinue,
+                          child: isSubmitting
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text(_currentStep == 3 ? 'Create Post' : 'Continue'),
+                        ),
+                        if (_currentStep > 0) ...[
+                          const SizedBox(width: 12),
+                          TextButton(
+                            onPressed: details.onStepCancel,
+                            child: const Text('Back'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                },
           steps: [
             // Step 1: Basic Info
             Step(
@@ -498,6 +468,9 @@ class _CreateRoommatePostScreenState extends State<CreateRoommatePostScreen> {
             ),
           ],
         ),
+      ),
+    );
+        },
       ),
     );
   }

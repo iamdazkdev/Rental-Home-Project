@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 
-import '../../models/roommate.dart';
+import '../../features/roommate/domain/entities/roommate_entity.dart';
+import '../../features/roommate/presentation/cubits/roommate_management_cubit.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/roommate_service.dart';
 import '../../utils/price_formatter.dart';
 import 'create_roommate_post_screen.dart';
 import 'roommate_post_detail_screen.dart';
@@ -16,29 +17,20 @@ class MyRoommatePostsScreen extends StatefulWidget {
 }
 
 class _MyRoommatePostsScreenState extends State<MyRoommatePostsScreen> {
-  final RoommateService _roommateService = RoommateService();
-
-  List<RoommatePost> _posts = [];
-  bool _isLoading = true;
+  late final RoommateManagementCubit _managementCubit;
 
   @override
   void initState() {
     super.initState();
+    _managementCubit = GetIt.I<RoommateManagementCubit>();
     _loadPosts();
   }
 
-  Future<void> _loadPosts() async {
+  void _loadPosts() {
     final user = context.read<AuthProvider>().user;
-    if (user == null) return;
-
-    setState(() => _isLoading = true);
-
-    final posts = await _roommateService.getMyPosts(user.id);
-
-    setState(() {
-      _posts = posts;
-      _isLoading = false;
-    });
+    if (user != null) {
+      _managementCubit.loadUserPosts(user.id);
+    }
   }
 
   Future<void> _closePost(String postId) async {
@@ -63,21 +55,8 @@ class _MyRoommatePostsScreenState extends State<MyRoommatePostsScreen> {
       ),
     );
 
-    if (confirm != true) return;
-
-    final result = await _roommateService.closePost(postId);
-
-    if (result['success']) {
-      _loadPosts();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Post closed successfully')),
-      );
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'Failed to close post')),
-      );
+    if (confirm == true) {
+      _managementCubit.togglePostStatus(postId, 'ACTIVE'); // Will toggle to CLOSED
     }
   }
 
@@ -103,88 +82,100 @@ class _MyRoommatePostsScreenState extends State<MyRoommatePostsScreen> {
       ),
     );
 
-    if (confirm != true) return;
-
-    final result = await _roommateService.activatePost(postId);
-
-    if (result['success']) {
-      _loadPosts();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Post activated successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'] ?? 'Failed to activate post')),
-      );
+    if (confirm == true) {
+      _managementCubit.togglePostStatus(postId, 'CLOSED'); // Will toggle to ACTIVE
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Roommate Posts'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CreateRoommatePostScreen(),
-                ),
-              ).then((_) => _loadPosts());
-            },
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _posts.isEmpty
-              ? _buildEmptyState()
-              : RefreshIndicator(
-                  onRefresh: _loadPosts,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _posts.length,
-                    itemBuilder: (context, index) {
-                      return _PostCard(
-                        post: _posts[index],
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => RoommatePostDetailScreen(
-                                postId: _posts[index].id,
-                              ),
-                            ),
-                          );
-                        },
-                        onClose: () => _closePost(_posts[index].id),
-                        onActivate: () => _activatePost(_posts[index].id),
-                      );
-                    },
+    return BlocProvider.value(
+      value: _managementCubit,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('My Roommate Posts'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateRoommatePostScreen(),
                   ),
-                ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CreateRoommatePostScreen(),
+                ).then((_) => _loadPosts());
+              },
             ),
-          ).then((_) => _loadPosts());
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('New Post'),
+          ],
+        ),
+        body: BlocConsumer<RoommateManagementCubit, RoommateManagementState>(
+          listener: (context, state) {
+            if (state is RoommateActionSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message)),
+              );
+              _loadPosts(); // Reload posts on success
+            } else if (state is RoommateManagementError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message)),
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state is RoommateManagementLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (state is RoommateUserPostsLoaded) {
+              if (state.posts.isEmpty) {
+                return _buildEmptyState();
+              }
+
+              return RefreshIndicator(
+                onRefresh: () async => _loadPosts(),
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: state.posts.length,
+                  itemBuilder: (context, index) {
+                    return _PostCard(
+                      post: state.posts[index],
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RoommatePostDetailScreen(
+                              postId: state.posts[index].id,
+                            ),
+                          ),
+                        );
+                      },
+                      onClose: () => _closePost(state.posts[index].id),
+                      onActivate: () => _activatePost(state.posts[index].id),
+                    );
+                  },
+                ),
+              );
+            }
+
+            return _buildEmptyState(); // Fallback
+          },
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CreateRoommatePostScreen(),
+              ),
+            ).then((_) => _loadPosts());
+          },
+          icon: const Icon(Icons.add),
+          label: const Text('New Post'),
+        ),
       ),
     );
   }
+
 
   Widget _buildEmptyState() {
     return Center(
@@ -231,7 +222,7 @@ class _MyRoommatePostsScreenState extends State<MyRoommatePostsScreen> {
 }
 
 class _PostCard extends StatelessWidget {
-  final RoommatePost post;
+  final RoommateEntity post;
   final VoidCallback onTap;
   final VoidCallback onClose;
   final VoidCallback onActivate;
@@ -271,7 +262,7 @@ class _PostCard extends StatelessWidget {
                       }
                     },
                     itemBuilder: (context) => [
-                      if (post.status.value == 'ACTIVE')
+                      if (post.status == RoommatePostStatus.active)
                         const PopupMenuItem(
                           value: 'close',
                           child: Row(
@@ -282,7 +273,7 @@ class _PostCard extends StatelessWidget {
                             ],
                           ),
                         ),
-                      if (post.status.value == 'CLOSED')
+                      if (post.status == RoommatePostStatus.closed)
                         const PopupMenuItem(
                           value: 'activate',
                           child: Row(
@@ -319,7 +310,7 @@ class _PostCard extends StatelessWidget {
                       color: Theme.of(context)
                           .iconTheme
                           .color
-                          ?.withValues(alpha: 0.6)),
+                          ?.withOpacity(0.6)),
                   const SizedBox(width: 4),
                   Text(
                     '${post.city}, ${post.province}',
@@ -337,7 +328,7 @@ class _PostCard extends StatelessWidget {
                       color: Theme.of(context)
                           .iconTheme
                           .color
-                          ?.withValues(alpha: 0.6)),
+                          ?.withOpacity(0.6)),
                   const SizedBox(width: 4),
                   Text(
                     '${PriceFormatter.formatPriceInteger(post.budgetMin)} - ${PriceFormatter.formatPriceInteger(post.budgetMax)}/month',
@@ -355,7 +346,7 @@ class _PostCard extends StatelessWidget {
                       color: Theme.of(context)
                           .iconTheme
                           .color
-                          ?.withValues(alpha: 0.6)),
+                          ?.withOpacity(0.6)),
                   const SizedBox(width: 4),
                   Text(
                     'Created: ${post.formattedDate}',
@@ -371,13 +362,13 @@ class _PostCard extends StatelessWidget {
   }
 
   Widget _buildTypeBadge() {
-    final isSeeker = post.postType.value == 'SEEKER';
+    final isSeeker = post.isSeeker;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: isSeeker
-            ? Colors.blue.withValues(alpha: 0.1)
-            : Colors.green.withValues(alpha: 0.1),
+            ? Colors.blue.withOpacity(0.1)
+            : Colors.green.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
@@ -395,28 +386,25 @@ class _PostCard extends StatelessWidget {
     Color color;
     String text;
 
-    switch (post.status.value) {
-      case 'ACTIVE':
+    switch (post.status) {
+      case RoommatePostStatus.active:
         color = Colors.green;
         text = 'Active';
         break;
-      case 'MATCHED':
+      case RoommatePostStatus.matched:
         color = Colors.orange;
         text = 'Matched';
         break;
-      case 'CLOSED':
+      case RoommatePostStatus.closed:
         color = Colors.grey;
         text = 'Closed';
         break;
-      default:
-        color = Colors.grey;
-        text = post.status.value;
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(

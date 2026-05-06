@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -30,7 +29,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen>
   List<ListingEntity> _allListings = [];
   List<ListingEntity> _activeListings = [];
   List<ListingEntity> _inactiveListings = [];
-  bool _isLoading = true;
+  final bool _isLoading = true;
 
   // Format price helper
   String formatPrice(double price) {

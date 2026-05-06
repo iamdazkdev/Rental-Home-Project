@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 
-import '../../models/roommate.dart';
+import '../../features/roommate/domain/entities/roommate_entity.dart';
+import '../../features/roommate/presentation/cubits/roommate_management_cubit.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/roommate_service.dart';
 
 class MyRoommateRequestsScreen extends StatefulWidget {
   const MyRoommateRequestsScreen({super.key});
@@ -15,16 +16,13 @@ class MyRoommateRequestsScreen extends StatefulWidget {
 
 class _MyRoommateRequestsScreenState extends State<MyRoommateRequestsScreen>
     with SingleTickerProviderStateMixin {
-  final RoommateService _roommateService = RoommateService();
+  late final RoommateManagementCubit _managementCubit;
   late TabController _tabController;
-
-  List<RoommateRequest> _sentRequests = [];
-  List<RoommateRequest> _receivedRequests = [];
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _managementCubit = GetIt.I<RoommateManagementCubit>();
     _tabController = TabController(length: 2, vsync: this);
     _loadRequests();
   }
@@ -37,35 +35,13 @@ class _MyRoommateRequestsScreenState extends State<MyRoommateRequestsScreen>
 
   Future<void> _loadRequests() async {
     final user = context.read<AuthProvider>().user;
-    if (user == null) return;
-
-    setState(() => _isLoading = true);
-
-    final requests = await _roommateService.getMyRequests(user.id);
-
-    setState(() {
-      _sentRequests = requests.where((r) => r.senderId == user.id).toList();
-      _receivedRequests =
-          requests.where((r) => r.receiverId == user.id).toList();
-      _isLoading = false;
-    });
+    if (user != null) {
+      _managementCubit.loadMyRequests(user.id);
+    }
   }
 
-  Future<void> _handleAccept(String requestId) async {
-    final result =
-        await _roommateService.respondToRequest(requestId, 'ACCEPTED');
-
-    if (result['success']) {
-      _loadRequests();
-      _showSuccessDialog(
-          'Request Accepted', 'You can now chat with your potential roommate!');
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(result['message'] ?? 'Failed to accept request')),
-      );
-    }
+  void _handleAccept(String requestId) {
+    _managementCubit.respondToRequest(requestId, 'ACCEPTED');
   }
 
   Future<void> _handleReject(String requestId) async {
@@ -88,70 +64,70 @@ class _MyRoommateRequestsScreenState extends State<MyRoommateRequestsScreen>
       ),
     );
 
-    if (confirm != true) return;
-
-    final result =
-        await _roommateService.respondToRequest(requestId, 'REJECTED');
-
-    if (result['success']) {
-      _loadRequests();
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(result['message'] ?? 'Failed to reject request')),
-      );
+    if (confirm == true) {
+      _managementCubit.respondToRequest(requestId, 'REJECTED');
     }
   }
 
-  void _showSuccessDialog(String title, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.green),
-            const SizedBox(width: 12),
-            Text(title),
-          ],
-        ),
-        content: Text(message),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Roommate Requests'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(text: 'Received (${_receivedRequests.length})'),
-            Tab(text: 'Sent (${_sentRequests.length})'),
-          ],
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildRequestsList(_receivedRequests, isReceived: true),
-                _buildRequestsList(_sentRequests, isReceived: false),
-              ],
+    return BlocProvider.value(
+      value: _managementCubit,
+      child: BlocConsumer<RoommateManagementCubit, RoommateManagementState>(
+        listener: (context, state) {
+          if (state is RoommateActionSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+            _loadRequests();
+          } else if (state is RoommateManagementError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
+        builder: (context, state) {
+          List<RoommateRequestEntity> receivedRequests = [];
+          List<RoommateRequestEntity> sentRequests = [];
+          bool isLoading = state is RoommateManagementLoading;
+
+          if (state is RoommateRequestsLoaded) {
+            final user = context.read<AuthProvider>().user;
+            if (user != null) {
+              receivedRequests = state.requests.where((r) => r.receiverId == user.id).toList();
+              sentRequests = state.requests.where((r) => r.senderId == user.id).toList();
+            }
+          }
+
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Roommate Requests'),
+              bottom: TabBar(
+                controller: _tabController,
+                tabs: [
+                  Tab(text: 'Received (${receivedRequests.length})'),
+                  Tab(text: 'Sent (${sentRequests.length})'),
+                ],
+              ),
             ),
+            body: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildRequestsList(receivedRequests, isReceived: true),
+                      _buildRequestsList(sentRequests, isReceived: false),
+                    ],
+                  ),
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildRequestsList(List<RoommateRequest> requests,
+  Widget _buildRequestsList(List<RoommateRequestEntity> requests,
       {required bool isReceived}) {
     if (requests.isEmpty) {
       return Center(
@@ -212,7 +188,7 @@ class _MyRoommateRequestsScreenState extends State<MyRoommateRequestsScreen>
 }
 
 class _RequestCard extends StatelessWidget {
-  final RoommateRequest request;
+  final RoommateRequestEntity request;
   final bool isReceived;
   final VoidCallback onAccept;
   final VoidCallback onReject;

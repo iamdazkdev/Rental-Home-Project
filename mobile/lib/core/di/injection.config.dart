@@ -19,6 +19,13 @@ import '../../features/properties/domain/usecases/listing_usecases.dart';
 import '../../features/properties/presentation/cubits/listing_cubit/listing_cubit.dart';
 import '../../features/properties/presentation/cubits/host_management_cubit/host_management_cubit.dart';
 
+import '../../features/roommate/data/datasources/roommate_remote_datasource.dart';
+import '../../features/roommate/data/repositories/roommate_repository_impl.dart';
+import '../../features/roommate/domain/repositories/i_roommate_repository.dart';
+import '../../features/roommate/domain/usecases/roommate_usecases.dart';
+import '../../features/roommate/presentation/cubits/roommate_management_cubit.dart';
+import '../../features/roommate/presentation/cubits/roommate_search_cubit.dart';
+
 import '../../features/auth/data/datasources/auth_remote_datasource.dart'
     as _i161;
 import '../../features/auth/data/repositories/auth_repository_impl.dart'
@@ -76,6 +83,18 @@ extension GetItInjectableX on _i174.GetIt {
         () => ListingCubit(gh<ListingUseCases>()));
     gh.factory<HostManagementCubit>(
         () => HostManagementCubit(gh<ListingUseCases>()));
+
+    // Roommate Module (Manual Injection)
+    gh.lazySingleton<RoommateRemoteDataSource>(
+        () => RoommateRemoteDataSource());
+    gh.lazySingleton<IRoommateRepository>(
+        () => RoommateRepositoryImpl(gh<RoommateRemoteDataSource>()));
+    gh.factory<RoommateUseCases>(
+        () => RoommateUseCases(gh<IRoommateRepository>()));
+    gh.factory<RoommateSearchCubit>(
+        () => RoommateSearchCubit(gh<RoommateUseCases>()));
+    gh.factory<RoommateManagementCubit>(
+        () => RoommateManagementCubit(gh<RoommateUseCases>()));
 
     gh.factory<_i1015.CreateCashBookingUseCase>(
         () => _i1015.CreateCashBookingUseCase(gh<_i740.IBookingRepository>()));
