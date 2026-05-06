@@ -7,6 +7,10 @@ import ListingCard from "../../components/listing/ListingCard";
 import { categories, types, facilities } from "../../data";
 import "../../styles/SearchPage.scss";
 import { CONFIG, HTTP_METHODS } from "../../constants/api";
+import SearchWidget from "../../components/search/SearchWidget";
+import useSearchStore from "../../stores/useSearchStore";
+import useLongTermSearch from "../../hooks/useLongTermSearch";
+import { searchService } from "../../services/search.service";
 
 const SearchPage = () => {
   const location = useLocation();
@@ -19,57 +23,26 @@ const SearchPage = () => {
   const [pagination, setPagination] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Filter states
-  const [filters, setFilters] = useState({
-    query: queryParams.get("query") || "",
-    city: queryParams.get("city") || "",
-    province: queryParams.get("province") || "",
-    country: queryParams.get("country") || "",
-    category: queryParams.get("category") || "",
-    type: queryParams.get("type") || "",
-    minPrice: queryParams.get("minPrice") || "",
-    maxPrice: queryParams.get("maxPrice") || "",
-    minGuests: queryParams.get("minGuests") || "",
-    minBedrooms: queryParams.get("minBedrooms") || "",
-    minBathrooms: queryParams.get("minBathrooms") || "",
-    amenities: queryParams.getAll("amenities") || [],
-    minRating: queryParams.get("minRating") || "",
-    sortBy: queryParams.get("sortBy") || "rating",
-    page: queryParams.get("page") || "1",
-  });
+  // Filter states (Zustand)
+  const filters = useSearchStore(state => state.filters);
+  const setFilters = useSearchStore(state => state.setFilters);
+  const clearStoreFilters = useSearchStore(state => state.clearFilters);
+  const toggleAmenity = useSearchStore(state => state.toggleAmenity);
+  
+  const { generateSearchPayload } = useLongTermSearch();
 
   useEffect(() => {
     performSearch();
     // eslint-disable-next-line
-  }, [location.search]);
+  }, []);
 
   const performSearch = async () => {
     try {
       setLoading(true);
-
-      // Build query string
-      const params = new URLSearchParams();
-      Object.keys(filters).forEach((key) => {
-        if (filters[key]) {
-          if (key === "amenities" && Array.isArray(filters[key])) {
-            filters[key].forEach((amenity) => params.append(key, amenity));
-          } else {
-            params.append(key, filters[key]);
-          }
-        }
-      });
-
-      const url = `${CONFIG.API_BASE_URL}/search?${params.toString()}`;
-      console.log("🔍 Search URL:", url);
-
-      const response = await fetch(url, { method: HTTP_METHODS.GET });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("✅ Search results:", data);
-        setResults(data.listings);
-        setPagination(data.pagination);
-      }
+      const payload = generateSearchPayload();
+      const data = await searchService.performSearch(payload);
+      setResults(data.listings || []);
+      setPagination(data.pagination || null);
     } catch (error) {
       console.error("❌ Search error:", error);
     } finally {
@@ -78,59 +51,25 @@ const SearchPage = () => {
   };
 
   const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value, page: "1" }));
+    setFilters({ [key]: value, page: 1 });
   };
 
   const handleAmenityToggle = (amenity) => {
-    setFilters((prev) => ({
-      ...prev,
-      amenities: prev.amenities.includes(amenity)
-        ? prev.amenities.filter((a) => a !== amenity)
-        : [...prev.amenities, amenity],
-      page: "1",
-    }));
+    toggleAmenity(amenity);
   };
 
   const applyFilters = () => {
-    const params = new URLSearchParams();
-    Object.keys(filters).forEach((key) => {
-      if (filters[key]) {
-        if (key === "amenities" && Array.isArray(filters[key])) {
-          filters[key].forEach((amenity) => params.append(key, amenity));
-        } else {
-          params.append(key, filters[key]);
-        }
-      }
-    });
-    navigate(`/search?${params.toString()}`);
+    performSearch();
   };
 
   const clearFilters = () => {
-    setFilters({
-      query: "",
-      city: "",
-      province: "",
-      country: "",
-      category: "",
-      type: "",
-      minPrice: "",
-      maxPrice: "",
-      minGuests: "",
-      minBedrooms: "",
-      minBathrooms: "",
-      amenities: [],
-      minRating: "",
-      sortBy: "rating",
-      page: "1",
-    });
-    navigate("/search");
+    clearStoreFilters();
+    setTimeout(performSearch, 0);
   };
 
   const handlePageChange = (newPage) => {
-    setFilters((prev) => ({ ...prev, page: newPage.toString() }));
-    const params = new URLSearchParams(location.search);
-    params.set("page", newPage);
-    navigate(`/search?${params.toString()}`);
+    setFilters({ page: newPage });
+    setTimeout(performSearch, 0);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -152,18 +91,7 @@ const SearchPage = () => {
               )}
             </p>
 
-            <div className="quick-search">
-              <input
-                type="text"
-                placeholder="Search by location, title, or description..."
-                value={filters.query}
-                onChange={(e) => handleFilterChange("query", e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && applyFilters()}
-              />
-              <button onClick={applyFilters} className="search-btn">
-                Search
-              </button>
-            </div>
+            <SearchWidget onSearch={applyFilters} />
 
             <button
               className="toggle-filters-btn"
