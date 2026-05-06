@@ -1,0 +1,48 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const i=JSON.parse(d);const cmd=i.tool_input?.command||'';if(/git push/.test(cmd)){console.error('[Hook] 🔍 Review changes before push...');console.error('[Hook] Run: git diff --stat HEAD~1')}}catch{}console.log(d)})\""
+          }
+        ],
+        "description": "Reminder before git push to review changes"
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const i=JSON.parse(d);const p=i.tool_input?.file_path||'';if(/server\\//.test(p)&&/\\.(jsx|tsx|dart)$/.test(p)){console.error('[Hook] ⚠️ CROSS-PLATFORM VIOLATION: Writing '+p.match(/\\.(jsx|tsx|dart)$/)[0]+' file inside server/')}if(/client\\//.test(p)&&/\\.dart$/.test(p)){console.error('[Hook] ⚠️ CROSS-PLATFORM VIOLATION: Writing .dart file inside client/')}if(/mobile\\//.test(p)&&/\\.(js|jsx|ts|tsx)$/.test(p)){console.error('[Hook] ⚠️ CROSS-PLATFORM VIOLATION: Writing .js/.ts file inside mobile/')}}catch{}console.log(d)})\""
+          }
+        ],
+        "description": "Detect cross-platform file writes (e.g. .dart in server/)"
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const i=JSON.parse(d);const p=i.tool_input?.file_path||'';if(/server\\//.test(p)&&/\\.(jsx|tsx|dart)$/.test(p)){console.error('[Hook] ⚠️ CROSS-PLATFORM VIOLATION: Editing '+p.match(/\\.(jsx|tsx|dart)$/)[0]+' file inside server/')}if(/client\\//.test(p)&&/\\.dart$/.test(p)){console.error('[Hook] ⚠️ CROSS-PLATFORM VIOLATION: Editing .dart file inside client/')}if(/mobile\\//.test(p)&&/\\.(js|jsx|ts|tsx)$/.test(p)){console.error('[Hook] ⚠️ CROSS-PLATFORM VIOLATION: Editing .js/.ts file inside mobile/')}}catch{}console.log(d)})\""
+          }
+        ],
+        "description": "Detect cross-platform file edits (e.g. .dart in server/)"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const i=JSON.parse(d);const p=i.tool_input?.file_path||'';const ns=i.tool_input?.new_string||'';if(/(api_key|secret|password|token)\\s*[:=]\\s*['\\\"][^'\\\"]{4,}['\\\"]/.test(ns)){console.error('[Hook] 🚨 SECURITY: Possible hardcoded secret detected in '+p)}}catch{}console.log(d)})\""
+          }
+        ],
+        "description": "Detect hardcoded secrets in edited files"
+      }
+    ]
+  }
+}
