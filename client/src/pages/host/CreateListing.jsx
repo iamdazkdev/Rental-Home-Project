@@ -1,7 +1,7 @@
 import React from "react";
 import "../../styles/CreateListing.scss";
-import Navbar from "../../components/Navbar";
-import IdentityVerificationForm from "../../components/IdentityVerificationForm";
+import Navbar from "../../components/layout/Navbar";
+import IdentityVerificationForm from "../../components/verification/IdentityVerificationForm";
 // Removed static imports - will fetch from API
 import { useState, useEffect } from "react";
 import { getIcon } from "../../utils/iconMapper";

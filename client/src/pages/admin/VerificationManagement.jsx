@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {useSelector} from "react-redux";
 import {useNavigate} from "react-router-dom";
 import "../../styles/VerificationManagement.scss";
-import VerificationReviewModal from "../../components/VerificationReviewModal";
+import VerificationReviewModal from "../../components/verification/VerificationReviewModal";
 
 const VerificationManagement = () => {
     const [verifications, setVerifications] = useState([]);

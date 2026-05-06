@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Home, Calendar, DollarSign, AlertTriangle, LogOut, CheckCircle } from 'lucide-react';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
-import Loader from '../../components/Loader';
+import Navbar from '../../components/layout/Navbar';
+import Footer from '../../components/common/Footer';
+import Loader from '../../components/common/Loader';
 import '../../styles/MyRentals.scss';
 
 const MyRentals = () => {

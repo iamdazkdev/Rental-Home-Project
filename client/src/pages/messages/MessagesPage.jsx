@@ -3,9 +3,9 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useSocket } from "../../context/SocketContext";
 import useMessagesWebsocket from "./hooks/useMessagesWebsocket";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import Loader from "../../components/Loader";
+import Navbar from "../../components/layout/Navbar";
+import Footer from "../../components/common/Footer";
+import Loader from "../../components/common/Loader";
 import "../../styles/MessagesPage.scss";
 import { CONFIG, HTTP_METHODS } from "../../constants/api";
 

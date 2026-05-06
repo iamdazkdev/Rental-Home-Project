@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {useSelector} from "react-redux";
 import {AlertTriangle, Calendar, CheckCircle, Clock, DollarSign, Eye, Home, User} from "lucide-react";
-import Navbar from "../../components/Navbar";
+import Navbar from "../../components/layout/Navbar";
 import API_BASE_URL from "../../config/api";
 import "../../styles/HostRentals.scss";
 

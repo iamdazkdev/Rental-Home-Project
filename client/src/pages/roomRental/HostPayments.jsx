@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {useSelector} from "react-redux";
 import {Calendar, CheckCircle, Clock, CreditCard, DollarSign, Eye} from "lucide-react";
-import Navbar from "../../components/Navbar";
+import Navbar from "../../components/layout/Navbar";
 import API_BASE_URL from "../../config/api";
 import "../../styles/HostPayments.scss";
 

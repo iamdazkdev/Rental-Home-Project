@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import Loader from "../../components/Loader";
-import RejectBookingModal from "../../components/RejectBookingModal";
-import RecordPaymentModal from "../../components/RecordPaymentModal";
-import PaymentHistory from "../../components/PaymentHistory";
+import Navbar from "../../components/layout/Navbar";
+import Footer from "../../components/common/Footer";
+import Loader from "../../components/common/Loader";
+import RejectBookingModal from "../../components/booking/RejectBookingModal";
+import RecordPaymentModal from "../../components/payment/RecordPaymentModal";
+import PaymentHistory from "../../components/payment/PaymentHistory";
 import "../../styles/ReservationList.scss";
 
 const ReservationList = () => {

@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useSelector} from 'react-redux';
-import Navbar from '../../components/Navbar';
-import PaymentHistory from '../../components/PaymentHistory';
+import Navbar from '../../components/layout/Navbar';
+import PaymentHistory from '../../components/payment/PaymentHistory';
 import API_BASE_URL from '../../config/api';
 import '../../styles/AdminManagement.scss';
 

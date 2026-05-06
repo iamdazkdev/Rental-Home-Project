@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from "react";
 import {useSelector} from "react-redux";
 import {useNavigate} from "react-router-dom";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import IdentityVerificationForm from "../../components/IdentityVerificationForm";
+import Navbar from "../../components/layout/Navbar";
+import Footer from "../../components/common/Footer";
+import IdentityVerificationForm from "../../components/verification/IdentityVerificationForm";
 import API_BASE_URL from "../../config/api";
 import "../../styles/IdentityVerificationPage.scss";
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
-import Loader from '../../components/Loader';
+import Navbar from '../../components/layout/Navbar';
+import Loader from '../../components/common/Loader';
 import { setLogin } from '../../redux/state';
 import { CONFIG } from '../../constants/api';
 import '../../styles/EditProfile.scss';

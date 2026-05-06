@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import Loader from "../../components/Loader";
-import CashPaymentConfirmModal from "../../components/CashPaymentConfirmModal";
-import PaymentSuccessModal from "../../components/PaymentSuccessModal";
+import Navbar from "../../components/layout/Navbar";
+import Footer from "../../components/common/Footer";
+import Loader from "../../components/common/Loader";
+import CashPaymentConfirmModal from "../../components/booking/CashPaymentConfirmModal";
+import PaymentSuccessModal from "../../components/payment/PaymentSuccessModal";
 import { CONFIG, HTTP_METHODS } from "../../constants/api";
 import "../../styles/PaymentReminder.scss";
 

@@ -12,8 +12,8 @@ import {
   Trash2,
   Loader
 } from 'lucide-react';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import Navbar from '../../components/layout/Navbar';
+import Footer from '../../components/common/Footer';
 import '../../styles/MyRooms.scss';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';

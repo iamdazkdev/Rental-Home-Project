@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { FileText, Calendar, DollarSign, AlertCircle, CheckCircle, X, CheckCircle2, Shield } from 'lucide-react';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
-import Loader from '../../components/Loader';
+import Navbar from '../../components/layout/Navbar';
+import Footer from '../../components/common/Footer';
+import Loader from '../../components/common/Loader';
 import API_BASE_URL from '../../config/api';
 import '../../styles/MyAgreements.scss';
 

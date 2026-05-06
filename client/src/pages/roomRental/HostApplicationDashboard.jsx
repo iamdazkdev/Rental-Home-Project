@@ -3,8 +3,8 @@ import {useSelector} from 'react-redux';
 import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import {AlertCircle, Calendar, CheckCircle, Clock, FileText, TrendingUp, XCircle} from 'lucide-react';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import Navbar from '../../components/layout/Navbar';
+import Footer from '../../components/common/Footer';
 import API_BASE_URL from '../../config/api';
 import '../../styles/HostApplicationDashboard.scss';
 

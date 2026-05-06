@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {AlertCircle, Banknote, CheckCircle, Clock, CreditCard, Wallet} from 'lucide-react';
-import ListingLockedMessage from '../../components/ListingLockedMessage';
+import ListingLockedMessage from '../../components/listing/ListingLockedMessage';
 import {checkListingAvailability} from '../../utils/concurrentBookingService';
 import API_BASE_URL from '../../config/api';
 import '../../styles/BookingReview.scss';

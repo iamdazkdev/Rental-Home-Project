@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
+import Navbar from "../../components/layout/Navbar";
+import Footer from "../../components/common/Footer";
 import "../../styles/PaymentResult.scss";
 
 const PaymentReminderResultPage = () => {

@@ -21,7 +21,7 @@ import {useDispatch, useSelector} from "react-redux";
 import "../../styles/Navbar.scss";
 import {Link, useNavigate} from "react-router-dom";
 import {setLogout} from "../../redux/state";
-import NotificationDropdown from "../NotificationDropdown";
+import NotificationDropdown from "../common/NotificationDropdown";
 
 const Navbar = () => {
     const [dropdownMenu, setDropdownMenu] = useState(false);

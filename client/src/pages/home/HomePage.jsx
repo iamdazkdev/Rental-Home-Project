@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../../components/Navbar";
-import Slide from "../../components/Slide";
-import Categories from "../../components/Categories";
-import Listing from "../../components/Listing";
+import Navbar from "../../components/layout/Navbar";
+import Slide from "../../components/common/Slide";
+import Categories from "../../components/common/Categories";
+import Listing from "../../components/listing/Listing";
 import { Search, MapPin, Calendar, DollarSign } from "lucide-react";
 import "../../styles/HomePage.scss";
 

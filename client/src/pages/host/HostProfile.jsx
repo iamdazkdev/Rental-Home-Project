@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import Loader from "../../components/Loader";
-import ListingCard from "../../components/ListingCard";
+import Navbar from "../../components/layout/Navbar";
+import Footer from "../../components/common/Footer";
+import Loader from "../../components/common/Loader";
+import ListingCard from "../../components/listing/ListingCard";
 import "../../styles/HostProfile.scss";
 import { CONFIG, HTTP_METHODS } from "../../constants/api";
 

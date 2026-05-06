@@ -1,15 +1,15 @@
 import "../../styles/List.scss";
 import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 import { useState, useEffect } from "react";
-import Loader from "../../components/Loader";
-import Navbar from "../../components/Navbar";
+import Loader from "../../components/common/Loader";
+import Navbar from "../../components/layout/Navbar";
 import { useDispatch, useSelector } from "react-redux";
 import { setTripList } from "../../redux/state";
-import ListingCard from "../../components/ListingCard";
-import Footer from "../../components/Footer";
-import ExtendStayModal from "../../components/ExtendStayModal";
-import CheckoutModal from "../../components/CheckoutModal";
-import CancelBookingModal from "../../components/CancelBookingModal";
+import ListingCard from "../../components/listing/ListingCard";
+import Footer from "../../components/common/Footer";
+import ExtendStayModal from "../../components/booking/ExtendStayModal";
+import CheckoutModal from "../../components/booking/CheckoutModal";
+import CancelBookingModal from "../../components/booking/CancelBookingModal";
 
 const TripList = () => {
   const [loading, setLoading] = useState(true);

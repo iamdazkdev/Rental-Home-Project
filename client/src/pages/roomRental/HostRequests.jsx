@@ -17,8 +17,8 @@ import {
   RefreshCw,
   Eye
 } from 'lucide-react';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
+import Navbar from '../../components/layout/Navbar';
+import Footer from '../../components/common/Footer';
 import '../../styles/HostRequests.scss';
 
 const HostRequests = () => {

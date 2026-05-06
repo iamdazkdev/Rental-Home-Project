@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { API_ENDPOINTS, HTTP_METHODS } from '../constants/api';
-import Loader from '../components/Loader';
+import Loader from '../components/common/Loader';
 import '../styles/PaymentResult.scss';
 
 const PaymentResultPage = () => {

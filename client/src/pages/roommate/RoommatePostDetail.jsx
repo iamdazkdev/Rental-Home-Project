@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {useSelector} from "react-redux";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
+import Navbar from "../../components/layout/Navbar";
+import Footer from "../../components/common/Footer";
 import API_BASE_URL from "../../config/api";
 import "../../styles/RoommatePostDetail.scss";
 

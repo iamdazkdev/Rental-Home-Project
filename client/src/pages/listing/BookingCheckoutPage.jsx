@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import Navbar from '../../components/Navbar';
-import Loader from '../../components/Loader';
-import BookingSuccessModal from '../../components/BookingSuccessModal';
+import Navbar from '../../components/layout/Navbar';
+import Loader from '../../components/common/Loader';
+import BookingSuccessModal from '../../components/booking/BookingSuccessModal';
 import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from '../../constants/api';
 import { validateBookingData, getPaymentGatewayLogo } from '../../utils/paymentUtils';
 import '../../styles/BookingCheckout.scss';

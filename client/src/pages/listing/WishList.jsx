@@ -1,11 +1,11 @@
 import "../../styles/List.scss";
 import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 import { useState, useEffect, useMemo } from "react";
-import Loader from "../../components/Loader";
-import Navbar from "../../components/Navbar";
+import Loader from "../../components/common/Loader";
+import Navbar from "../../components/layout/Navbar";
 import { useSelector } from "react-redux";
-import ListingCard from "../../components/ListingCard";
-import Footer from "../../components/Footer";
+import ListingCard from "../../components/listing/ListingCard";
+import Footer from "../../components/common/Footer";
 
 const WishList = () => {
   const [loading, setLoading] = useState(true);

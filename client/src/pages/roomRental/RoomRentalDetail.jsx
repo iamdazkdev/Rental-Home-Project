@@ -1,10 +1,10 @@
 import React, {useCallback, useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import {useSelector} from "react-redux";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import Loader from "../../components/Loader";
-import RequestResultModal from "../../components/RequestResultModal";
+import Navbar from "../../components/layout/Navbar";
+import Footer from "../../components/common/Footer";
+import Loader from "../../components/common/Loader";
+import RequestResultModal from "../../components/booking/RequestResultModal";
 import API_BASE_URL from "../../config/api";
 import "../../styles/RoomRentalDetail.scss";
 
