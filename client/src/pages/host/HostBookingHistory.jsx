@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/common/Footer";
-import Loader from "../../components/common/Loader";
+import Loader from "../../components/ui/Loader";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Navbar from '../../components/layout/Navbar';
-import Loader from '../../components/common/Loader';
+import Loader from '../../components/ui/Loader';
 import BookingSuccessModal from '../../components/booking/BookingSuccessModal';
 import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from '../../constants/api';
 import { validateBookingData, getPaymentGatewayLogo } from '../../utils/paymentUtils';

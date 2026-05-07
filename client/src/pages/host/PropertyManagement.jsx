@@ -3,7 +3,7 @@ import {useSelector} from "react-redux";
 import {useNavigate} from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/common/Footer";
-import Loader from "../../components/common/Loader";
+import Loader from "../../components/ui/Loader";
 import "../../styles/PropertyManagement.scss";
 import {CONFIG, HTTP_METHODS} from "../../constants/api";
 import { toast, confirmDialog } from "../../stores/useNotificationStore";

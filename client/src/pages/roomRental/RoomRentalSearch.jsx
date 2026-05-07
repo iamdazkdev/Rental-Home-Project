@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/common/Footer";
-import Loader from "../../components/common/Loader";
+import Loader from "../../components/ui/Loader";
 import {formatVND} from "../../utils/priceFormatter";
 import {DollarSign, Filter, Grid, List, MapPin, Search, X} from "lucide-react";
 import API_BASE_URL from "../../config/api";

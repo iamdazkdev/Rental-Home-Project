@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { DollarSign, Calendar, CreditCard, Banknote, CheckCircle, Clock } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
-import Loader from '../../components/common/Loader';
+import Loader from '../../components/ui/Loader';
 import '../../styles/MyPayments.scss';
 import { toast } from "../../stores/useNotificationStore";
 

@@ -5,7 +5,7 @@ import { useSocket } from "../../context/SocketContext";
 import useMessagesWebsocket from "./hooks/useMessagesWebsocket";
 import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/common/Footer";
-import Loader from "../../components/common/Loader";
+import Loader from "../../components/ui/Loader";
 import "../../styles/MessagesPage.scss";
 import { CONFIG, HTTP_METHODS } from "../../constants/api";
 import { toast } from "../../stores/useNotificationStore";

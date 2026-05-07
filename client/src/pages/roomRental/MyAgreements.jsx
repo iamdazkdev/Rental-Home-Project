@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { FileText, Calendar, DollarSign, AlertCircle, CheckCircle, X, CheckCircle2, Shield } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
-import Loader from '../../components/common/Loader';
+import Loader from '../../components/ui/Loader';
 import API_BASE_URL from '../../config/api';
 import '../../styles/MyAgreements.scss';
 import { toast } from "../../stores/useNotificationStore";

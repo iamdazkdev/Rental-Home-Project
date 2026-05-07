@@ -1,7 +1,7 @@
 import "../../styles/List.scss";
 import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 import { useState, useEffect, useMemo } from "react";
-import Loader from "../../components/common/Loader";
+import Loader from "../../components/ui/Loader";
 import Navbar from "../../components/layout/Navbar";
 import { useSelector } from "react-redux";
 import ListingCard from "../../components/listing/ListingCard";

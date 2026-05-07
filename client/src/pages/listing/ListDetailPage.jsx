@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import "../../styles/ListingDetails.scss";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from "../../constants/api";
-import Loader from "../../components/common/Loader";
+import Loader from "../../components/ui/Loader";
 import Reviews from "../../components/review/Reviews";
 import { facilities } from "../../data";
 import "react-date-range/dist/styles.css";

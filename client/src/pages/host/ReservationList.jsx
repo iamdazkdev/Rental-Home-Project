@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/common/Footer";
-import Loader from "../../components/common/Loader";
+import Loader from "../../components/ui/Loader";
 import RejectBookingModal from "../../components/booking/RejectBookingModal";
 import RecordPaymentModal from "../../components/payment/RecordPaymentModal";
 import PaymentHistory from "../../components/payment/PaymentHistory";

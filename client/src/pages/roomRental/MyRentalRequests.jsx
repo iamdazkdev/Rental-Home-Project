@@ -4,7 +4,7 @@ import {useNavigate} from 'react-router-dom';
 import {Calendar, CheckCircle, Clock, Home, MessageSquare, X, XCircle} from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
-import Loader from '../../components/common/Loader';
+import Loader from '../../components/ui/Loader';
 import API_BASE_URL from '../../config/api';
 import '../../styles/MyRentalRequests.scss';
 import { toast, confirmDialog } from "../../stores/useNotificationStore";

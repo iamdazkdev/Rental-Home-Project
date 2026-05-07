@@ -1,14 +1,14 @@
 import "../../styles/List.scss";
 import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 import { useState, useEffect } from "react";
-import Loader from "../../components/common/Loader";
+import Loader from "../../components/ui/Loader";
 import Navbar from "../../components/layout/Navbar";
 import { useDispatch, useSelector } from "react-redux";
 import { setTripList } from "../../redux/state";
 import ListingCard from "../../components/listing/ListingCard";
 import Footer from "../../components/common/Footer";
 import ExtendStayModal from "../../components/booking/ExtendStayModal";
-import CheckoutModal from "../../components/booking/CheckoutModal";
+import CheckoutModal from "../../components/payment/CheckoutModal";
 import CancelBookingModal from "../../components/booking/CancelBookingModal";
 import { toast } from "../../stores/useNotificationStore";
 

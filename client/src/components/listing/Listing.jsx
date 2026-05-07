@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { categories } from "../../data";
 import "../../styles/Listings.scss";
 import ListingCard from "./ListingCard";
-import Loader from "../common/Loader";
+import Loader from "../ui/Loader";
 import { useDispatch, useSelector } from "react-redux";
 import { HTTP_METHODS, CONFIG } from "../../constants/api";
 import { setListings } from "../../redux/state";

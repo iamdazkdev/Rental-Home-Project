@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Home, Calendar, DollarSign, AlertTriangle, LogOut, CheckCircle } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
-import Loader from '../../components/common/Loader';
+import Loader from '../../components/ui/Loader';
 import '../../styles/MyRentals.scss';
 import { toast, confirmDialog } from "../../stores/useNotificationStore";
 
