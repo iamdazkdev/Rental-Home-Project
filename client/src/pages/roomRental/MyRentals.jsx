@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Home, Calendar, DollarSign, AlertTriangle, LogOut, CheckCircle } from 'lucide-react';
@@ -18,13 +18,7 @@ const MyRentals = () => {
   const user = useSelector((state) => state.user);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchRentals();
-    }
-  }, [user?.id]);
-
-  const fetchRentals = async () => {
+  const fetchRentals = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(
@@ -45,7 +39,13 @@ const MyRentals = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, user?._id]);
+
+  useEffect(() => {
+    if (user?.id || user?._id) {
+      fetchRentals();
+    }
+  }, [user?.id, user?._id, fetchRentals]);
 
   const handleConfirmMoveIn = async (agreementId) => {
     if (!await confirmDialog({ message: 'Confirm that you have moved in?' })) return;

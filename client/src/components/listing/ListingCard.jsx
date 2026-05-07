@@ -10,6 +10,7 @@ import {API_ENDPOINTS, HTTP_METHODS} from "../../constants/api";
 import {setWishList} from "../../redux/state";
 import PaymentBreakdownCard from "../payment/PaymentBreakdownCard";
 import { toast } from "../../stores/useNotificationStore";
+import RentalModeModal from "../common/RentalModeModal";
 
 
 const ListingCard = ({
@@ -80,13 +81,20 @@ const ListingCard = ({
   }, [listingId]);
 
   const navigate = useNavigate();
+  const [showModeModal, setShowModeModal] = useState(false);
+
   const handleNavigateToDetails = () => {
     // Route to appropriate detail page based on listing type
     if (type === "Room(s)") {
       navigate(`/room-rental/${listingId}`);
     } else {
-      navigate(`/listing/${listingId}`);
+      setShowModeModal(true);
     }
+  };
+
+  const handleModeSelect = (mode) => {
+    setShowModeModal(false);
+    navigate(`/listing/${listingId}?mode=${mode}`);
   };
 
   const dispatch = useDispatch();
@@ -346,6 +354,15 @@ const ListingCard = ({
           <Favorite sx={{color: "white"}}/>
         )}
       </button>
+
+      {/* Mode Modal */}
+      <div onClick={(e) => e.stopPropagation()}>
+        <RentalModeModal 
+          open={showModeModal} 
+          onClose={() => setShowModeModal(false)}
+          onSelect={handleModeSelect}
+        />
+      </div>
     </div>
   );
 };

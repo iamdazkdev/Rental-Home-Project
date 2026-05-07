@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { DollarSign, Calendar, CreditCard, Banknote, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { DollarSign, Calendar, CreditCard, Banknote, CheckCircle, Clock } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
 import Loader from '../../components/common/Loader';
@@ -14,13 +14,7 @@ const MyPayments = () => {
   const [filter, setFilter] = useState('ALL'); // ALL, UNPAID, PAID
   const user = useSelector((state) => state.user);
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchPayments();
-    }
-  }, [user?.id]);
-
-  const fetchPayments = async () => {
+  const fetchPayments = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(
@@ -41,7 +35,13 @@ const MyPayments = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, user?._id]);
+
+  useEffect(() => {
+    if (user?.id || user?._id) {
+      fetchPayments();
+    }
+  }, [user?.id, user?._id, fetchPayments]);
 
   const handlePayOnline = async (paymentId) => {
     try {

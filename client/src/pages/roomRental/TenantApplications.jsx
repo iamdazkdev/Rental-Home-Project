@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {useSelector} from 'react-redux';
 import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
@@ -10,7 +10,6 @@ import '../../styles/TenantApplications.scss';
 import { toast } from "../../stores/useNotificationStore";
 
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
 
 const TenantApplications = () => {
     const [applications, setApplications] = useState([]);
@@ -20,13 +19,7 @@ const TenantApplications = () => {
     const user = useSelector((state) => state.user);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        if (user?._id) {
-            fetchApplications();
-        }
-    }, [user?._id, filter]);
-
-    const fetchApplications = async () => {
+    const fetchApplications = useCallback(async () => {
         try {
             setLoading(true);
             const response = await axios.get(
@@ -44,7 +37,13 @@ const TenantApplications = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user?._id, filter]);
+
+    useEffect(() => {
+        if (user?._id) {
+            fetchApplications();
+        }
+    }, [user?._id, filter, fetchApplications]);
 
     const handleAcceptOffer = async (appId) => {
         try {

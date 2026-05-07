@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import {useSelector} from "react-redux";
 import {AlertTriangle, Calendar, CheckCircle, Clock, DollarSign, Eye, Home, User} from "lucide-react";
 import Navbar from "../../components/layout/Navbar";
@@ -15,11 +15,7 @@ const HostRentals = () => {
     const [showMoveOutModal, setShowMoveOutModal] = useState(false);
     const user = useSelector((state) => state.user);
 
-    useEffect(() => {
-        fetchRentals();
-    }, [user]);
-
-    const fetchRentals = async () => {
+    const fetchRentals = useCallback(async () => {
         try {
             const response = await fetch(
                 `${API_BASE_URL}/room-rental/status/host/${user._id}`
@@ -33,7 +29,13 @@ const HostRentals = () => {
             console.error("Error fetching rentals:", error);
             setLoading(false);
         }
-    };
+    }, [user._id]);
+
+    useEffect(() => {
+        if (user && user._id) {
+            fetchRentals();
+        }
+    }, [fetchRentals, user]);
 
     const handleConfirmMoveIn = async (rentalId) => {
         try {

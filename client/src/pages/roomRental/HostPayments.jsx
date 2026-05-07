@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import {useSelector} from "react-redux";
 import {Calendar, CheckCircle, Clock, CreditCard, DollarSign, Eye} from "lucide-react";
 import Navbar from "../../components/layout/Navbar";
@@ -14,11 +14,7 @@ const HostPayments = () => {
     const [selectedPayment, setSelectedPayment] = useState(null);
     const user = useSelector((state) => state.user);
 
-    useEffect(() => {
-        fetchPayments();
-    }, [user]);
-
-    const fetchPayments = async () => {
+    const fetchPayments = useCallback(async () => {
         try {
             const response = await fetch(
                 `${API_BASE_URL}/room-rental/payments/host/${user._id}`
@@ -32,7 +28,13 @@ const HostPayments = () => {
             console.error("Error fetching payments:", error);
             setLoading(false);
         }
-    };
+    }, [user._id]);
+
+    useEffect(() => {
+        if (user && user._id) {
+            fetchPayments();
+        }
+    }, [fetchPayments, user]);
 
     const handleConfirmPayment = async (paymentId) => {
         if (!await confirmDialog({ message: "Confirm that you have received this cash payment?" })) {

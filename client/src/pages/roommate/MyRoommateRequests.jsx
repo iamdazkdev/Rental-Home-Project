@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import {useNavigate} from "react-router-dom";
 import {useSelector} from "react-redux";
 import Navbar from "../../components/layout/Navbar";
@@ -22,15 +22,7 @@ const MyRoommateRequests = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
 
-    useEffect(() => {
-        if (!userId) {
-            navigate("/login");
-            return;
-        }
-        fetchRequests();
-    }, [activeTab, userId]);
-
-    const fetchRequests = async () => {
+    const fetchRequests = useCallback(async () => {
         setLoading(true);
         try {
             const endpoint =
@@ -49,7 +41,15 @@ const MyRoommateRequests = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [activeTab, userId]);
+
+    useEffect(() => {
+        if (!userId) {
+            navigate("/login");
+            return;
+        }
+        fetchRequests();
+    }, [activeTab, userId, navigate, fetchRequests]);
 
     const handleAccept = async (requestId) => {
         try {

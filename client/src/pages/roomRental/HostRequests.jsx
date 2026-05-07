@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -39,18 +39,7 @@ const HostRequests = () => {
   // Get user ID - handle both _id and id formats
   const userId = user?._id || user?.id;
 
-  useEffect(() => {
-    console.log('🔍 HostRequests - User state:', user);
-    console.log('🔍 HostRequests - User ID:', userId);
-    if (userId) {
-      fetchRequests();
-    } else {
-      setLoading(false);
-      console.log('⚠️ No user logged in');
-    }
-  }, [userId, filter]);
-
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
       setLoading(true);
       console.log('📤 Fetching requests for host:', userId);
@@ -80,7 +69,18 @@ const HostRequests = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, filter]);
+
+  useEffect(() => {
+    console.log('🔍 HostRequests - User state:', user);
+    console.log('🔍 HostRequests - User ID:', userId);
+    if (userId) {
+      fetchRequests();
+    } else {
+      setLoading(false);
+      console.log('⚠️ No user logged in');
+    }
+  }, [userId, filter, fetchRequests, user]);
 
   const handleApprove = async (requestId) => {
     try {

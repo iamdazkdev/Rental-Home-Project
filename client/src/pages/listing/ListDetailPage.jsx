@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/alt-text */
 import React, { useEffect, useState } from "react";
 import "../../styles/ListingDetails.scss";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from "../../constants/api";
 import Loader from "../../components/common/Loader";
 import Reviews from "../../components/review/Reviews";
@@ -14,14 +14,38 @@ import Navbar from "../../components/layout/Navbar";
 import { useSelector } from "react-redux";
 import { formatVND } from "../../utils/priceFormatter";
 import { toast } from "../../stores/useNotificationStore";
+import RentalModeModal from "../../components/common/RentalModeModal";
 
 const ListingDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { listingId } = useParams();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const currentMode = queryParams.get("mode");
+  
   const [listing, setListing] = useState(null);
   const [hasActiveBooking, setHasActiveBooking] = useState(false);
   const [userBooking, setUserBooking] = useState(null);
+  const [showModeModal, setShowModeModal] = useState(false);
+
+  // Check mode on load
+  useEffect(() => {
+    if (!loading && listing) {
+      const creatorId = listing.creator?._id || listing.creator?.id || listing.creator;
+      const isOwnListing = customerId && (String(creatorId) === String(customerId));
+      
+      // If no mode is selected, not the host, and not loading
+      if (!currentMode && !isOwnListing && !hasActiveBooking) {
+        setShowModeModal(true);
+      }
+    }
+  }, [currentMode, listing, loading, customerId, hasActiveBooking]);
+
+  const handleModeSelect = (mode) => {
+    setShowModeModal(false);
+    navigate(`/listing/${listingId}?mode=${mode}`, { replace: true });
+  };
 
   const getListingDetails = async () => {
     try {
@@ -462,9 +486,25 @@ const ListingDetails = () => {
                 View My Trips
               </button>
             </div>
+          ) : currentMode === 'long_term' ? (
+            // LONG TERM BOOKING UI
+            <div className="long-term-booking">
+              <div className="long-term-header">
+                <span className="mode-badge">🏢 Long-term Rental</span>
+                <button className="change-mode-btn" onClick={() => setShowModeModal(true)}>Change</button>
+              </div>
+              <div className="placeholder-content" style={{ padding: '20px', textAlign: 'center', background: '#f7f7f7', borderRadius: '12px', marginTop: '16px' }}>
+                <p>Giao diện đặt phòng dài hạn (chọn số tháng, Flexible/Exact mode) đang được phát triển theo luồng UC-01.</p>
+                <h3>{formatVND(listing.price * 30, false)} / month</h3>
+              </div>
+            </div>
           ) : (
-            // Show booking form if not booked yet
+            // SHORT TERM BOOKING UI
             <>
+              <div className="short-term-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <span className="mode-badge" style={{ background: '#e3f2fd', color: '#1976d2', padding: '4px 8px', borderRadius: '6px', fontSize: '14px', fontWeight: 'bold' }}>🏝 Short-term Rental</span>
+                <button className="change-mode-btn" onClick={() => setShowModeModal(true)} style={{ background: 'none', border: 'none', color: '#717171', textDecoration: 'underline', cursor: 'pointer' }}>Change</button>
+              </div>
               <div className="date-range-calendar"></div>
               <DateRange ranges={dateRange} onChange={handleSelect} locale={enUS} />
               {dayCount > 1 ? (
@@ -491,6 +531,13 @@ const ListingDetails = () => {
           );
           })()}
         </div>
+
+        {/* Mode Modal */}
+        <RentalModeModal 
+          open={showModeModal} 
+          onClose={currentMode ? () => setShowModeModal(false) : undefined} // Force selection if no mode
+          onSelect={handleModeSelect}
+        />
 
         {/* Reviews Section */}
         <Reviews listingId={listingId} />

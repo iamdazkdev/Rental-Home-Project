@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -9,8 +9,7 @@ import {
   Eye,
   Edit,
   EyeOff,
-  Trash2,
-  Loader
+  Trash2
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
@@ -27,15 +26,7 @@ const MyRooms = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    fetchMyRooms();
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fetchMyRooms = async () => {
+  const fetchMyRooms = useCallback(async () => {
     try {
       setLoading(true);
       const userId = user?._id || user?.id;
@@ -52,7 +43,15 @@ const MyRooms = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?._id, user?.id]);
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    fetchMyRooms();
+  }, [user, navigate, fetchMyRooms]);
 
   const handleToggleVisibility = async (roomId, currentStatus) => {
     try {

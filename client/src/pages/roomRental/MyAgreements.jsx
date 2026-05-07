@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { FileText, Calendar, DollarSign, AlertCircle, CheckCircle, X, CheckCircle2, Shield } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
@@ -19,13 +19,7 @@ const MyAgreements = () => {
   const [acceptLoading, setAcceptLoading] = useState(false);
   const user = useSelector((state) => state.user);
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchAgreements();
-    }
-  }, [user?.id]);
-
-  const fetchAgreements = async () => {
+  const fetchAgreements = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(
@@ -46,7 +40,13 @@ const MyAgreements = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, user?._id]);
+
+  useEffect(() => {
+    if (user?.id || user?._id) {
+      fetchAgreements();
+    }
+  }, [user?.id, user?._id, fetchAgreements]);
 
   const handleViewAgreement = (agreement) => {
     setSelectedAgreement(agreement);

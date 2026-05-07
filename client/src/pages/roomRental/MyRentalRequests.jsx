@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {useSelector} from 'react-redux';
 import {useNavigate} from 'react-router-dom';
 import {Calendar, CheckCircle, Clock, Home, MessageSquare, X, XCircle} from 'lucide-react';
@@ -17,13 +17,7 @@ const MyRentalRequests = () => {
     const user = useSelector((state) => state.user);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        if (user?.id) {
-            fetchRequests();
-        }
-    }, [user?.id]);
-
-    const fetchRequests = async () => {
+    const fetchRequests = useCallback(async () => {
         try {
             setLoading(true);
             const response = await fetch(
@@ -44,7 +38,13 @@ const MyRentalRequests = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user?.id, user?._id]);
+
+    useEffect(() => {
+        if (user?.id || user?._id) {
+            fetchRequests();
+        }
+    }, [user?.id, user?._id, fetchRequests]);
 
     const handleCancelRequest = async (requestId) => {
         if (!await confirmDialog({ message: 'Are you sure you want to cancel this request?' })) return;

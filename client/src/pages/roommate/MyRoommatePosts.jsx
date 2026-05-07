@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import {useNavigate} from "react-router-dom";
 import {useSelector} from "react-redux";
 import Navbar from "../../components/layout/Navbar";
@@ -16,15 +16,7 @@ const MyRoommatePosts = () => {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (!userId) {
-            navigate("/login");
-            return;
-        }
-        fetchMyPosts();
-    }, [userId]);
-
-    const fetchMyPosts = async () => {
+    const fetchMyPosts = useCallback(async () => {
         setLoading(true);
         try {
             const response = await fetch(
@@ -40,7 +32,15 @@ const MyRoommatePosts = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [userId]);
+
+    useEffect(() => {
+        if (!userId) {
+            navigate("/login");
+            return;
+        }
+        fetchMyPosts();
+    }, [userId, navigate, fetchMyPosts]);
 
     const handleClosePost = async (postId) => {
         const confirmed = window.confirm(
