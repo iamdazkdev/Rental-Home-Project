@@ -125,6 +125,13 @@ const ListingDetails = () => {
 
   const navigate = useNavigate();
   const handleSubmit = async () => {
+    // Check login first
+    if (!customerId) {
+      toast.info("Please login to book this property");
+      navigate("/login", { state: { from: window.location.pathname } });
+      return;
+    }
+
     // Validate dates
     if (dayCount < 1) {
       toast.error("Please select valid dates (at least 1 night)");

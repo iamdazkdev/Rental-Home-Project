@@ -15,7 +15,6 @@ const BookingCheckoutPage = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
 
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [bookingData, setBookingData] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('vnpay_full'); // vnpay_full, vnpay_deposit, cash
@@ -150,7 +149,7 @@ const BookingCheckoutPage = () => {
     return rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   };
 
-  if (loading || !bookingData) {
+  if (!bookingData) {
     return <Loader />;
   }
 

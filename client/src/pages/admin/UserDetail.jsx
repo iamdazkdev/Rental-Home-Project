@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import AdminService from "../../services/admin/AdminService";
 import "../../styles/admin/UserDetail.scss";
@@ -11,11 +11,7 @@ const UserDetail = () => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchUserDetail();
-    }, [id]);
-
-    const fetchUserDetail = async () => {
+    const fetchUserDetail = useCallback(async () => {
         setLoading(true);
         try {
             const response = await AdminService.getUserById(id);
@@ -26,7 +22,11 @@ const UserDetail = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id, navigate]);
+
+    useEffect(() => {
+        fetchUserDetail();
+    }, [fetchUserDetail]);
 
     const handleRoleChange = async () => {
         const newRole = prompt(

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import {useSelector} from "react-redux";
 import {AlertCircle, CheckCircle, Clock, DollarSign, Eye, FileText} from "lucide-react";
 import Navbar from "../../components/layout/Navbar";
@@ -14,11 +14,7 @@ const HostAgreements = () => {
     const [selectedAgreement, setSelectedAgreement] = useState(null);
     const user = useSelector((state) => state.user);
 
-    useEffect(() => {
-        fetchAgreements();
-    }, [user]);
-
-    const fetchAgreements = async () => {
+    const fetchAgreements = useCallback(async () => {
         try {
             const response = await fetch(
                 `${API_BASE_URL}/room-rental/agreements/host/${user._id}`
@@ -32,7 +28,13 @@ const HostAgreements = () => {
             console.error("Error fetching agreements:", error);
             setLoading(false);
         }
-    };
+    }, [user._id]);
+
+    useEffect(() => {
+        if (user && user._id) {
+            fetchAgreements();
+        }
+    }, [fetchAgreements, user]);
 
     const handleConfirmAgreement = async (agreementId) => {
         try {

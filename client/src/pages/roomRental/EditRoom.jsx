@@ -9,8 +9,7 @@ import {
   Loader2,
   MapPin,
   DollarSign,
-  Home,
-  Maximize2
+  Home
 } from 'lucide-react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
@@ -27,7 +26,6 @@ const EditRoom = () => {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [room, setRoom] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -65,7 +63,6 @@ const EditRoom = () => {
       const data = await response.json();
 
       if (data) {
-        setRoom(data);
         setFormData({
           title: data.title || '',
           description: data.description || '',

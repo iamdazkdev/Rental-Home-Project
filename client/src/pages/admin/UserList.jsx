@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import {useNavigate} from "react-router-dom";
 import AdminService from "../../services/admin/AdminService";
 import "../../styles/admin/UserList.scss";
@@ -22,11 +22,7 @@ const UserList = () => {
         sortOrder: "desc",
     });
 
-    useEffect(() => {
-        fetchUsers();
-    }, [pagination.page, filters]);
-
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         setLoading(true);
         try {
             const response = await AdminService.getUsers({
@@ -36,17 +32,26 @@ const UserList = () => {
             });
 
             setUsers(response.data);
-            setPagination((prev) => ({
-                ...prev,
-                total: response.pagination.total,
-                totalPages: response.pagination.totalPages,
-            }));
+            setPagination((prev) => {
+                if (prev.total === response.pagination.total && prev.totalPages === response.pagination.totalPages) {
+                    return prev;
+                }
+                return {
+                    ...prev,
+                    total: response.pagination.total,
+                    totalPages: response.pagination.totalPages,
+                };
+            });
         } catch (error) {
             toast.error("Failed to fetch users: " + error.message);
         } finally {
             setLoading(false);
         }
-    };
+    }, [pagination.page, pagination.limit, filters]);
+
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]);
 
     const handleSearch = (e) => {
         setFilters((prev) => ({...prev, search: e.target.value}));

@@ -2,6 +2,11 @@ import React, {useEffect, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useSocket} from '../../context/SocketContext';
 import {CONFIG, HTTP_METHODS} from '../../constants/api';
+import { 
+    Bell, CheckCircle, XCircle, Calendar, MessageSquare, 
+    Star, ShieldCheck, Home, FileText, CheckCheck
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import './NotificationDropdown.scss';
 
 const NotificationDropdown = ({user}) => {
@@ -92,44 +97,51 @@ const NotificationDropdown = ({user}) => {
         }
     };
 
-    // Get notification icon
+    // Format title from snake_case to Title Case
+    const formatNotificationTitle = (type) => {
+        if (!type) return 'Notification';
+        return type
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
+    // Get notification icon component
     const getNotificationIcon = (type) => {
         switch (type) {
             case 'booking_confirmed':
             case 'booking_approved':
-                return '✅';
+                return <CheckCircle size={20} className="icon-success" />;
             case 'booking_cancelled':
             case 'booking_rejected':
-                return '❌';
+                return <XCircle size={20} className="icon-error" />;
             case 'new_booking':
-                return '📅';
+                return <Calendar size={20} className="icon-primary" />;
             case 'payment_received':
             case 'payment_reminder':
-                return '💰';
+                return <FileText size={20} className="icon-warning" />;
             case 'new_message':
-                return '💬';
+                return <MessageSquare size={20} className="icon-info" />;
             case 'review_received':
-                return '⭐';
+                return <Star size={20} className="icon-warning" />;
             case 'identity_verified':
-                return '🔐';
+                return <ShieldCheck size={20} className="icon-success" />;
             case 'rental_request':
-                return '🏠';
+                return <Home size={20} className="icon-primary" />;
             case 'agreement_signed':
-                return '📝';
+                return <FileText size={20} className="icon-success" />;
             default:
-                return '🔔';
+                return <Bell size={20} className="icon-default" />;
         }
     };
 
-    // Get time ago
+    // Get time ago using date-fns
     const getTimeAgo = (date) => {
-        const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-
-        if (seconds < 60) return 'Just now';
-        if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-        if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-        return new Date(date).toLocaleDateString();
+        try {
+            return formatDistanceToNow(new Date(date), { addSuffix: true });
+        } catch (e) {
+            return new Date(date).toLocaleDateString();
+        }
     };
 
     // Socket listener for new notifications
@@ -194,11 +206,11 @@ const NotificationDropdown = ({user}) => {
     return (
         <div className="notification-dropdown" ref={dropdownRef}>
             <button
-                className="notification-bell"
+                className={`notification-bell ${unreadCount > 0 ? 'has-unread' : ''}`}
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label="Notifications"
             >
-                🔔
+                <Bell size={24} strokeWidth={1.5} />
                 {unreadCount > 0 && (
                     <span className="notification-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
                 )}
@@ -209,8 +221,8 @@ const NotificationDropdown = ({user}) => {
                     <div className="notification-header">
                         <h3>Notifications</h3>
                         {unreadCount > 0 && (
-                            <button onClick={markAllAsRead} className="mark-all-read">
-                                Mark all read
+                            <button onClick={markAllAsRead} className="mark-all-read" title="Mark all as read">
+                                <CheckCheck size={16} /> Mark all read
                             </button>
                         )}
                     </div>
@@ -220,6 +232,7 @@ const NotificationDropdown = ({user}) => {
                             <div className="notification-loading">Loading...</div>
                         ) : notifications.length === 0 ? (
                             <div className="notification-empty">
+                                <Bell size={40} className="empty-icon" />
                                 <p>No notifications yet</p>
                             </div>
                         ) : (
@@ -229,12 +242,12 @@ const NotificationDropdown = ({user}) => {
                                     className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
                                     onClick={() => handleNotificationClick(notification)}
                                 >
-                                    <div className="notification-icon">
+                                    <div className="notification-icon-wrapper">
                                         {getNotificationIcon(notification.type)}
                                     </div>
                                     <div className="notification-content">
                                         <div className="notification-title">
-                                            {notification.title || notification.type}
+                                            {notification.title || formatNotificationTitle(notification.type)}
                                         </div>
                                         <div className="notification-message">{notification.message}</div>
                                         <div className="notification-time">{getTimeAgo(notification.createdAt)}</div>

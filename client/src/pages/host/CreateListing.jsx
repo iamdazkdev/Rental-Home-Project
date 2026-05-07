@@ -120,7 +120,6 @@ const CreateListingPage = () => {
     price: 0,
   });
   // Pricing type for Room/Shared Room
-  const [pricingType, setPricingType] = useState("daily"); // "daily" or "monthly"
   const [dailyPrice, setDailyPrice] = useState(0);
   const [monthlyPrice, setMonthlyPrice] = useState(0);
 
@@ -367,13 +366,6 @@ const CreateListingPage = () => {
       ...hostProfile,
       [name]: value,
     });
-  };
-
-  // Handle pricing changes with auto-conversion
-  const handleDailyPriceChange = (e) => {
-    const value = parseFloat(e.target.value) || 0;
-    setDailyPrice(value);
-    setMonthlyPrice(Math.round(value * 30)); // Auto-calculate monthly price
   };
 
   const handleMonthlyPriceChange = (e) => {

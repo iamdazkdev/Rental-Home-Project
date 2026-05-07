@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useCallback} from "react";
 import {useSelector} from "react-redux";
 import {useNavigate} from "react-router-dom";
 import "../../styles/VerificationManagement.scss";
@@ -39,7 +39,7 @@ const VerificationManagement = () => {
     }, [user, navigate]);
 
     // Fetch verifications
-    const fetchVerifications = async () => {
+    const fetchVerifications = useCallback(async () => {
         setLoading(true);
         try {
             const response = await fetch(
@@ -55,13 +55,13 @@ const VerificationManagement = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filter]);
 
     useEffect(() => {
         if (user && user.email === "admin@gmail.com") {
             fetchVerifications();
         }
-    }, [filter, user]);
+    }, [user, fetchVerifications]);
 
     // Open review modal
     const openReviewModal = (verification, action) => {
