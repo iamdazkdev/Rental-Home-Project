@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { 
   Box, Tabs, Tab, Slider, Typography, FormControlLabel, Switch,
   Button, TextField, Autocomplete, Paper 
@@ -16,13 +16,13 @@ const SearchWidget = ({ onSearch }) => {
   const filters = useSearchStore(state => state.filters);
   const setFilters = useSearchStore(state => state.setFilters);
 
-  const handleModeChange = (event, newValue) => {
+  const handleModeChange = useCallback((event, newValue) => {
     setMode(newValue);
-  };
+  }, [setMode]);
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     if (onSearch) onSearch();
-  };
+  }, [onSearch]);
 
   return (
     <Paper elevation={0} sx={{ p: 3, mb: 4, borderRadius: 3, border: '1px solid #e0e0e0' }}>

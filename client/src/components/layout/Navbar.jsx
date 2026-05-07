@@ -40,12 +40,12 @@ const Navbar = () => {
     const navigate = useNavigate();
     const { socket } = useSocket();
 
-    const toggleSection = (section) => {
+    const toggleSection = useCallback((section) => {
         setExpandedSections(prev => ({
             ...prev,
             [section]: !prev[section]
         }));
-    };
+    }, []);
 
     // Fetch unread message count
     const fetchUnreadCount = useCallback(async () => {
@@ -95,22 +95,20 @@ const Navbar = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleLogout = () => {
+    const handleLogout = useCallback(() => {
         dispatch(setLogout());
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
         setDropdownMenu(false);
         navigate("/login");
-    };
+    }, [dispatch, navigate]);
 
-    const handleSearch = (e) => {
+    const handleSearch = useCallback((e) => {
         e.preventDefault();
         if (searchQuery.trim()) {
             navigate(`/search?query=${encodeURIComponent(searchQuery.trim())}`);
         } else {
             navigate("/search");
         }
-    };
+    }, [searchQuery, navigate]);
     return (
         <div className="navbar">
             <div className="navbar_left">

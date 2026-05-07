@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import "../../styles/Register.scss";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -22,21 +22,21 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value, files } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [name]: name === "profileImage" ? files[0] : value,
-    });
-  };
+    }));
+  }, []);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  const togglePasswordVisibility = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
 
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
+  const toggleConfirmPasswordVisibility = useCallback(() => {
+    setShowConfirmPassword(prev => !prev);
+  }, []);
   const [passwordMatch, setPasswordMatch] = useState(true);
   useEffect(() => {
     setPasswordMatch(
