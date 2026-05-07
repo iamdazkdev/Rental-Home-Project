@@ -3,20 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const { sendPasswordResetEmail } = require("../services/email.service");
 
-// ============================================
-// VALIDATION HELPERS
-// ============================================
-
-const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-};
-
-const validatePassword = (password) => {
-    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
-};
+// Validation logic has been moved to validators/auth.validator.js
 
 // ============================================
 // REGISTER
@@ -26,41 +13,7 @@ const register = async (req, res) => {
         const { firstName, lastName, email, password, confirmPassword } = req.body;
         const profileImage = req.file;
 
-        // Input validation
-        if (!firstName || !lastName || !email || !password || !confirmPassword) {
-            return res.status(400).json({
-                success: false,
-                message: "All fields are required.",
-            });
-        }
-
-        if (firstName.trim().length < 2 || lastName.trim().length < 2) {
-            return res.status(400).json({
-                success: false,
-                message: "First name and last name must be at least 2 characters long.",
-            });
-        }
-
-        if (!validateEmail(email)) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide a valid email address.",
-            });
-        }
-
-        if (!validatePassword(password)) {
-            return res.status(400).json({
-                success: false,
-                message: "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number.",
-            });
-        }
-
-        if (password !== confirmPassword) {
-            return res.status(400).json({
-                success: false,
-                message: "Passwords do not match.",
-            });
-        }
+        // Input validation is handled by Zod middleware
 
         if (!profileImage) {
             return res.status(400).json({
@@ -130,19 +83,7 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "Email and password are required.",
-            });
-        }
-
-        if (!validateEmail(email)) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide a valid email address.",
-            });
-        }
+        // Input validation is handled by Zod middleware
 
         // Find user
         const user = await User.findOne({
@@ -207,13 +148,7 @@ const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
 
-        if (!email) {
-            return res.status(400).json({ success: false, message: "Email is required" });
-        }
-
-        if (!validateEmail(email)) {
-            return res.status(400).json({ success: false, message: "Please provide a valid email address" });
-        }
+        // Input validation is handled by Zod middleware
 
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) {
@@ -297,21 +232,7 @@ const resetPassword = async (req, res) => {
     try {
         const { token, email, password } = req.body;
 
-        if (!token || !email || !password) {
-            return res.status(400).json({ success: false, message: "Token, email, and new password are required" });
-        }
-
-        if (!validateEmail(email)) {
-            return res.status(400).json({ success: false, message: "Please provide a valid email address" });
-        }
-
-        // FIX: Use same validation as registration (was only checking length >= 6)
-        if (!validatePassword(password)) {
-            return res.status(400).json({
-                success: false,
-                message: "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number.",
-            });
-        }
+        // Input validation is handled by Zod middleware
 
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) {

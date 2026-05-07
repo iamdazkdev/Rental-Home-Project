@@ -1,6 +1,7 @@
 const bookingService = require('../services/booking.service');
 const vnpayService = require('../services/vnpay.service');
 const { HTTP_STATUS } = require("../constants");
+const HttpError = require("../utils/HttpError");
 
 const createIntent = async (req, res) => {
   const { listingId, hostId, startDate, endDate, totalPrice, paymentType } = req.body;
@@ -33,15 +34,11 @@ const createFromPayment = async (req, res) => {
 
   const isValid = vnpayService.verifyReturnUrl(paymentData);
   if (!isValid) {
-    const error = new Error('Invalid payment signature');
-    error.statusCode = 400;
-    throw error;
+    throw HttpError.BadRequest('Invalid payment signature');
   }
 
   if (paymentData.vnp_ResponseCode !== '00') {
-    const error = new Error('Payment failed or cancelled');
-    error.statusCode = 400;
-    throw error;
+    throw HttpError.BadRequest('Payment failed or cancelled');
   }
 
   const booking = await bookingService.createBookingFromPayment(
@@ -67,9 +64,7 @@ const getUserBookings = async (req, res) => {
   const { status, role } = req.query;
 
   if (req.user.id !== userId && req.user.role !== 'admin') {
-    const error = new Error('Unauthorized');
-    error.statusCode = 403;
-    throw error;
+    throw HttpError.Forbidden('Unauthorized');
   }
 
   const bookings = await bookingService.getUserBookings(userId, role, status);

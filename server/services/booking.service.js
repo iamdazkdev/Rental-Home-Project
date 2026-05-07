@@ -7,6 +7,8 @@ const PaymentHistory = require('../models/PaymentHistory');
 const notificationService = require('./notification.service');
 const vnpayService = require('./vnpay.service');
 const {BOOKING_INTENT_TIMEOUT_MS} = require('../config/bookingIntentConfig');
+const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 /**
  * Booking Service for Entire Place Rental (v2.0)
@@ -256,29 +258,42 @@ class BookingService {
                 }]
             });
 
-            console.log('💾 Saving booking...');
-            await booking.save();
-            console.log('✅ Booking saved:', booking._id);
+            const session = await mongoose.startSession();
+            session.startTransaction();
 
-            // Create payment history record
-            await PaymentHistory.create({
-                bookingId: booking._id,
-                customerId: booking.customerId,
-                hostId: booking.hostId,
-                listingId: booking.listingId,
-                amount: paidAmount,
-                method: 'vnpay',  // ✅ Correct field name
-                type: bookingIntent.paymentType === 'full' ? 'full' : 'deposit',  // ✅ Correct field name and enum values
-                transactionId,
-                status: 'paid',  // ✅ Valid enum value
-                notes: `VNPay ${bookingIntent.paymentType} payment for booking ${booking._id}`,  // ✅ Use 'notes' instead of 'description'
-                paidAt: new Date()
-            });
+            try {
+                logger.info('💾 Saving booking within transaction...');
+                await booking.save({ session });
+                logger.info(`✅ Booking saved: ${booking._id}`);
 
-            // Delete BookingIntent after successful conversion
-            await BookingIntent.findByIdAndDelete(bookingIntent._id);
+                // Create payment history record
+                const paymentHistory = new PaymentHistory({
+                    bookingId: booking._id,
+                    customerId: booking.customerId,
+                    hostId: booking.hostId,
+                    listingId: booking.listingId,
+                    amount: paidAmount,
+                    method: 'vnpay',
+                    type: bookingIntent.paymentType === 'full' ? 'full' : 'deposit',
+                    transactionId,
+                    status: 'paid',
+                    notes: `VNPay ${bookingIntent.paymentType} payment for booking ${booking._id}`,
+                    paidAt: new Date()
+                });
+                await paymentHistory.save({ session });
 
-            console.log(`✅ Booking created from payment: ${booking._id}, bookingStatus: ${booking.bookingStatus}, paymentStatus: ${booking.paymentStatus}`);
+                // Delete BookingIntent after successful conversion
+                await BookingIntent.findByIdAndDelete(bookingIntent._id, { session });
+
+                await session.commitTransaction();
+                session.endSession();
+                
+                logger.info(`✅ Booking created from payment: ${booking._id}, bookingStatus: ${booking.bookingStatus}, paymentStatus: ${booking.paymentStatus}`);
+            } catch (txnError) {
+                await session.abortTransaction();
+                session.endSession();
+                throw txnError;
+            }
 
             // Notify host about new booking request
             await notificationService.sendBookingRequest(booking);
