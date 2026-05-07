@@ -22,6 +22,7 @@ import "../../styles/Navbar.scss";
 import {Link, useNavigate} from "react-router-dom";
 import {setLogout} from "../../redux/state";
 import NotificationDropdown from "../common/NotificationDropdown";
+import { useSocket } from "../../context/SocketContext";
 
 const Navbar = () => {
     const [dropdownMenu, setDropdownMenu] = useState(false);
@@ -37,6 +38,7 @@ const Navbar = () => {
     const user = useSelector((state) => state.user);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { socket } = useSocket();
 
     const toggleSection = (section) => {
         setExpandedSections(prev => ({
@@ -50,7 +52,7 @@ const Navbar = () => {
         if (!user) return;
 
         try {
-            const userId = user._id || user.id;
+            const userId = user._id;
 
             if (!userId) {
                 console.warn("⚠️ Cannot fetch unread count: userId is undefined");
@@ -74,11 +76,13 @@ const Navbar = () => {
     useEffect(() => {
         if (user) {
             fetchUnreadCount();
-            // Poll every 30 seconds
-            const interval = setInterval(fetchUnreadCount, 30000);
-            return () => clearInterval(interval);
+            
+            if (socket) {
+                socket.on("receive_message", fetchUnreadCount);
+                return () => socket.off("receive_message", fetchUnreadCount);
+            }
         }
-    }, [user, fetchUnreadCount]);
+    }, [user, fetchUnreadCount, socket]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -177,7 +181,7 @@ const Navbar = () => {
                             <div className="menu_header">
                                 {user && (
                                     <Link
-                                        to={`/host/${user._id || user.id}`}
+                                        to={`/host/${user._id}`}
                                         className="user_info clickable"
                                         onClick={() => setDropdownMenu(false)}
                                         title="View my profile"
@@ -280,7 +284,7 @@ const Navbar = () => {
                                                 )}
                                             </Link>
                                             <Link
-                                                to={`/${user._id || user.id}/wishlist`}
+                                                to={`/${user._id}/wishlist`}
                                                 className="menu_item"
                                                 onClick={() => setDropdownMenu(false)}
                                             >
@@ -306,7 +310,7 @@ const Navbar = () => {
                                                     <div className="menu_subsection">
                                                         <div className="menu_subgroup_title">Guest</div>
                                                         <Link
-                                                            to={`/${user._id || user.id}/trips`}
+                                                            to={`/${user._id}/trips`}
                                                             className="menu_item menu_subitem"
                                                             onClick={() => setDropdownMenu(false)}
                                                         >

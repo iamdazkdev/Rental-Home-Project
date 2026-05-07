@@ -116,7 +116,7 @@ const EditProfilePage = () => {
         formDataToSend.append('profileImage', profileImage);
       }
 
-      const response = await fetch(`${CONFIG.API_BASE_URL}/user/${user._id || user.id}/profile`, {
+      const response = await fetch(`${CONFIG.API_BASE_URL}/user/${user._id}/profile`, {
         method: 'PATCH',
         body: formDataToSend,
       });
@@ -135,7 +135,7 @@ const EditProfilePage = () => {
       dispatch(setLogin({ user: updatedUser, token: localStorage.getItem('token') }));
 
       toast.success('Profile updated successfully!');
-      navigate(`/host/${user._id || user.id}`);
+      navigate(`/host/${user._id}`);
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error(error.message || 'Failed to update profile. Please try again.');

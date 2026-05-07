@@ -10,6 +10,42 @@ import "../../styles/MessagesPage.scss";
 import { CONFIG, HTTP_METHODS } from "../../constants/api";
 import { toast } from "../../stores/useNotificationStore";
 
+const createAvatarPlaceholder = (name) => {
+  const initial = name?.charAt(0)?.toUpperCase() || "U";
+  const canvas = document.createElement('canvas');
+  canvas.width = 100;
+  canvas.height = 100;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#FF385A';
+  ctx.fillRect(0, 0, 100, 100);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 48px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(initial, 50, 50);
+
+  return canvas.toDataURL();
+};
+
+const createListingPlaceholder = () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 100;
+  canvas.height = 100;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#4A90E2';
+  ctx.fillRect(0, 0, 100, 100);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 60px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🏠', 50, 50);
+
+  return canvas.toDataURL();
+};
 
 const MessagesPage = () => {
   const { conversationId } = useParams();
@@ -33,49 +69,6 @@ const MessagesPage = () => {
 
   // Get data from Contact Host button
   const contactData = location.state;
-
-  // Create placeholder avatar with initials
-  const createAvatarPlaceholder = (name) => {
-    const initial = name?.charAt(0)?.toUpperCase() || "U";
-    const canvas = document.createElement('canvas');
-    canvas.width = 100;
-    canvas.height = 100;
-    const ctx = canvas.getContext('2d');
-
-    // Background
-    ctx.fillStyle = '#FF385A';
-    ctx.fillRect(0, 0, 100, 100);
-
-    // Text
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 48px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(initial, 50, 50);
-
-    return canvas.toDataURL();
-  };
-
-  // Create placeholder for listing
-  const createListingPlaceholder = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 100;
-    canvas.height = 100;
-    const ctx = canvas.getContext('2d');
-
-    // Background
-    ctx.fillStyle = '#4A90E2';
-    ctx.fillRect(0, 0, 100, 100);
-
-    // House icon (simple)
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 60px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🏠', 50, 50);
-
-    return canvas.toDataURL();
-  };
 
   // Scroll to bottom
   const scrollToBottom = () => {

@@ -18,7 +18,7 @@ const MyPayments = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://localhost:3001/room-rental-advanced/payments/tenant/${user.id || user._id}`,
+        `http://localhost:3001/room-rental-advanced/payments/tenant/${user._id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,

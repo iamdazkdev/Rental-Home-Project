@@ -24,7 +24,7 @@ export const SocketProvider = ({children}) => {
                 console.log("✅ Socket connected:", newSocket.id);
 
                 // Emit user online event
-                const userId = user._id || user.id;
+                const userId = user._id;
                 if (userId) {
                     newSocket.emit("user_online", userId);
                 }

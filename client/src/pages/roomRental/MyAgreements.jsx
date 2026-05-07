@@ -23,7 +23,7 @@ const MyAgreements = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `${API_BASE_URL}/room-rental/agreements/tenant/${user.id || user._id}`,
+        `${API_BASE_URL}/room-rental/agreements/tenant/${user._id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,

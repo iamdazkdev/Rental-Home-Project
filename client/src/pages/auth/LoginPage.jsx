@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import "../../styles/Login.scss";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setLogin as setReduxLogin } from "../../redux/state";
 import {
   API_ENDPOINTS,
-  DEFAULT_HEADERS,
-  HTTP_METHODS,
 } from "../../constants/api";
+import api from "../../services/api";
+
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
@@ -20,7 +20,10 @@ const LoginPage = () => {
   const [success, setSuccess] = useState("");
 
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
+
+  const from = location.state?.from?.pathname || "/";
 
   const timeoutRef = useRef(null);
 
@@ -56,16 +59,11 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
-        method: HTTP_METHODS.POST,
-        headers: DEFAULT_HEADERS,
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
+      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, formData);
+      const data = response.data;
       console.log("Login response:", data);
 
-      if (response.ok) {
+      if (response.status === 200) {
         // Success - user logged in
         setSuccess("Login successful! Redirecting to home...");
 
@@ -74,10 +72,6 @@ const LoginPage = () => {
           email: "",
           password: "",
         });
-
-        // Store user data and token in localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
 
         // Dispatch Redux action
         if (data) {
@@ -89,39 +83,32 @@ const LoginPage = () => {
           );
         }
 
-        // Redirect to home page after 1.5 seconds
+        // Redirect to previous page or home page
         timeoutRef.current = setTimeout(() => {
-          navigate("/");
+          navigate(from, { replace: true });
         }, 500);
-      } else {
-        // Handle different error status codes
-        switch (response.status) {
-          case 401:
-            setError(
-              "Invalid email or password. Please check your credentials and try again."
-            );
-            break;
-          case 400:
-            if (data.message.includes("email")) {
-              setError("Please enter a valid email address.");
-            } else if (data.message.includes("required")) {
-              setError("Please fill in both email and password.");
-            } else {
-              setError(
-                data.message || "Please check your input and try again."
-              );
-            }
-            break;
-          case 500:
-            setError("Server error. Please try again later.");
-            break;
-          default:
-            setError(data.message || "Login failed. Please try again.");
-        }
       }
     } catch (err) {
       console.error("Error during login:", err);
-      setError("Network error. Please check your connection and try again.");
+      
+      const status = err.response?.status;
+      const errorData = err.response?.data;
+
+      if (status === 401) {
+        setError("Invalid email or password. Please check your credentials and try again.");
+      } else if (status === 400) {
+        if (errorData?.message?.includes("email")) {
+          setError("Please enter a valid email address.");
+        } else if (errorData?.message?.includes("required")) {
+          setError("Please fill in both email and password.");
+        } else {
+          setError(errorData?.message || "Please check your input and try again.");
+        }
+      } else if (status === 500) {
+        setError("Server error. Please try again later.");
+      } else {
+        setError(errorData?.message || "Network error. Please check your connection and try again.");
+      }
     } finally {
       setIsLoading(false);
     }

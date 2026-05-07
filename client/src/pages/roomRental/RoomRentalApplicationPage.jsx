@@ -47,7 +47,7 @@ const RoomRentalApplicationPage = () => {
 
       // Check compatibility
       const compatRes = await fetch(
-        `${CONFIG.API_BASE_URL}/room-rental/compatibility/${listingId}/${user._id || user.id}`
+        `${CONFIG.API_BASE_URL}/room-rental/compatibility/${listingId}/${user._id}`
       );
       const compatData = await compatRes.json();
       setCompatibility(compatData);
@@ -91,7 +91,7 @@ const RoomRentalApplicationPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           listingId,
-          applicantId: user._id || user.id,
+          applicantId: user._id,
           applicantNotes: formData.applicantNotes,
           tenantInfo: {
             currentEmployment: formData.currentEmployment,
@@ -106,7 +106,7 @@ const RoomRentalApplicationPage = () => {
 
       if (response.ok) {
         toast.success("Application submitted successfully!");
-        navigate(`/${user._id || user.id}/room-applications`);
+        navigate(`/${user._id}/room-applications`);
       } else {
         toast.error(data.message || "Failed to submit application");
       }

@@ -3,7 +3,8 @@ import "../../styles/Register.scss";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setLogin as setReduxLogin } from "../../redux/state";
-import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
+import { API_ENDPOINTS } from "../../constants/api";
+import api from "../../services/api";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -70,34 +71,24 @@ const RegisterPage = () => {
         register_form.append(key, formData[key]);
       }
 
-      const response = await fetch(API_ENDPOINTS.AUTH.REGISTER, {
-        method: HTTP_METHODS.POST,
-        body: register_form,
-      });
-
-      const data = await response.json();
+      const response = await api.post(API_ENDPOINTS.AUTH.REGISTER, register_form);
+      const data = response.data;
       console.log("Registration response:", data);
 
-      if (response.ok) {
+      if (response.status === 200 || response.status === 201) {
         // Success - user registered, now auto-login
         setSuccess("Account created successfully! Logging you in...");
 
         // Auto-login with the registered credentials
         try {
-          const loginResponse = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
-            method: HTTP_METHODS.POST,
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: formData.email,
-              password: formData.password,
-            }),
+          const loginResponse = await api.post(API_ENDPOINTS.AUTH.LOGIN, {
+            email: formData.email,
+            password: formData.password,
           });
 
-          const loginData = await loginResponse.json();
+          const loginData = loginResponse.data;
 
-          if (loginResponse.ok) {
+          if (loginResponse.status === 200) {
             // Login successful - dispatch to Redux and redirect to home
             dispatch(
               setReduxLogin({
@@ -125,44 +116,34 @@ const RegisterPage = () => {
             navigate("/login");
           }, 1500);
         }
-      } else {
-        // Handle different error status codes
-        switch (response.status) {
-          case 409:
-            setError(
-              "An account with this email already exists. Please use a different email or try logging in."
-            );
-            break;
-          case 400:
-            if (data.message.includes("Password")) {
-              setError(data.message);
-            } else if (data.message.includes("email")) {
-              setError("Please enter a valid email address.");
-            } else if (data.message.includes("required")) {
-              setError("Please fill in all required fields.");
-            } else if (data.message.includes("image")) {
-              setError("Please upload a profile image.");
-            } else {
-              setError(
-                data.message || "Please check your input and try again."
-              );
-            }
-            break;
-          case 413:
-            setError(
-              "File size too large. Please upload an image smaller than 5MB."
-            );
-            break;
-          case 500:
-            setError("Server error. Please try again later.");
-            break;
-          default:
-            setError(data.message || "Registration failed. Please try again.");
-        }
       }
     } catch (err) {
       console.error("Error during registration:", err);
-      setError("Network error. Please check your connection and try again.");
+      
+      const status = err.response?.status;
+      const errorData = err.response?.data;
+
+      if (status === 409) {
+        setError("An account with this email already exists. Please use a different email or try logging in.");
+      } else if (status === 400) {
+        if (errorData?.message?.includes("Password")) {
+          setError(errorData.message);
+        } else if (errorData?.message?.includes("email")) {
+          setError("Please enter a valid email address.");
+        } else if (errorData?.message?.includes("required")) {
+          setError("Please fill in all required fields.");
+        } else if (errorData?.message?.includes("image")) {
+          setError("Please upload a profile image.");
+        } else {
+          setError(errorData?.message || "Please check your input and try again.");
+        }
+      } else if (status === 413) {
+        setError("File size too large. Please upload an image smaller than 5MB.");
+      } else if (status === 500) {
+        setError("Server error. Please try again later.");
+      } else {
+        setError(errorData?.message || "Network error. Please check your connection and try again.");
+      }
     } finally {
       setIsLoading(false);
     }
