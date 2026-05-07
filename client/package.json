@@ -44,7 +44,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "cp build/index.html build/200.html && npx surge build rental-home-iamdazk.surge.sh"
   },
   "eslintConfig": {
     "extends": [
@@ -64,7 +64,5 @@
       "last 1 safari version"
     ]
   },
-  "devDependencies": {
-    "gh-pages": "^6.3.0"
-  }
+  "devDependencies": {}
 }

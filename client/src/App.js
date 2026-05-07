@@ -13,6 +13,9 @@ import ProtectedRoute from "./components/guards/ProtectedRoute";
 import AdminRoute from "./components/guards/AdminRoute";
 import AdminRedirect from "./components/layout/AdminRedirect";
 
+// Error Boundary
+import ErrorBoundary from "./components/common/ErrorBoundary";
+
 // Loading fallback
 const PageLoader = () => (
     <div style={{display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh"}}>
@@ -91,6 +94,8 @@ const UserDetail = lazy(() => import("./pages/admin/UserDetail"));
 const VerificationManagement = lazy(() => import("./pages/admin/VerificationManagement"));
 const AdminManagement = lazy(() => import("./pages/admin/AdminManagement"));
 
+// 404 Page
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 // GitHub Pages basename
 const basename = process.env.NODE_ENV === "production" ? "/Rental-Home-Project" : "";
@@ -101,8 +106,9 @@ function App() {
             <BrowserRouter basename={basename}>
                 <GlobalNotification />
                 <SocketProvider>
-                    <Suspense fallback={<PageLoader/>}>
-                        <Routes>
+                    <ErrorBoundary>
+                        <Suspense fallback={<PageLoader/>}>
+                            <Routes>
                             {/* ========== PUBLIC ROUTES ========== */}
                             <Route
                                 path="/"
@@ -177,8 +183,12 @@ function App() {
                                 <Route path="verifications" element={<VerificationManagement/>}/>
                             </Route>
                             <Route path="/admin/manage" element={<AdminRoute><AdminManagement/></AdminRoute>}/>
+                            
+                            {/* ========== 404 CATCH-ALL ========== */}
+                            <Route path="*" element={<NotFoundPage/>}/>
                         </Routes>
                     </Suspense>
+                    </ErrorBoundary>
                 </SocketProvider>
             </BrowserRouter>
         </div>
