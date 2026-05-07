@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
 import "../../styles/ReviewModal.scss";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const ReviewModal = ({ booking, onClose, onReviewSubmitted }) => {
   const [loading, setLoading] = useState(false);
@@ -46,12 +48,12 @@ const ReviewModal = ({ booking, onClose, onReviewSubmitted }) => {
       const data = await response.json();
       console.log("✅ Review submitted:", data);
 
-      alert("Review submitted successfully!");
+      toast.success("Review submitted successfully!");
       onReviewSubmitted();
       onClose();
     } catch (error) {
       console.error("❌ Error submitting review:", error);
-      alert(error.message || "Failed to submit review. Please try again.");
+      toast.error(error.message || "Failed to submit review. Please try again.");
     } finally {
       setLoading(false);
     }

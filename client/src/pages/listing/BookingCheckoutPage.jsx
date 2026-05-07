@@ -7,6 +7,8 @@ import BookingSuccessModal from '../../components/booking/BookingSuccessModal';
 import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from '../../constants/api';
 import { validateBookingData, getPaymentGatewayLogo } from '../../utils/paymentUtils';
 import '../../styles/BookingCheckout.scss';
+import { toast } from "../../stores/useNotificationStore";
+
 
 const BookingCheckoutPage = () => {
   const location = useLocation();
@@ -35,7 +37,7 @@ const BookingCheckoutPage = () => {
     // Validate booking data
     const validation = validateBookingData(bookingData);
     if (!validation.isValid) {
-      alert(`Invalid booking data:\n${validation.errors.join('\n')}`);
+      toast.error(`Invalid booking data:\n${validation.errors.join('\n')}`);
       return;
     }
 
@@ -125,7 +127,7 @@ const BookingCheckoutPage = () => {
 
     } catch (error) {
       console.error("❌ Error during checkout:", error);
-      alert(error.message || 'Failed to process payment. Please try again.');
+      toast.error(error.message || 'Failed to process payment. Please try again.');
       setSubmitting(false);
     }
   };

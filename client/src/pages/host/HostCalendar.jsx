@@ -4,6 +4,8 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import calendarService from '../../services/calendarService';
 import './HostCalendar.css';
+import { toast, confirmDialog } from "../../stores/useNotificationStore";
+
 
 const HostCalendar = () => {
     const {listingId} = useParams();
@@ -149,29 +151,29 @@ const HostCalendar = () => {
             const response = await calendarService.blockDates(listingId, blockForm);
 
             if (response.success) {
-                alert('Dates blocked successfully!');
+                toast.success('Dates blocked successfully!');
                 setShowBlockModal(false);
                 setBlockForm({startDate: '', endDate: '', reason: 'personal', note: ''});
                 loadCalendarData();
             }
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to block dates');
+            toast.error(err.response?.data?.message || 'Failed to block dates');
         }
     };
 
     const handleUnblockDate = async (blockId) => {
-        if (!window.confirm('Are you sure you want to unblock these dates?')) return;
+        if (!await confirmDialog({ message: 'Are you sure you want to unblock these dates?' })) return;
 
         try {
             const response = await calendarService.unblockDates(listingId, blockId);
 
             if (response.success) {
-                alert('Dates unblocked successfully!');
+                toast.success('Dates unblocked successfully!');
                 setShowDetailsModal(false);
                 loadCalendarData();
             }
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to unblock dates');
+            toast.error(err.response?.data?.message || 'Failed to unblock dates');
         }
     };
 
@@ -184,29 +186,29 @@ const HostCalendar = () => {
             });
 
             if (response.success) {
-                alert('Custom price set successfully!');
+                toast.success('Custom price set successfully!');
                 setShowPriceModal(false);
                 setPriceForm({date: '', price: '', reason: ''});
                 loadCalendarData();
             }
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to set custom price');
+            toast.error(err.response?.data?.message || 'Failed to set custom price');
         }
     };
 
     const handleRemoveCustomPrice = async (priceId) => {
-        if (!window.confirm('Are you sure you want to remove this custom price?')) return;
+        if (!await confirmDialog({ message: 'Are you sure you want to remove this custom price?' })) return;
 
         try {
             const response = await calendarService.removeCustomPrice(listingId, priceId);
 
             if (response.success) {
-                alert('Custom price removed successfully!');
+                toast.success('Custom price removed successfully!');
                 setShowDetailsModal(false);
                 loadCalendarData();
             }
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to remove custom price');
+            toast.error(err.response?.data?.message || 'Failed to remove custom price');
         }
     };
 

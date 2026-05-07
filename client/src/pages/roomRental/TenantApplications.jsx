@@ -7,6 +7,8 @@ import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
 import API_BASE_URL from '../../config/api';
 import '../../styles/TenantApplications.scss';
+import { toast } from "../../stores/useNotificationStore";
+
 
 // eslint-disable-next-line react-hooks/exhaustive-deps
 
@@ -47,22 +49,22 @@ const TenantApplications = () => {
     const handleAcceptOffer = async (appId) => {
         try {
             await axios.post(`${API_BASE_URL}/room-rental/applications/${appId}/accept-offer`);
-            alert('Offer accepted! The host will be notified.');
+            toast.info('Offer accepted! The host will be notified.');
             fetchApplications();
         } catch (error) {
             console.error('Error accepting offer:', error);
-            alert(error.response?.data?.message || 'Failed to accept offer');
+            toast.error(error.response?.data?.message || 'Failed to accept offer');
         }
     };
 
     const handleRejectOffer = async (appId) => {
         try {
             await axios.post(`${API_BASE_URL}/room-rental/applications/${appId}/reject-offer`);
-            alert('Offer rejected');
+            toast.info('Offer rejected');
             fetchApplications();
         } catch (error) {
             console.error('Error rejecting offer:', error);
-            alert(error.response?.data?.message || 'Failed to reject offer');
+            toast.error(error.response?.data?.message || 'Failed to reject offer');
         }
     };
 

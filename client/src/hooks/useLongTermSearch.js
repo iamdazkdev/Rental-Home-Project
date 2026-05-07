@@ -15,15 +15,15 @@ const useLongTermSearch = () => {
 
     const longTermPayload = {
       ...basePayload,
-      isLongTerm: true,
-      durationMonths: longTermData.duration,
-      isFlexible: longTermData.isFlexible,
+      rentalMode: 'long_term',
+      duration: longTermData.duration,
+      searchMode: longTermData.isFlexible ? 'flexible' : 'exact',
     };
 
     if (longTermData.isFlexible) {
       longTermPayload.flexibleMonths = longTermData.flexibleMonths;
     } else {
-      longTermPayload.exactDate = longTermData.exactDate || null;
+      longTermPayload.startDate = longTermData.exactDate ? new Date(longTermData.exactDate).toISOString() : null;
     }
 
     return longTermPayload;

@@ -4,6 +4,8 @@ import {AlertCircle, CheckCircle, Clock, DollarSign, Eye, FileText} from "lucide
 import Navbar from "../../components/layout/Navbar";
 import API_BASE_URL from "../../config/api";
 import "../../styles/HostAgreements.scss";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const HostAgreements = () => {
     const [agreements, setAgreements] = useState([]);
@@ -46,13 +48,13 @@ const HostAgreements = () => {
 
             const data = await response.json();
             if (data.success) {
-                alert("Agreement confirmed successfully!");
+                toast.success("Agreement confirmed successfully!");
                 fetchAgreements();
                 setSelectedAgreement(null);
             }
         } catch (error) {
             console.error("Error confirming agreement:", error);
-            alert("Failed to confirm agreement");
+            toast.error("Failed to confirm agreement");
         }
     };
 

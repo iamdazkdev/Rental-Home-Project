@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import '../../styles/CancelBookingModal.scss';
+import { toast } from "../../stores/useNotificationStore";
+
 
 const CancelBookingModal = ({ booking, onClose, onConfirm }) => {
   const [cancellationReason, setCancellationReason] = useState('');
@@ -22,7 +24,7 @@ const CancelBookingModal = ({ booking, onClose, onConfirm }) => {
       : selectedReason;
 
     if (!reason.trim()) {
-      alert('Please select or enter a cancellation reason');
+      toast.info('Please select or enter a cancellation reason');
       return;
     }
 

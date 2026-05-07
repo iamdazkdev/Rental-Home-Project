@@ -5,6 +5,8 @@ import { CONFIG, HTTP_METHODS } from "../../constants/api";
 import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/common/Footer";
 import "../../styles/RoomRentalApplication.scss";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const RoomRentalApplicationPage = () => {
   const { listingId } = useParams();
@@ -77,7 +79,7 @@ const RoomRentalApplicationPage = () => {
     e.preventDefault();
 
     if (!compatibility?.canApply) {
-      alert("You cannot apply for this room due to compatibility issues");
+      toast.info("You cannot apply for this room due to compatibility issues");
       return;
     }
 
@@ -103,14 +105,14 @@ const RoomRentalApplicationPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Application submitted successfully!");
+        toast.success("Application submitted successfully!");
         navigate(`/${user._id || user.id}/room-applications`);
       } else {
-        alert(data.message || "Failed to submit application");
+        toast.error(data.message || "Failed to submit application");
       }
     } catch (error) {
       console.error("Error submitting application:", error);
-      alert("Failed to submit application");
+      toast.error("Failed to submit application");
     } finally {
       setSubmitting(false);
     }

@@ -5,6 +5,9 @@ import "./App.css";
 // Context
 import {SocketProvider} from "./context/SocketContext";
 
+// Global UI
+import GlobalNotification from "./components/common/GlobalNotification";
+
 // Route Guards
 import ProtectedRoute from "./components/guards/ProtectedRoute";
 import AdminRoute from "./components/guards/AdminRoute";
@@ -96,6 +99,7 @@ function App() {
     return (
         <div>
             <BrowserRouter basename={basename}>
+                <GlobalNotification />
                 <SocketProvider>
                     <Suspense fallback={<PageLoader/>}>
                         <Routes>

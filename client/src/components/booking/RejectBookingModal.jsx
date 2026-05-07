@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import '../../styles/RejectBookingModal.scss';
+import { toast } from "../../stores/useNotificationStore";
+
 
 const RejectBookingModal = ({ booking, onClose, onConfirm }) => {
   const [rejectionReason, setRejectionReason] = useState('');
@@ -22,7 +24,7 @@ const RejectBookingModal = ({ booking, onClose, onConfirm }) => {
       : selectedReason;
 
     if (!reason.trim()) {
-      alert('Please select or enter a rejection reason');
+      toast.info('Please select or enter a rejection reason');
       return;
     }
 

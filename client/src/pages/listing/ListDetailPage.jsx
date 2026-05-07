@@ -13,6 +13,7 @@ import { enUS } from "date-fns/locale";
 import Navbar from "../../components/layout/Navbar";
 import { useSelector } from "react-redux";
 import { formatVND } from "../../utils/priceFormatter";
+import { toast } from "../../stores/useNotificationStore";
 
 const ListingDetails = () => {
   const [loading, setLoading] = useState(true);
@@ -126,7 +127,7 @@ const ListingDetails = () => {
   const handleSubmit = async () => {
     // Validate dates
     if (dayCount < 1) {
-      alert("Please select valid dates (at least 1 night)");
+      toast.error("Please select valid dates (at least 1 night)");
       return;
     }
 

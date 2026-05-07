@@ -5,6 +5,8 @@ import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/common/Footer";
 import API_BASE_URL from "../../config/api";
 import "../../styles/RoommatePostDetail.scss";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const RoommatePostDetail = () => {
     const {postId} = useParams();
@@ -71,7 +73,7 @@ const RoommatePostDetail = () => {
             console.log("✅ Request sent successfully");
 
             // Show success message
-            alert("✅ Your request has been sent successfully!");
+            toast.success("✅ Your request has been sent successfully!");
             setShowRequestModal(false);
             setMessage("");
             navigate("/roommate/my-requests");

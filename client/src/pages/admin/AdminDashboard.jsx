@@ -2,6 +2,8 @@ import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import AdminService from "../../services/admin/AdminService";
 import "../../styles/admin/AdminDashboard.scss";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -18,7 +20,7 @@ const AdminDashboard = () => {
             const response = await AdminService.getStats();
             setStats(response.data);
         } catch (error) {
-            alert("Failed to fetch statistics: " + error.message);
+            toast.error("Failed to fetch statistics: " + error.message);
         } finally {
             setLoading(false);
         }

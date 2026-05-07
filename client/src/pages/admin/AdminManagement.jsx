@@ -4,6 +4,8 @@ import Navbar from '../../components/layout/Navbar';
 import PaymentHistory from '../../components/payment/PaymentHistory';
 import API_BASE_URL from '../../config/api';
 import '../../styles/AdminManagement.scss';
+import { toast, confirmDialog } from "../../stores/useNotificationStore";
+
 
 const AdminManagement = () => {
     const user = useSelector((state) => state.user);
@@ -53,7 +55,7 @@ const AdminManagement = () => {
             setItems(data);
         } catch (error) {
             console.error('Error fetching items:', error);
-            alert('Failed to load items');
+            toast.error('Failed to load items');
         } finally {
             setLoading(false);
         }
@@ -72,7 +74,7 @@ const AdminManagement = () => {
             console.log('✅ Payment history loaded:', data);
         } catch (error) {
             console.error('Error fetching payment history:', error);
-            alert('Failed to load payment history');
+            toast.error('Failed to load payment history');
         } finally {
             setLoading(false);
         }
@@ -80,7 +82,7 @@ const AdminManagement = () => {
 
     // Initialize user data (fork from global templates)
     const handleInitialize = async () => {
-        if (!window.confirm('Initialize from global templates? This will add all default items to your collection.')) {
+        if (!await confirmDialog({ message: 'Initialize from global templates? This will add all default items to your collection.' })) {
             return;
         }
 
@@ -92,14 +94,14 @@ const AdminManagement = () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message);
+                toast.info(data.message);
                 fetchItems();
             } else {
-                alert(data.message || 'Failed to initialize');
+                toast.error(data.message || 'Failed to initialize');
             }
         } catch (error) {
             console.error('Error initializing:', error);
-            alert('Failed to initialize');
+            toast.error('Failed to initialize');
         }
     };
 
@@ -131,23 +133,23 @@ const AdminManagement = () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message);
+                toast.info(data.message);
                 setShowAddModal(false);
                 setEditingItem(null);
                 resetForm();
                 fetchItems();
             } else {
-                alert(data.message || 'Failed to save');
+                toast.error(data.message || 'Failed to save');
             }
         } catch (error) {
             console.error('Error saving:', error);
-            alert('Failed to save item');
+            toast.error('Failed to save item');
         }
     };
 
     // Hide item (soft delete)
     const handleHide = async (itemId) => {
-        if (!window.confirm('Hide this item? You can show it again later.')) return;
+        if (!await confirmDialog({ message: 'Hide this item? You can show it again later.' })) return;
 
         const endpoint = API_ENDPOINTS[activeTab];
         try {
@@ -157,14 +159,14 @@ const AdminManagement = () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message);
+                toast.info(data.message);
                 fetchItems();
             } else {
-                alert(data.message || 'Failed to hide');
+                toast.error(data.message || 'Failed to hide');
             }
         } catch (error) {
             console.error('Error hiding:', error);
-            alert('Failed to hide item');
+            toast.error('Failed to hide item');
         }
     };
 
@@ -178,20 +180,20 @@ const AdminManagement = () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message);
+                toast.info(data.message);
                 fetchItems();
             } else {
-                alert(data.message || 'Failed to show');
+                toast.error(data.message || 'Failed to show');
             }
         } catch (error) {
             console.error('Error showing:', error);
-            alert('Failed to show item');
+            toast.error('Failed to show item');
         }
     };
 
     // Delete permanently
     const handleDelete = async (itemId) => {
-        if (!window.confirm('⚠️ DELETE PERMANENTLY? This cannot be undone!')) return;
+        if (!await confirmDialog({ message: '⚠️ DELETE PERMANENTLY? This cannot be undone!' })) return;
 
         const endpoint = API_ENDPOINTS[activeTab];
         try {
@@ -201,14 +203,14 @@ const AdminManagement = () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert(data.message);
+                toast.info(data.message);
                 fetchItems();
             } else {
-                alert(data.message || 'Failed to delete');
+                toast.error(data.message || 'Failed to delete');
             }
         } catch (error) {
             console.error('Error deleting:', error);
-            alert('Failed to delete item');
+            toast.error('Failed to delete item');
         }
     };
 

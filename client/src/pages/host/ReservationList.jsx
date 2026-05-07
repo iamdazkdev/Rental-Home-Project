@@ -8,6 +8,8 @@ import RejectBookingModal from "../../components/booking/RejectBookingModal";
 import RecordPaymentModal from "../../components/payment/RecordPaymentModal";
 import PaymentHistory from "../../components/payment/PaymentHistory";
 import "../../styles/ReservationList.scss";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const ReservationList = () => {
   const [loading, setLoading] = useState(true);
@@ -91,7 +93,7 @@ const ReservationList = () => {
       await getReservations();
     } catch (error) {
       console.error("❌ Error rejecting booking:", error);
-      alert(error.message || "Failed to reject booking. Please try again.");
+      toast.error(error.message || "Failed to reject booking. Please try again.");
       throw error;
     }
   };

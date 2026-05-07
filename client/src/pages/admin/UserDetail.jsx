@@ -2,6 +2,8 @@ import React, {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import AdminService from "../../services/admin/AdminService";
 import "../../styles/admin/UserDetail.scss";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const UserDetail = () => {
     const {id} = useParams();
@@ -19,7 +21,7 @@ const UserDetail = () => {
             const response = await AdminService.getUserById(id);
             setUser(response.data);
         } catch (error) {
-            alert("Failed to fetch user details: " + error.message);
+            toast.error("Failed to fetch user details: " + error.message);
             navigate("/admin/users");
         } finally {
             setLoading(false);
@@ -35,16 +37,16 @@ const UserDetail = () => {
         if (!newRole || newRole === user.role) return;
 
         if (!["user", "host", "admin"].includes(newRole.toLowerCase())) {
-            alert("Invalid role. Must be user, host, or admin");
+            toast.info("Invalid role. Must be user, host, or admin");
             return;
         }
 
         try {
             await AdminService.updateUserRole(id, newRole.toLowerCase());
-            alert(`User role updated to ${newRole}`);
+            toast.info(`User role updated to ${newRole}`);
             fetchUserDetail();
         } catch (error) {
-            alert("Failed to update role: " + error.message);
+            toast.error("Failed to update role: " + error.message);
         }
     };
 
@@ -59,10 +61,10 @@ const UserDetail = () => {
 
         try {
             await AdminService.deleteUser(id);
-            alert("✅ User deleted successfully");
+            toast.success("✅ User deleted successfully");
             navigate("/admin/users");
         } catch (error) {
-            alert("Failed to delete user: " + error.message);
+            toast.error("Failed to delete user: " + error.message);
         }
     };
 

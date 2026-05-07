@@ -5,6 +5,8 @@ import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
 import Loader from '../../components/common/Loader';
 import '../../styles/MyPayments.scss';
+import { toast } from "../../stores/useNotificationStore";
+
 
 const MyPayments = () => {
   const [payments, setPayments] = useState([]);
@@ -69,7 +71,7 @@ const MyPayments = () => {
       }
     } catch (error) {
       console.error('❌ Error creating payment:', error);
-      alert('Failed to create payment. Please try again.');
+      toast.error('Failed to create payment. Please try again.');
     }
   };
 

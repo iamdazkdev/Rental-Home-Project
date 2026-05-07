@@ -10,6 +10,8 @@ import Footer from "../../components/common/Footer";
 import ExtendStayModal from "../../components/booking/ExtendStayModal";
 import CheckoutModal from "../../components/booking/CheckoutModal";
 import CancelBookingModal from "../../components/booking/CancelBookingModal";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const TripList = () => {
   const [loading, setLoading] = useState(true);
@@ -190,7 +192,7 @@ const TripList = () => {
       // Success - modal will close automatically
     } catch (error) {
       console.error("❌ Error cancelling booking:", error);
-      alert(error.message || "Failed to cancel booking. Please try again.");
+      toast.error(error.message || "Failed to cancel booking. Please try again.");
       throw error; // Re-throw to let modal handle it
     }
   };

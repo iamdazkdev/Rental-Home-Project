@@ -8,6 +8,8 @@ import Footer from "../../components/common/Footer";
 import Loader from "../../components/common/Loader";
 import "../../styles/MessagesPage.scss";
 import { CONFIG, HTTP_METHODS } from "../../constants/api";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const MessagesPage = () => {
   const { conversationId } = useParams();
@@ -319,11 +321,11 @@ const MessagesPage = () => {
       } else {
         const errorData = await response.text();
         console.error("❌ Error sending message:", errorData);
-        alert("Failed to send message. Please try again.");
+        toast.error("Failed to send message. Please try again.");
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      alert("Failed to send message. Please try again.");
+      toast.error("Failed to send message. Please try again.");
     } finally {
       setSending(false);
     }

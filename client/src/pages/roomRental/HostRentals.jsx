@@ -4,6 +4,8 @@ import {AlertTriangle, Calendar, CheckCircle, Clock, DollarSign, Eye, Home, User
 import Navbar from "../../components/layout/Navbar";
 import API_BASE_URL from "../../config/api";
 import "../../styles/HostRentals.scss";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const HostRentals = () => {
     const [rentals, setRentals] = useState([]);
@@ -51,12 +53,12 @@ const HostRentals = () => {
 
             const data = await response.json();
             if (data.success) {
-                alert("Move-in confirmed successfully!");
+                toast.success("Move-in confirmed successfully!");
                 fetchRentals();
             }
         } catch (error) {
             console.error("Error confirming move-in:", error);
-            alert("Failed to confirm move-in");
+            toast.error("Failed to confirm move-in");
         }
     };
 
@@ -78,13 +80,13 @@ const HostRentals = () => {
 
             const data = await response.json();
             if (data.success) {
-                alert("Move-out confirmed successfully!");
+                toast.success("Move-out confirmed successfully!");
                 setShowMoveOutModal(false);
                 fetchRentals();
             }
         } catch (error) {
             console.error("Error confirming move-out:", error);
-            alert("Failed to confirm move-out");
+            toast.error("Failed to confirm move-out");
         }
     };
 

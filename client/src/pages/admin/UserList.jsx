@@ -2,6 +2,8 @@ import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import AdminService from "../../services/admin/AdminService";
 import "../../styles/admin/UserList.scss";
+import { toast, confirmDialog } from "../../stores/useNotificationStore";
+
 
 const UserList = () => {
     const navigate = useNavigate();
@@ -40,7 +42,7 @@ const UserList = () => {
                 totalPages: response.pagination.totalPages,
             }));
         } catch (error) {
-            alert("Failed to fetch users: " + error.message);
+            toast.error("Failed to fetch users: " + error.message);
         } finally {
             setLoading(false);
         }
@@ -57,16 +59,16 @@ const UserList = () => {
     };
 
     const handleDeleteUser = async (userId, userName) => {
-        if (!window.confirm(`Are you sure you want to delete ${userName}? This action cannot be undone.`)) {
+        if (!await confirmDialog({ message: `Are you sure you want to delete ${userName}? This action cannot be undone.` })) {
             return;
         }
 
         try {
             await AdminService.deleteUser(userId);
-            alert("User deleted successfully");
+            toast.success("User deleted successfully");
             fetchUsers();
         } catch (error) {
-            alert("Failed to delete user: " + error.message);
+            toast.error("Failed to delete user: " + error.message);
         }
     };
 
@@ -79,16 +81,16 @@ const UserList = () => {
         if (!newRole || newRole === currentRole) return;
 
         if (!["user", "host", "admin"].includes(newRole.toLowerCase())) {
-            alert("Invalid role. Must be user, host, or admin");
+            toast.info("Invalid role. Must be user, host, or admin");
             return;
         }
 
         try {
             await AdminService.updateUserRole(userId, newRole.toLowerCase());
-            alert(`User role updated to ${newRole}`);
+            toast.info(`User role updated to ${newRole}`);
             fetchUsers();
         } catch (error) {
-            alert("Failed to update role: " + error.message);
+            toast.error("Failed to update role: " + error.message);
         }
     };
 

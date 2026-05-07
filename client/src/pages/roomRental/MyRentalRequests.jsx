@@ -7,6 +7,8 @@ import Footer from '../../components/common/Footer';
 import Loader from '../../components/common/Loader';
 import API_BASE_URL from '../../config/api';
 import '../../styles/MyRentalRequests.scss';
+import { toast, confirmDialog } from "../../stores/useNotificationStore";
+
 
 const MyRentalRequests = () => {
     const [requests, setRequests] = useState([]);
@@ -45,7 +47,7 @@ const MyRentalRequests = () => {
     };
 
     const handleCancelRequest = async (requestId) => {
-        if (!window.confirm('Are you sure you want to cancel this request?')) return;
+        if (!await confirmDialog({ message: 'Are you sure you want to cancel this request?' })) return;
 
         try {
             const response = await fetch(
@@ -60,11 +62,11 @@ const MyRentalRequests = () => {
 
             if (!response.ok) throw new Error('Failed to cancel request');
 
-            alert('Request cancelled successfully');
+            toast.success('Request cancelled successfully');
             fetchRequests();
         } catch (error) {
             console.error('❌ Error cancelling request:', error);
-            alert('Failed to cancel request');
+            toast.error('Failed to cancel request');
         }
     };
 

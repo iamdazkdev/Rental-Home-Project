@@ -7,6 +7,8 @@ import { setLogin } from '../../redux/state';
 import { CONFIG } from '../../constants/api';
 import '../../styles/EditProfile.scss';
 import { Person, Email, PhotoCamera } from '@mui/icons-material';
+import { toast } from "../../stores/useNotificationStore";
+
 
 const EditProfilePage = () => {
   const user = useSelector((state) => state.user);
@@ -132,11 +134,11 @@ const EditProfilePage = () => {
       };
       dispatch(setLogin({ user: updatedUser, token: localStorage.getItem('token') }));
 
-      alert('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
       navigate(`/host/${user._id || user.id}`);
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert(error.message || 'Failed to update profile. Please try again.');
+      toast.error(error.message || 'Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
     }

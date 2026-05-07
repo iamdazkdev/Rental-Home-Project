@@ -5,6 +5,8 @@ import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/common/Footer";
 import API_BASE_URL from "../../config/api";
 import "../../styles/MyRoommatePosts.scss";
+import { toast, confirmDialog } from "../../stores/useNotificationStore";
+
 
 const MyRoommatePosts = () => {
     const navigate = useNavigate();
@@ -65,14 +67,14 @@ const MyRoommatePosts = () => {
             const data = await response.json();
 
             if (data.success) {
-                alert("✅ Post Closed Successfully!\n\nYour post is now hidden from others. You can activate it again anytime.");
+                toast.success("✅ Post Closed Successfully!\n\nYour post is now hidden from others. You can activate it again anytime.");
                 fetchMyPosts();
             } else {
-                alert("❌ Failed to Close Post\n\n" + (data.message || "An error occurred. Please try again."));
+                toast.error("❌ Failed to Close Post\n\n" + (data.message || "An error occurred. Please try again."));
             }
         } catch (error) {
             console.error("❌ Error closing post:", error);
-            alert("❌ Error\n\nFailed to close post. Please check your connection and try again.");
+            toast.error("❌ Error\n\nFailed to close post. Please check your connection and try again.");
         }
     };
 
@@ -101,19 +103,19 @@ const MyRoommatePosts = () => {
             const data = await response.json();
 
             if (data.success) {
-                alert("✅ Post Activated Successfully!\n\nYour post is now live and visible to others. Good luck finding your perfect roommate!");
+                toast.success("✅ Post Activated Successfully!\n\nYour post is now live and visible to others. Good luck finding your perfect roommate!");
                 fetchMyPosts();
             } else {
-                alert("❌ Failed to Activate Post\n\n" + (data.message || "An error occurred. Please try again."));
+                toast.error("❌ Failed to Activate Post\n\n" + (data.message || "An error occurred. Please try again."));
             }
         } catch (error) {
             console.error("❌ Error activating post:", error);
-            alert("❌ Error\n\nFailed to activate post. Please check your connection and try again.");
+            toast.error("❌ Error\n\nFailed to activate post. Please check your connection and try again.");
         }
     };
 
     const handleDeletePost = async (postId) => {
-        if (!window.confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
+        if (!await confirmDialog({ message: "Are you sure you want to delete this post? This action cannot be undone." })) {
             return;
         }
 
@@ -128,14 +130,14 @@ const MyRoommatePosts = () => {
             const data = await response.json();
 
             if (data.success) {
-                alert("Post deleted successfully");
+                toast.success("Post deleted successfully");
                 fetchMyPosts();
             } else {
-                alert(data.message || "Failed to delete post");
+                toast.error(data.message || "Failed to delete post");
             }
         } catch (error) {
             console.error("❌ Error deleting post:", error);
-            alert("Error deleting post");
+            toast.error("Error deleting post");
         }
     };
 

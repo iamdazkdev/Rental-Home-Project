@@ -4,6 +4,8 @@ import {Calendar, CheckCircle, Clock, CreditCard, DollarSign, Eye} from "lucide-
 import Navbar from "../../components/layout/Navbar";
 import API_BASE_URL from "../../config/api";
 import "../../styles/HostPayments.scss";
+import { toast, confirmDialog } from "../../stores/useNotificationStore";
+
 
 const HostPayments = () => {
     const [payments, setPayments] = useState([]);
@@ -33,7 +35,7 @@ const HostPayments = () => {
     };
 
     const handleConfirmPayment = async (paymentId) => {
-        if (!window.confirm("Confirm that you have received this cash payment?")) {
+        if (!await confirmDialog({ message: "Confirm that you have received this cash payment?" })) {
             return;
         }
 
@@ -50,12 +52,12 @@ const HostPayments = () => {
 
             const data = await response.json();
             if (data.success) {
-                alert("Payment confirmed successfully!");
+                toast.success("Payment confirmed successfully!");
                 fetchPayments();
             }
         } catch (error) {
             console.error("Error confirming payment:", error);
-            alert("Failed to confirm payment");
+            toast.error("Failed to confirm payment");
         }
     };
 

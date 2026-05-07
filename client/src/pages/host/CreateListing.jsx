@@ -25,6 +25,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { useSelector } from "react-redux";
 import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from "../../constants/api";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "../../stores/useNotificationStore";
+
 
 // Simple and Beautiful Photo Item Component
 const SortablePhotoItem = ({ id, photo, index, onDelete }) => {
@@ -220,11 +222,11 @@ const CreateListingPage = () => {
           setFacilities(transformedFacilities);
         } else {
           console.error("❌ Failed to fetch static data");
-          alert("Failed to load categories, types, and facilities. Please refresh.");
+          toast.error("Failed to load categories, types, and facilities. Please refresh.");
         }
       } catch (error) {
         console.error("❌ Error fetching static data:", error);
-        alert("Failed to connect to server. Please check your connection.");
+        toast.error("Failed to connect to server. Please check your connection.");
       }
     };
 
@@ -295,7 +297,7 @@ const CreateListingPage = () => {
           }
         } catch (error) {
           console.error("❌ Error loading listing:", error);
-          alert("Failed to load listing data");
+          toast.error("Failed to load listing data");
         } finally {
           setLoadingListing(false);
         }
@@ -473,17 +475,17 @@ const CreateListingPage = () => {
     try {
       // Common validation
       if (!category) {
-        alert("Please select a category");
+        toast.info("Please select a category");
         setIsLoading(false);
         return;
       }
       if (!type) {
-        alert("Please select a property type");
+        toast.info("Please select a property type");
         setIsLoading(false);
         return;
       }
       if (photos.length === 0) {
-        alert("Please upload at least one photo");
+        toast.info("Please upload at least one photo");
         setIsLoading(false);
         return;
       }
@@ -504,26 +506,26 @@ const CreateListingPage = () => {
         }
 
         if (!hostBio.trim()) {
-          alert("Please tell guests about yourself");
+          toast.info("Please tell guests about yourself");
           setIsLoading(false);
           return;
         }
         if (!hostProfile.sleepSchedule || !hostProfile.smoking || !hostProfile.personality ||
             !hostProfile.cleanliness || !hostProfile.occupation || !hostProfile.hobbies ||
             !hostProfile.houseRules) {
-          alert("Please fill in all required host profile fields");
+          toast.info("Please fill in all required host profile fields");
           setIsLoading(false);
           return;
         }
         if (dailyPrice <= 0 || monthlyPrice <= 0) {
-          alert("Please enter valid daily and monthly prices");
+          toast.info("Please enter valid daily and monthly prices");
           setIsLoading(false);
           return;
         }
       } else {
         // Entire Place validation
         if (formDescription.price <= 0) {
-          alert("Please enter a valid price");
+          toast.info("Please enter a valid price");
           setIsLoading(false);
           return;
         }
@@ -607,7 +609,7 @@ const CreateListingPage = () => {
 
           if (response.ok) {
             console.log("✅ Entire Place listing created successfully");
-            alert("🎉 Your property has been listed successfully!");
+            toast.success("🎉 Your property has been listed successfully!");
             navigate("/properties");
           } else {
             const errorData = await response.text();
@@ -690,7 +692,7 @@ const CreateListingPage = () => {
               }
             }
 
-            alert("🎉 Your room has been listed successfully!");
+            toast.success("🎉 Your room has been listed successfully!");
             navigate("/properties");
           } else {
             const errorText = await response.text();
@@ -701,7 +703,7 @@ const CreateListingPage = () => {
 
         // PROCESS 3: ROOMMATE MATCHING (Future feature)
         else if (isRoommateMatching) {
-          alert("🚧 Roommate matching feature is coming soon!");
+          toast.info("🚧 Roommate matching feature is coming soon!");
           setIsLoading(false);
           return;
         }
@@ -715,7 +717,7 @@ const CreateListingPage = () => {
       const errorMessage = error.message.includes("HTTP error")
         ? `Server error: ${error.message}`
         : "Network error. Please check your connection and try again.";
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

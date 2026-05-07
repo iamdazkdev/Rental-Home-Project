@@ -1,6 +1,8 @@
 import React, {useState} from "react";
 import API_BASE_URL from "../../config/api";
 import "../../styles/ExtendStayModal.scss";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const ExtendStayModal = ({booking, onClose, onSubmit}) => {
     const [additionalDays, setAdditionalDays] = useState(1);
@@ -28,7 +30,7 @@ const ExtendStayModal = ({booking, onClose, onSubmit}) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (additionalDays < 1) {
-            alert("Please select at least 1 additional day");
+            toast.info("Please select at least 1 additional day");
             return;
         }
 

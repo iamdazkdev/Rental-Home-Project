@@ -7,6 +7,8 @@ import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
 import API_BASE_URL from '../../config/api';
 import '../../styles/HostApplicationDashboard.scss';
+import { toast } from "../../stores/useNotificationStore";
+
 
 const HostApplicationDashboard = () => {
     const [applications, setApplications] = useState([]);
@@ -56,7 +58,7 @@ const HostApplicationDashboard = () => {
             fetchApplications();
         } catch (error) {
             console.error('Error reviewing application:', error);
-            alert(error.response?.data?.message || 'Failed to review application');
+            toast.error(error.response?.data?.message || 'Failed to review application');
         }
     };
 
@@ -70,7 +72,7 @@ const HostApplicationDashboard = () => {
             fetchApplications();
         } catch (error) {
             console.error('Error scheduling interview:', error);
-            alert(error.response?.data?.message || 'Failed to schedule interview');
+            toast.error(error.response?.data?.message || 'Failed to schedule interview');
         }
     };
 
@@ -84,7 +86,7 @@ const HostApplicationDashboard = () => {
             fetchApplications();
         } catch (error) {
             console.error('Error making offer:', error);
-            alert(error.response?.data?.message || 'Failed to make offer');
+            toast.error(error.response?.data?.message || 'Failed to make offer');
         }
     };
 

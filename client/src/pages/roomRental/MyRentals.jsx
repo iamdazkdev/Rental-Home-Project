@@ -6,6 +6,8 @@ import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
 import Loader from '../../components/common/Loader';
 import '../../styles/MyRentals.scss';
+import { toast, confirmDialog } from "../../stores/useNotificationStore";
+
 
 const MyRentals = () => {
   const [rentals, setRentals] = useState([]);
@@ -46,7 +48,7 @@ const MyRentals = () => {
   };
 
   const handleConfirmMoveIn = async (agreementId) => {
-    if (!window.confirm('Confirm that you have moved in?')) return;
+    if (!await confirmDialog({ message: 'Confirm that you have moved in?' })) return;
 
     try {
       const response = await fetch(
@@ -65,17 +67,17 @@ const MyRentals = () => {
 
       if (!response.ok) throw new Error('Failed to confirm move-in');
 
-      alert('Move-in confirmed successfully!');
+      toast.success('Move-in confirmed successfully!');
       fetchRentals();
     } catch (error) {
       console.error('❌ Error confirming move-in:', error);
-      alert('Failed to confirm move-in');
+      toast.error('Failed to confirm move-in');
     }
   };
 
   const handleRequestTermination = async () => {
     if (!terminationReason.trim()) {
-      alert('Please provide a reason for termination');
+      toast.info('Please provide a reason for termination');
       return;
     }
 
@@ -98,13 +100,13 @@ const MyRentals = () => {
 
       if (!response.ok) throw new Error('Failed to request termination');
 
-      alert('Termination request submitted successfully!');
+      toast.success('Termination request submitted successfully!');
       setShowTerminationModal(false);
       setTerminationReason('');
       fetchRentals();
     } catch (error) {
       console.error('❌ Error requesting termination:', error);
-      alert('Failed to request termination');
+      toast.error('Failed to request termination');
     }
   };
 

@@ -6,6 +6,8 @@ import Footer from '../../components/common/Footer';
 import Loader from '../../components/common/Loader';
 import API_BASE_URL from '../../config/api';
 import '../../styles/MyAgreements.scss';
+import { toast } from "../../stores/useNotificationStore";
+
 
 const MyAgreements = () => {
   const [agreements, setAgreements] = useState([]);
@@ -79,7 +81,7 @@ const MyAgreements = () => {
       fetchAgreements();
     } catch (error) {
       console.error('❌ Error accepting agreement:', error);
-      alert('Failed to accept agreement');
+      toast.error('Failed to accept agreement');
     } finally {
       setAcceptLoading(false);
     }

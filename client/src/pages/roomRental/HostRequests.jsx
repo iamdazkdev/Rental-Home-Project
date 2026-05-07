@@ -20,6 +20,8 @@ import {
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
 import '../../styles/HostRequests.scss';
+import { toast } from "../../stores/useNotificationStore";
+
 
 const HostRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -91,7 +93,7 @@ const HostRequests = () => {
       fetchRequests();
     } catch (error) {
       console.error('Error approving request:', error);
-      alert(error.response?.data?.message || 'Failed to approve request');
+      toast.error(error.response?.data?.message || 'Failed to approve request');
     } finally {
       setProcessingId(null);
     }
@@ -99,7 +101,7 @@ const HostRequests = () => {
 
   const handleReject = async () => {
     if (!rejectionReason.trim()) {
-      alert('Please provide a reason for rejection');
+      toast.info('Please provide a reason for rejection');
       return;
     }
 
@@ -111,14 +113,14 @@ const HostRequests = () => {
           rejectionReason: rejectionReason
         }
       );
-      alert('Request rejected');
+      toast.info('Request rejected');
       setShowRejectModal(false);
       setRejectionReason('');
       setSelectedRequest(null);
       fetchRequests();
     } catch (error) {
       console.error('Error rejecting request:', error);
-      alert(error.response?.data?.message || 'Failed to reject request');
+      toast.error(error.response?.data?.message || 'Failed to reject request');
     }
   };
 

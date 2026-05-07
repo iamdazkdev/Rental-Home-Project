@@ -6,6 +6,7 @@ import Footer from "../../components/common/Footer";
 import Loader from "../../components/common/Loader";
 import "../../styles/PropertyManagement.scss";
 import {CONFIG, HTTP_METHODS} from "../../constants/api";
+import { toast, confirmDialog } from "../../stores/useNotificationStore";
 
 const PropertyManagement = () => {
     const [loading, setLoading] = useState(true);
@@ -114,11 +115,11 @@ const PropertyManagement = () => {
     const handleDelete = async (propertyId, hasActiveBooking) => {
         if (hasActiveBooking) {
             // Keep this alert as it's important warning
-            alert("Cannot delete property with active bookings. Please wait until all bookings are completed.");
+            toast.info("Cannot delete property with active bookings. Please wait until all bookings are completed.");
             return;
         }
 
-        if (!window.confirm("Are you sure you want to delete this property? This action cannot be undone.")) {
+        if (!await confirmDialog({ message: "Are you sure you want to delete this property? This action cannot be undone." })) {
             return;
         }
 
@@ -131,7 +132,7 @@ const PropertyManagement = () => {
             } else {
                 const errorData = await response.json();
                 // Only show error message
-                alert(errorData.message || "Failed to delete property");
+                toast.error(errorData.message || "Failed to delete property");
             }
         } catch (error) {
             console.error("Error deleting property:", error);

@@ -16,6 +16,8 @@ import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
 import API_BASE_URL from '../../config/api';
 import '../../styles/EditRoom.scss';
+import { toast } from "../../stores/useNotificationStore";
+
 
 
 const EditRoom = () => {
@@ -156,11 +158,11 @@ const EditRoom = () => {
       if (data.success) {
         navigate('/room-rental/my-rooms');
       } else {
-        alert(data.message || 'Failed to update room');
+        toast.error(data.message || 'Failed to update room');
       }
     } catch (error) {
       console.error('Error updating room:', error);
-      alert('Failed to update room');
+      toast.error('Failed to update room');
     } finally {
       setSaving(false);
     }

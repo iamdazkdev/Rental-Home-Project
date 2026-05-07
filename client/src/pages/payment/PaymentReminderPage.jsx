@@ -7,6 +7,7 @@ import Loader from "../../components/common/Loader";
 import CashPaymentConfirmModal from "../../components/booking/CashPaymentConfirmModal";
 import PaymentSuccessModal from "../../components/payment/PaymentSuccessModal";
 import { CONFIG, HTTP_METHODS } from "../../constants/api";
+import { toast } from "../../stores/useNotificationStore";
 import "../../styles/PaymentReminder.scss";
 
 const PaymentReminderPage = () => {
@@ -38,12 +39,12 @@ const PaymentReminderPage = () => {
         setBooking(data.booking);
       } else {
         const error = await response.json();
-        alert(error.message || "Failed to load booking details");
+        toast.error(error.message || "Failed to load booking details");
         navigate(`/${user?._id || user?.id}/trips`);
       }
     } catch (error) {
       console.error("Error fetching booking:", error);
-      alert("Failed to load booking details");
+      toast.error("Failed to load booking details");
       navigate(`/${user?._id || user?.id}/trips`);
     } finally {
       setLoading(false);
@@ -52,7 +53,7 @@ const PaymentReminderPage = () => {
 
   const handlePayVNPay = async () => {
     if (!selectedMethod || selectedMethod !== "vnpay") {
-      alert("Please select VNPay payment method");
+      toast.info("Please select VNPay payment method");
       return;
     }
 
@@ -74,12 +75,12 @@ const PaymentReminderPage = () => {
         window.location.href = data.paymentUrl;
       } else {
         const error = await response.json();
-        alert(error.message || "Failed to create payment");
+        toast.error(error.message || "Failed to create payment");
         setProcessing(false);
       }
     } catch (error) {
       console.error("Error creating VNPay payment:", error);
-      alert("Failed to create payment");
+      toast.error("Failed to create payment");
       setProcessing(false);
     }
   };
@@ -99,19 +100,19 @@ const PaymentReminderPage = () => {
         setShowSuccessModal(true);
       } else {
         const error = await response.json();
-        alert(error.message || "Failed to confirm cash payment");
+        toast.error(error.message || "Failed to confirm cash payment");
         setProcessing(false);
       }
     } catch (error) {
       console.error("Error confirming cash payment:", error);
-      alert("Failed to confirm cash payment");
+      toast.error("Failed to confirm cash payment");
       setProcessing(false);
     }
   };
 
   const handleSubmit = () => {
     if (!selectedMethod) {
-      alert("Please select a payment method");
+      toast.info("Please select a payment method");
       return;
     }
 

@@ -3,6 +3,8 @@ import {NavLink, Outlet, useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import {setLogout} from "../../redux/state";
 import "../../styles/admin/AdminLayout.scss";
+import { confirmDialog } from "../../stores/useNotificationStore";
+
 
 const AdminLayout = () => {
     const navigate = useNavigate();
@@ -23,8 +25,8 @@ const AdminLayout = () => {
         );
     }
 
-    const handleLogout = () => {
-        if (window.confirm("Are you sure you want to logout?")) {
+    const handleLogout = async () => {
+        if (await confirmDialog({ message: "Are you sure you want to logout?" })) {
             dispatch(setLogout());
             navigate("/login");
         }

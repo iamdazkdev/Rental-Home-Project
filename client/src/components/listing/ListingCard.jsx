@@ -9,6 +9,8 @@ import {useDispatch, useSelector} from "react-redux";
 import {API_ENDPOINTS, HTTP_METHODS} from "../../constants/api";
 import {setWishList} from "../../redux/state";
 import PaymentBreakdownCard from "../payment/PaymentBreakdownCard";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const ListingCard = ({
   listingId,
@@ -118,14 +120,14 @@ const ListingCard = ({
     // Validate listingId is a valid MongoDB ObjectId format
     if (!listingId || listingId === 'undefined' || listingId === 'null') {
       console.error("❌ Invalid listingId:", listingId);
-      alert("Cannot add to wishlist: Invalid listing ID");
+      toast.info("Cannot add to wishlist: Invalid listing ID");
       return;
     }
 
     // Check if listingId looks like a valid ObjectId (24 char hex string)
     if (!/^[0-9a-fA-F]{24}$/.test(listingId)) {
       console.error("❌ listingId is not a valid ObjectId format:", listingId);
-      alert(`Cannot add to wishlist: Invalid listing ID format (${listingId})`);
+      toast.info(`Cannot add to wishlist: Invalid listing ID format (${listingId})`);
       return;
     }
 

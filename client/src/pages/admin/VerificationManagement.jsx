@@ -3,6 +3,8 @@ import {useSelector} from "react-redux";
 import {useNavigate} from "react-router-dom";
 import "../../styles/VerificationManagement.scss";
 import VerificationReviewModal from "../../components/verification/VerificationReviewModal";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const VerificationManagement = () => {
     const [verifications, setVerifications] = useState([]);
@@ -72,7 +74,7 @@ const VerificationManagement = () => {
     // Handle review submission
     const handleReview = async () => {
         if (reviewAction === "rejected" && !rejectionReason.trim()) {
-            alert("Please provide a rejection reason");
+            toast.info("Please provide a rejection reason");
             return;
         }
 
@@ -107,7 +109,7 @@ const VerificationManagement = () => {
             }
         } catch (error) {
             console.error("Error reviewing verification:", error);
-            alert("Failed to review verification");
+            toast.error("Failed to review verification");
         } finally {
             setProcessing(false);
         }

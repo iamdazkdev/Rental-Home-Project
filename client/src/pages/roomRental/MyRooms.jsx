@@ -15,6 +15,8 @@ import {
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/common/Footer';
 import '../../styles/MyRooms.scss';
+import { confirmDialog } from "../../stores/useNotificationStore";
+
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
@@ -72,7 +74,7 @@ const MyRooms = () => {
   };
 
   const handleDelete = async (roomId) => {
-    if (!window.confirm('Are you sure you want to delete this room? This action cannot be undone.')) {
+    if (!await confirmDialog({ message: 'Are you sure you want to delete this room? This action cannot be undone.' })) {
       return;
     }
 

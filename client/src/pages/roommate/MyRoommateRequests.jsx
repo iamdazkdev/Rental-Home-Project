@@ -5,6 +5,8 @@ import Navbar from "../../components/layout/Navbar";
 import Footer from "../../components/common/Footer";
 import API_BASE_URL from "../../config/api";
 import "../../styles/RoommateRequests.scss";
+import { toast } from "../../stores/useNotificationStore";
+
 
 const MyRoommateRequests = () => {
     const navigate = useNavigate();
@@ -68,11 +70,11 @@ const MyRoommateRequests = () => {
                 setShowSuccessModal(true);
                 fetchRequests();
             } else {
-                alert(data.message || "Failed to accept request");
+                toast.error(data.message || "Failed to accept request");
             }
         } catch (error) {
             console.error("❌ Error accepting request:", error);
-            alert("Error accepting request");
+            toast.error("Error accepting request");
         }
     };
 
@@ -102,11 +104,11 @@ const MyRoommateRequests = () => {
                 setShowSuccessModal(true);
                 fetchRequests();
             } else {
-                alert(data.message || "Failed to reject request");
+                toast.error(data.message || "Failed to reject request");
             }
         } catch (error) {
             console.error("❌ Error rejecting request:", error);
-            alert("Error rejecting request");
+            toast.error("Error rejecting request");
         }
     };
 
