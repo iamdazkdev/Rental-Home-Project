@@ -17,7 +17,13 @@ const searchSchema = {
     minRating: z.coerce.number().optional(),
     sortBy: z.string().optional(),
     page: z.coerce.number().min(1).default(1),
-    limit: z.coerce.number().min(1).default(20)
+    limit: z.coerce.number().min(1).default(20),
+    // New parameters for Long Term Rental
+    rentalMode: z.enum(['short_term', 'long_term']).default('short_term'),
+    duration: z.coerce.number().min(1).max(12).optional(),
+    searchMode: z.enum(['exact', 'flexible']).optional(),
+    startDate: z.string().datetime().optional(),
+    flexibleMonths: z.union([z.string(), z.array(z.coerce.number())]).optional()
   })
 };
 

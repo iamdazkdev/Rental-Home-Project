@@ -23,6 +23,11 @@ const ListingDetails = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const currentMode = queryParams.get("mode");
+  const navigate = useNavigate();
+
+  const user = useSelector((state) => state.user);
+  const customerId = user?._id || user?.id || null;
+  const customerIdSource = user?._id ? "_id" : user?.id ? "id" : null;
   
   const [listing, setListing] = useState(null);
   const [hasActiveBooking, setHasActiveBooking] = useState(false);
@@ -101,12 +106,6 @@ const ListingDetails = () => {
 
   const dayCount = Math.round(end - start) / (1000 * 60 * 60 * 24); // Calculate the diff in the day unit
 
-  // SUBMIT BOOKING
-  const user = useSelector((state) => state.user);
-  const customerId = user?._id || user?.id || null;
-  const customerIdSource = user?._id ? "_id" : user?.id ? "id" : null;
-  console.log("Customer ID:", customerId, "(source:", customerIdSource, ")");
-
   // Check if user has already booked this listing
   const checkExistingBooking = async () => {
     if (!customerId || !listingId) return;
@@ -147,7 +146,6 @@ const ListingDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerId, listingId]);
 
-  const navigate = useNavigate();
   const handleSubmit = async () => {
     // Check login first
     if (!customerId) {
