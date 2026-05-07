@@ -209,5 +209,10 @@ const BookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+BookingSchema.index({ listingId: 1, bookingStatus: 1 });
+BookingSchema.index({ customerId: 1 });
+BookingSchema.index({ hostId: 1 });
+BookingSchema.index({ startDate: 1, endDate: 1 });
+
 const Booking = mongoose.model("Booking", BookingSchema);
 module.exports = Booking;

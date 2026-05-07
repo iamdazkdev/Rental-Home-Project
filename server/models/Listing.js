@@ -132,5 +132,9 @@ const ListingSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+ListingSchema.index({ creator: 1 });
+ListingSchema.index({ category: 1, rentalType: 1 });
+
 const Listing = mongoose.model("Listing", ListingSchema);
 module.exports = Listing;
