@@ -2,11 +2,13 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const morgan = require("morgan");
 const logger = require("./utils/logger");
+const mongoose = require("mongoose");
 
 // Middleware
 const { authenticateToken, isAdmin } = require("./middleware/auth");
-const { authLimiter, paymentLimiter, apiLimiter } = require("./middleware/rateLimiter");
+const { authLimiter, paymentLimiter, apiLimiter, bookingLimiter } = require("./middleware/rateLimiter");
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 const { upload } = require("./services/cloudinary.service");
 
@@ -20,26 +22,9 @@ logger.overrideConsole();
 // GLOBAL MIDDLEWARE
 // ============================================
 
-// CORS — whitelist production + dev origins
-const allowedOrigins = [
-    process.env.CLIENT_URL,
-    "http://localhost:3000",
-    "http://localhost:3001",
-].filter(Boolean);
-
-app.use(
-    cors({
-        origin: (origin, callback) => {
-            // Allow requests with no origin (mobile apps, Postman, server-to-server)
-            if (!origin) return callback(null, true);
-            if (allowedOrigins.includes(origin)) {
-                return callback(null, true);
-            }
-            return callback(new Error(`CORS policy: origin ${origin} not allowed`));
-        },
-        credentials: true,
-    })
-);
+const { corsOptions } = require("./config/cors");
+app.use(cors(corsOptions));
+app.use(morgan("dev"));
 
 // Body parsing
 const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE || "50mb";
@@ -59,6 +44,8 @@ app.get("/health", (req, res) => {
     res.status(200).json({
         success: true,
         message: "Rento Server is running",
+        uptime: process.uptime(),
+        dbStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
         timestamp: new Date().toISOString(),
     });
 });
@@ -105,7 +92,7 @@ app.post("/upload", authenticateToken, upload.single("image"), async (req, res) 
 });
 
 // Booking routes
-app.use("/booking", authenticateToken, require("./routes/booking"));
+app.use("/booking", authenticateToken, bookingLimiter, require("./routes/booking"));
 app.use("/entire-place-booking", authenticateToken, require("./routes/entirePlaceBooking"));
 app.use("/booking-intent", authenticateToken, require("./routes/bookingIntent"));
 app.use("/concurrent-booking", authenticateToken, require("./routes/concurrentBooking"));

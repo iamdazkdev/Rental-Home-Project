@@ -11,11 +11,7 @@ const app = require("./app");
 const server = http.createServer(app);
 
 // ── SOCKET.IO ─────────────────────────────────────────────────────────────────
-const allowedOrigins = [
-    process.env.CLIENT_URL,
-    "http://localhost:3000",
-    "http://localhost:3001",
-].filter(Boolean);
+const { allowedOrigins } = require("./config/cors");
 
 const io = new Server(server, {
     cors: {
@@ -73,3 +69,22 @@ mongoose
     .catch((error) => {
         logger.error(`Error connecting to database: ${error.message}`);
     });
+
+// ── GRACEFUL SHUTDOWN ─────────────────────────────────────────────────────────
+const gracefulShutdown = async (signal) => {
+    logger.info(`Received ${signal}. Shutting down gracefully...`);
+    try {
+        await mongoose.connection.close();
+        logger.info("MongoDB connection closed.");
+        server.close(() => {
+            logger.info("HTTP server closed.");
+            process.exit(0);
+        });
+    } catch (err) {
+        logger.error("Error during graceful shutdown:", err);
+        process.exit(1);
+    }
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));

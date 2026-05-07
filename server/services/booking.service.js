@@ -7,6 +7,7 @@ const PaymentHistory = require('../models/PaymentHistory');
 const notificationService = require('./notification.service');
 const vnpayService = require('./vnpay.service');
 const {BOOKING_INTENT_TIMEOUT_MS} = require('../config/bookingIntentConfig');
+const defaults = require('../config/defaults');
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 
@@ -37,7 +38,7 @@ class BookingService {
                         ]
                     }
                 ]
-            });
+            }).lean();
 
             if (conflicts.length > 0) {
                 return {
@@ -52,11 +53,11 @@ class BookingService {
             }
 
             // Calculate pricing
-            const listing = await Listing.findById(listingId);
+            const listing = await Listing.findById(listingId).lean();
             const nights = this.calculateNights(startDate, endDate);
             const subtotal = nights * listing.price;
-            const serviceFee = subtotal * 0.10; // 10% platform fee
-            const tax = subtotal * 0.05; // 5% tax
+            const serviceFee = subtotal * defaults.PAYMENT.SERVICE_FEE_PERCENT; 
+            const tax = subtotal * defaults.PAYMENT.TAX_PERCENT; 
             const total = subtotal + serviceFee + tax;
 
             return {
@@ -967,14 +968,16 @@ class BookingService {
             .populate('customerId', 'firstName lastName email profileImagePath')
             .populate('hostId', 'firstName lastName email profileImagePath')
             .populate('listingId')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
     }
 
     async getBookingById(bookingId, userId, role) {
         const booking = await Booking.findById(bookingId)
             .populate('customerId', 'firstName lastName email profileImagePath phone')
             .populate('hostId', 'firstName lastName email profileImagePath phone')
-            .populate('listingId');
+            .populate('listingId')
+            .lean();
 
         if (!booking) {
             const error = new Error('Booking not found');
