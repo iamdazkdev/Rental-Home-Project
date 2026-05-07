@@ -5,6 +5,9 @@ const cors = require("cors");
 const morgan = require("morgan");
 const logger = require("./utils/logger");
 const mongoose = require("mongoose");
+const swaggerUi = require("swagger-ui-express");
+const YAML = require("yamljs");
+const path = require("path");
 
 // Middleware
 const { authenticateToken, isAdmin } = require("./middleware/auth");
@@ -38,6 +41,15 @@ app.use(apiLimiter);
 // ============================================
 // PUBLIC ROUTES (no auth required)
 // ============================================
+
+// Swagger API Documentation
+try {
+    const swaggerDocument = YAML.load(path.join(__dirname, 'swagger.yaml'));
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+    logger.info("Swagger UI available at /api-docs");
+} catch (err) {
+    logger.warn("Swagger YAML not found or invalid. Skipping /api-docs.");
+}
 
 // Health check
 app.get("/health", (req, res) => {

@@ -5,7 +5,6 @@
     "body-parser": "^2.2.0",
     "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
-    "crypto": "^1.0.1",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-rate-limit": "^8.3.0",
@@ -18,10 +17,10 @@
     "multer-storage-cloudinary": "^4.0.0",
     "node-cron": "^3.0.3",
     "nodemailer": "^7.0.11",
-    "querystring": "^0.2.1",
     "socket.io": "^4.8.3",
-    "stripe": "^20.1.0",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.1",
+    "yamljs": "^0.3.0",
     "zod": "^4.3.6"
   },
   "name": "server",
@@ -32,7 +31,7 @@
     "dev": "nodemon index.js",
     "migrate": "node scripts/migrateStaticData.js",
     "migrate:booking-status": "node scripts/migrateBookingStatus.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "test:concurrent": "node scripts/testConcurrentBooking.js",
     "test:scenarios": "node scripts/testBookingScenarios.js",
     "test:scenarios:all": "node scripts/testBookingScenarios.js all"
@@ -40,5 +39,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "supertest": "^7.2.2"
+  }
 }
