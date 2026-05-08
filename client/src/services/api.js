@@ -1,7 +1,8 @@
 import axios from "axios";
 import API_BASE_URL from "../config/api";
 import { store } from "../redux/store";
-import { setLogout } from "../redux/state";
+import { clearUser } from "../redux/slices/userSlice";
+import { clearToken } from "../redux/slices/authSlice";
 
 /**
  * Configured Axios instance with:
@@ -20,7 +21,7 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         const state = store.getState();
-        const token = state.token;
+        const token = state.auth.token;
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -37,7 +38,8 @@ api.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             // Token expired or invalid — logout user
-            store.dispatch(setLogout());
+            store.dispatch(clearUser());
+            store.dispatch(clearToken());
             window.location.href = "/login";
         }
         return Promise.reject(error);

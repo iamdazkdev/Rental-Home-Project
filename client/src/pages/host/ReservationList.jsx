@@ -19,7 +19,7 @@ const ReservationList = () => {
   const [recordPaymentModalOpen, setRecordPaymentModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [expandedHistory, setExpandedHistory] = useState({}); // Track which bookings show payment history
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
   const userId = user?._id || user?.id;
 
   const getReservations = async () => {

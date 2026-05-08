@@ -10,7 +10,7 @@ import { toast, confirmDialog } from "../../stores/useNotificationStore";
 
 const MyRoommatePosts = () => {
     const navigate = useNavigate();
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
     const userId = user?._id || user?.id;
 
     const [posts, setPosts] = useState([]);

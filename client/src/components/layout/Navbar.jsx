@@ -20,7 +20,8 @@ import {CONFIG} from "../../constants/api";
 import {useDispatch, useSelector} from "react-redux";
 import "../../styles/Navbar.scss";
 import {Link, useNavigate} from "react-router-dom";
-import {setLogout} from "../../redux/state";
+import { clearUser } from "../../redux/slices/userSlice";
+import { clearToken } from "../../redux/slices/authSlice";
 import NotificationDropdown from "../common/NotificationDropdown";
 import { useSocket } from "../../context/SocketContext";
 
@@ -35,7 +36,7 @@ const Navbar = () => {
         roommate: false,
     });
     const dropdownRef = useRef(null);
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { socket } = useSocket();
@@ -96,7 +97,8 @@ const Navbar = () => {
     }, []);
 
     const handleLogout = useCallback(() => {
-        dispatch(setLogout());
+        dispatch(clearUser());
+        dispatch(clearToken());
         setDropdownMenu(false);
         navigate("/login");
     }, [dispatch, navigate]);

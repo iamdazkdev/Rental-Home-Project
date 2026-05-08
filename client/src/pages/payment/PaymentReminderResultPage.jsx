@@ -8,7 +8,7 @@ import "../../styles/PaymentResult.scss";
 const PaymentReminderResultPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
 
   const success = searchParams.get("success") === "true";
   const bookingId = searchParams.get("bookingId");

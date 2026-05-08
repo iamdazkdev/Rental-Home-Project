@@ -22,7 +22,7 @@ import { toast } from "../../stores/useNotificationStore";
 const EditRoom = () => {
   const { roomId } = useParams();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

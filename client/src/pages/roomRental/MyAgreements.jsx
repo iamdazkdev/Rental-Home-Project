@@ -17,7 +17,7 @@ const MyAgreements = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [agreementToAccept, setAgreementToAccept] = useState(null);
   const [acceptLoading, setAcceptLoading] = useState(false);
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
 
   const fetchAgreements = useCallback(async () => {
     try {

@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import "../../styles/Login.scss";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setLogin as setReduxLogin } from "../../redux/state";
+import { setToken } from "../../redux/slices/authSlice";
+import { setUser } from "../../redux/slices/userSlice";
 import {
   API_ENDPOINTS,
 } from "../../constants/api";
@@ -75,12 +76,8 @@ const LoginPage = () => {
 
         // Dispatch Redux action
         if (data) {
-          dispatch(
-            setReduxLogin({
-              user: data.user,
-              token: data.token,
-            })
-          );
+          dispatch(setToken(data.token));
+          dispatch(setUser(data.user));
         }
 
         // Redirect to previous page or home page

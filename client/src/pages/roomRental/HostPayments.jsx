@@ -12,7 +12,7 @@ const HostPayments = () => {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("all");
     const [selectedPayment, setSelectedPayment] = useState(null);
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
 
     const fetchPayments = useCallback(async () => {
         try {

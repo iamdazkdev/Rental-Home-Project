@@ -13,7 +13,7 @@ const HostRentals = () => {
     const [filter, setFilter] = useState("all");
     const [selectedRental, setSelectedRental] = useState(null);
     const [showMoveOutModal, setShowMoveOutModal] = useState(false);
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
 
     const fetchRentals = useCallback(async () => {
         try {

@@ -13,7 +13,7 @@ import "../../styles/PaymentReminder.scss";
 const PaymentReminderPage = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
 
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(null);

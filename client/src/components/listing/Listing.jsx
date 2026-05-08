@@ -6,14 +6,14 @@ import ListingCard from "./ListingCard";
 import Loader from "../ui/Loader";
 import { useDispatch, useSelector } from "react-redux";
 import { HTTP_METHODS, CONFIG } from "../../constants/api";
-import { setListings } from "../../redux/state";
+import { setListings } from "../../redux/slices/listingsSlice";
 const Listing = ({ selectedType }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const listings = useSelector((state) => state.listings);
-  const user = useSelector((state) => state.user);
+  const listings = useSelector((state) => state.listings.listings);
+  const user = useSelector((state) => state.user.profile);
   const currentUserId = user?._id || user?.id;
   const getFeedListing = useCallback(async () => {
     try {

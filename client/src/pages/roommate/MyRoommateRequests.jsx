@@ -10,7 +10,7 @@ import { toast } from "../../stores/useNotificationStore";
 
 const MyRoommateRequests = () => {
     const navigate = useNavigate();
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
     const userId = user?._id || user?.id;
 
     const [activeTab, setActiveTab] = useState("sent");

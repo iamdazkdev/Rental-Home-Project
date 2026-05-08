@@ -10,7 +10,7 @@ const RoommatePostForm = () => {
     const navigate = useNavigate();
     const {postId} = useParams(); // Get postId from URL if editing
     const isEditMode = Boolean(postId);
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
     const userId = user?._id || user?.id;
 
     // Verification state

@@ -12,7 +12,7 @@ const MyPayments = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL'); // ALL, UNPAID, PAID
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
 
   const fetchPayments = useCallback(async () => {
     try {

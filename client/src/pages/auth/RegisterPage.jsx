@@ -2,7 +2,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import "../../styles/Register.scss";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setLogin as setReduxLogin } from "../../redux/state";
+import { setToken } from "../../redux/slices/authSlice";
+import { setUser } from "../../redux/slices/userSlice";
 import { API_ENDPOINTS } from "../../constants/api";
 import api from "../../services/api";
 
@@ -90,12 +91,8 @@ const RegisterPage = () => {
 
           if (loginResponse.status === 200) {
             // Login successful - dispatch to Redux and redirect to home
-            dispatch(
-              setReduxLogin({
-                user: loginData.user,
-                token: loginData.token,
-              })
-            );
+            dispatch(setToken(loginData.token));
+            dispatch(setUser(loginData.user));
 
             // Redirect to home page
             timeoutRef.current = setTimeout(() => {

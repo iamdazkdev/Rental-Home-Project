@@ -11,7 +11,7 @@ import { toast } from "../../stores/useNotificationStore";
 const RoomRentalApplicationPage = () => {
   const { listingId } = useParams();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
 
   const [listing, setListing] = useState(null);
   const [compatibility, setCompatibility] = useState(null);

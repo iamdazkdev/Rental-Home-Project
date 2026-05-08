@@ -1,7 +1,8 @@
 import React from "react";
 import {NavLink, Outlet, useNavigate} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
-import {setLogout} from "../../redux/state";
+import { clearUser } from "../../redux/slices/userSlice";
+import { clearToken } from "../../redux/slices/authSlice";
 import "../../styles/admin/AdminLayout.scss";
 import { confirmDialog } from "../../stores/useNotificationStore";
 
@@ -9,7 +10,7 @@ import { confirmDialog } from "../../stores/useNotificationStore";
 const AdminLayout = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
 
     // Check if user is admin
     if (!user || user.role !== "admin") {
@@ -27,7 +28,8 @@ const AdminLayout = () => {
 
     const handleLogout = async () => {
         if (await confirmDialog({ message: "Are you sure you want to logout?" })) {
-            dispatch(setLogout());
+            dispatch(clearUser());
+            dispatch(clearToken());
             navigate("/login");
         }
     };

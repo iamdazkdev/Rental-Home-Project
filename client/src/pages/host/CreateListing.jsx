@@ -26,6 +26,7 @@ import { useSelector } from "react-redux";
 import { API_ENDPOINTS, HTTP_METHODS, CONFIG } from "../../constants/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "../../stores/useNotificationStore";
+import { useCreateListingStore } from "../../stores/useCreateListingStore";
 
 
 // Simple and Beautiful Photo Item Component
@@ -94,53 +95,43 @@ const CreateListingPage = () => {
   const [types, setTypes] = useState([]);
   const [facilities, setFacilities] = useState([]);
 
-  // FORM STATE
-  const [category, setCategory] = useState("");
-  const [type, setType] = useState("");
-  const [formLocation, setFormLocation] = useState({
-    streetAddress: "",
-    aptSuite: "",
-    city: "",
-    province: "",
-    country: "",
-  });
-  const [guestCount, setGuestCount] = useState(1);
-  const [bedroomCount, setBedroomCount] = useState(1);
-  const [bedCount, setBedCount] = useState(1);
-  const [bathroomCount, setBathroomCount] = useState(1);
-  const [roomArea, setRoomArea] = useState(0); // Room area in m² (for Room Rental)
-  const [amenities, setAmenities] = useState([]);
-  const [photos, setPhotos] = useState([]);
-  const [photoWarning, setPhotoWarning] = useState("");
-  const [formDescription, setFormDescription] = useState({
-    title: "",
-    description: "",
-    highlight: "",
-    highlightDesc: "",
-    price: 0,
-  });
-  // Pricing type for Room/Shared Room
-  const [dailyPrice, setDailyPrice] = useState(0);
-  const [monthlyPrice, setMonthlyPrice] = useState(0);
+  // ZUSTAND STORE
+  const {
+    category, setCategory,
+    type, setType,
+    formLocation, setFormLocation,
+    guestCount, setGuestCount,
+    bedroomCount, setBedroomCount,
+    bedCount, setBedCount,
+    bathroomCount, setBathroomCount,
+    roomArea, setRoomArea,
+    amenities, setAmenities,
+    photos, setPhotos,
+    photoWarning, setPhotoWarning,
+    formDescription, setFormDescription,
+    dailyPrice, setDailyPrice,
+    monthlyPrice, setMonthlyPrice,
+    hostProfile, setHostProfile,
+    hostBio, setHostBio,
+    clearStore
+  } = useCreateListingStore();
 
-  // REDUX STATE - moved up before hostBio
-  const user = useSelector((state) => state.user);
+  // REDUX STATE
+  const user = useSelector((state) => state.user.profile);
   const creatorId = user?.id || user?._id;
   const navigate = useNavigate();
 
-  // Host Profile for Room/Shared Room
-  const [hostProfile, setHostProfile] = useState({
-    sleepSchedule: "", // early_bird, night_owl, flexible
-    smoking: "", // yes, no, outside_only
-    personality: "", // introvert, extrovert, ambivert
-    cleanliness: "", // very_clean, moderate, relaxed
-    occupation: "",
-    hobbies: "",
-    houseRules: "",
-    additionalInfo: "",
-  });
-  // Host Bio - stored in User model for display on Room/Shared Room listings
-  const [hostBio, setHostBio] = useState(user?.hostBio || "");
+  // Sync initial hostBio if missing
+  useEffect(() => {
+    if (user?.hostBio && !hostBio) {
+      setHostBio(user.hostBio);
+    }
+  }, [user, hostBio, setHostBio]);
+
+  // Clean up store on unmount
+  useEffect(() => {
+    return () => clearStore();
+  }, [clearStore]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingListing, setLoadingListing] = useState(isEditMode);
 

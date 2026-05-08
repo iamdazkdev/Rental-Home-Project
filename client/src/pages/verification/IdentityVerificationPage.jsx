@@ -8,7 +8,7 @@ import API_BASE_URL from "../../config/api";
 import "../../styles/IdentityVerificationPage.scss";
 
 const IdentityVerificationPage = () => {
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
     const navigate = useNavigate();
     const [existingVerification, setExistingVerification] = useState(null);
     const [loading, setLoading] = useState(true);

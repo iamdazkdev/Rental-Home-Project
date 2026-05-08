@@ -16,7 +16,7 @@ const TenantApplications = () => {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
 
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
     const navigate = useNavigate();
 
     const fetchApplications = useCallback(async () => {

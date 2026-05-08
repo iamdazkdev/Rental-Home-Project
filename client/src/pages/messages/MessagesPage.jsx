@@ -52,7 +52,7 @@ const MessagesPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
   const userId = user?._id || user?.id;
 
   const { socket, isUserOnline } = useSocket();

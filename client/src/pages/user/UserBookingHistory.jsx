@@ -16,7 +16,7 @@ const UserBookingHistory = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
   const userId = user?._id || user?.id;
   const navigate = useNavigate();
 

@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/layout/Navbar';
 import Loader from '../../components/ui/Loader';
-import { setLogin } from '../../redux/state';
+import { setUser } from '../../redux/slices/userSlice';
 import { CONFIG } from '../../constants/api';
 import '../../styles/EditProfile.scss';
 import { Person, Email, PhotoCamera } from '@mui/icons-material';
@@ -11,7 +11,7 @@ import { toast } from "../../stores/useNotificationStore";
 
 
 const EditProfilePage = () => {
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -132,7 +132,7 @@ const EditProfilePage = () => {
         ...user,
         ...data.user,
       };
-      dispatch(setLogin({ user: updatedUser, token: localStorage.getItem('token') }));
+      dispatch(setUser(updatedUser));
 
       toast.success('Profile updated successfully!');
       navigate(`/host/${user._id}`);

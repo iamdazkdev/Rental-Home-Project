@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 // import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
 import {API_ENDPOINTS, HTTP_METHODS} from "../../constants/api";
-import {setWishList} from "../../redux/state";
+import { setWishList } from "../../redux/slices/listingsSlice";
 import PaymentBreakdownCard from "../payment/PaymentBreakdownCard";
 import { toast } from "../../stores/useNotificationStore";
 import RentalModeModal from "../common/RentalModeModal";
@@ -99,8 +99,8 @@ const ListingCard = ({
 
   const dispatch = useDispatch();
   // ADD TO WISHLIST
-  const user = useSelector((state) => state.user);
-  const wishList = user?.wishList || [];
+  const user = useSelector((state) => state.user.profile);
+  const wishList = useSelector((state) => state.listings?.wishList || []);
 
   // Check if listing is in wishlist - handle both object and string formats
   const isLiked = wishList?.find((item) => {

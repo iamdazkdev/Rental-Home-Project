@@ -19,7 +19,7 @@ const HostApplicationDashboard = () => {
     const [showInterviewModal, setShowInterviewModal] = useState(false);
     const [showOfferModal, setShowOfferModal] = useState(false);
 
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
     const navigate = useNavigate();
 
     const fetchApplications = useCallback(async () => {

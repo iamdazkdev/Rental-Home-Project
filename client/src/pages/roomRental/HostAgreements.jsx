@@ -12,7 +12,7 @@ const HostAgreements = () => {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("all");
     const [selectedAgreement, setSelectedAgreement] = useState(null);
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
 
     const fetchAgreements = useCallback(async () => {
         try {

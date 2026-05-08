@@ -14,7 +14,7 @@ const PropertyManagement = () => {
     const [allProperties, setAllProperties] = useState([]); // Store raw data
     const [filter, setFilter] = useState("active"); // active, hidden, all
 
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
     const userId = user?._id || user?.id;
     const navigate = useNavigate();
 

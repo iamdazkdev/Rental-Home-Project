@@ -12,7 +12,7 @@ export const useSocket = () => {
 export const SocketProvider = ({children}) => {
     const [socket, setSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState(new Set());
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
 
     useEffect(() => {
         if (user) {

@@ -11,7 +11,7 @@ import { toast } from "../../stores/useNotificationStore";
 const RoommatePostDetail = () => {
     const {postId} = useParams();
     const navigate = useNavigate();
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
     const userId = user?._id || user?.id;
 
     const [post, setPost] = useState(null);

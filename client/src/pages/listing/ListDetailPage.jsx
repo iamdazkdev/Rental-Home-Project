@@ -25,7 +25,7 @@ const ListingDetails = () => {
   const currentMode = queryParams.get("mode");
   const navigate = useNavigate();
 
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
   const customerId = user?._id || user?.id || null;
   const customerIdSource = user?._id ? "_id" : user?.id ? "id" : null;
   

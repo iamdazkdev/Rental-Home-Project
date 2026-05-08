@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Loader from "../../components/ui/Loader";
 import Navbar from "../../components/layout/Navbar";
 import { useDispatch, useSelector } from "react-redux";
-import { setTripList } from "../../redux/state";
+import { setTripList } from "../../redux/slices/listingsSlice";
 import ListingCard from "../../components/listing/ListingCard";
 import Footer from "../../components/common/Footer";
 import ExtendStayModal from "../../components/booking/ExtendStayModal";
@@ -21,7 +21,7 @@ const TripList = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   // Get user from Redux
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
   const userId = user?._id || user?.id;
 
   // Debug logging
@@ -33,7 +33,7 @@ const TripList = () => {
   });
 
   const dispatch = useDispatch();
-  const tripList = useSelector((state) => state.user?.tripList || []);
+  const tripList = useSelector((state) => state.listings.tripList || []);
 
   const getTripList = async () => {
     try {

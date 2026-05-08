@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
  * Redirects admin users to /admin/dashboard when they visit homepage
  */
 const AdminRedirect = ({ children }) => {
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
   const navigate = useNavigate();
 
   useEffect(() => {

@@ -14,7 +14,7 @@ const MyRentalRequests = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('ALL'); // ALL, REQUESTED, APPROVED, REJECTED
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
     const navigate = useNavigate();
 
     const fetchRequests = useCallback(async () => {

@@ -13,7 +13,7 @@ import { toast } from "../../stores/useNotificationStore";
 const BookingCheckoutPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
 
   const [submitting, setSubmitting] = useState(false);
   const [bookingData, setBookingData] = useState(null);

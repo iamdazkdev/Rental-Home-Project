@@ -8,7 +8,7 @@ import { toast, confirmDialog } from "../../stores/useNotificationStore";
 
 
 const AdminManagement = () => {
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
     const userId = user?._id;
 
     const [activeTab, setActiveTab] = useState('categories'); // categories, types, facilities, payments

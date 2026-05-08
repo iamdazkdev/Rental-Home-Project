@@ -15,7 +15,7 @@ const MyRentals = () => {
   const [showTerminationModal, setShowTerminationModal] = useState(false);
   const [selectedRental, setSelectedRental] = useState(null);
   const [terminationReason, setTerminationReason] = useState('');
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
   const navigate = useNavigate();
 
   const fetchRentals = useCallback(async () => {

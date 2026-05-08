@@ -21,7 +21,7 @@ const VerificationManagement = () => {
     const [successModalType, setSuccessModalType] = useState(""); // approved or rejected
     const [successModalUserName, setSuccessModalUserName] = useState("");
 
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
     const navigate = useNavigate();
 
     // Check admin access

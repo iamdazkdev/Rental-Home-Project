@@ -11,7 +11,7 @@ import "../../styles/RoomRentalDetail.scss";
 const RoomRentalDetail = () => {
     const {roomId} = useParams();
     const navigate = useNavigate();
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.profile);
 
     const [room, setRoom] = useState(null);
     const [loading, setLoading] = useState(true);

@@ -33,7 +33,7 @@ const HostRequests = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [processingId, setProcessingId] = useState(null);
 
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
   const navigate = useNavigate();
 
   // Get user ID - handle both _id and id formats

@@ -8,7 +8,7 @@ import '../styles/PaymentResult.scss';
 const PaymentResultPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
   const userId = user?._id || user?.id;
 
   const [status] = useState(searchParams.get('status'));

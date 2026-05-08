@@ -10,10 +10,10 @@ import Footer from "../../components/common/Footer";
 const WishList = () => {
   const [loading, setLoading] = useState(true);
   const [wishListListings, setWishListListings] = useState([]);
-  const user = useSelector((state) => state.user);
+  const user = useSelector((state) => state.user.profile);
 
-  // Wrap wishList in useMemo to prevent it from changing on every render
-  const wishList = useMemo(() => user?.wishList || [], [user?.wishList]);
+  const rawWishList = useSelector((state) => state.listings?.wishList || []);
+  const wishList = useMemo(() => rawWishList, [rawWishList]);
 
   // Create a stable reference for wishlist IDs
   const wishListIds = useMemo(() => {
