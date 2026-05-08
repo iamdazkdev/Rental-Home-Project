@@ -13,9 +13,10 @@ export const SocketProvider = ({children}) => {
     const [socket, setSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState(new Set());
     const user = useSelector((state) => state.user.profile);
+    const userId = user?._id || user?.id;
 
     useEffect(() => {
-        if (user) {
+        if (userId) {
             const newSocket = io(API_BASE_URL, {
                 transports: ["websocket", "polling"],
             });
@@ -24,19 +25,16 @@ export const SocketProvider = ({children}) => {
                 console.log("✅ Socket connected:", newSocket.id);
 
                 // Emit user online event
-                const userId = user._id;
-                if (userId) {
-                    newSocket.emit("user_online", userId);
-                }
+                newSocket.emit("user_online", userId);
             });
 
-            newSocket.on("user_status_change", ({userId, status}) => {
+            newSocket.on("user_status_change", ({userId: changedUserId, status}) => {
                 setOnlineUsers((prev) => {
                     const updated = new Set(prev);
                     if (status === "online") {
-                        updated.add(userId);
+                        updated.add(changedUserId);
                     } else {
-                        updated.delete(userId);
+                        updated.delete(changedUserId);
                     }
                     return updated;
                 });
@@ -52,7 +50,7 @@ export const SocketProvider = ({children}) => {
                 newSocket.close();
             };
         }
-    }, [user]);
+    }, [userId]);
 
     const value = {
         socket,

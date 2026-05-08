@@ -53,10 +53,10 @@ const Navbar = () => {
         if (!user) return;
 
         try {
-            const userId = user._id;
+            const userId = user?._id || user?.id;
 
             if (!userId) {
-                console.warn("⚠️ Cannot fetch unread count: userId is undefined");
+                console.warn("⚠️ Cannot fetch unread count: userId is undefined. User object:", user);
                 return;
             }
 
