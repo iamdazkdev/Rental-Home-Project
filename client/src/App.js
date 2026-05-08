@@ -16,11 +16,23 @@ import AdminRedirect from "./components/layout/AdminRedirect";
 // Error Boundary
 import ErrorBoundary from "./components/common/ErrorBoundary";
 
+// Skeletons
+import { ListingGridSkeleton } from "./components/ui/skeletons/ListingCardSkeleton";
+import FormSkeleton from "./components/ui/skeletons/FormSkeleton";
+import DetailPageSkeleton from "./components/ui/skeletons/DetailPageSkeleton";
+import PageSkeleton from "./components/ui/skeletons/PageSkeleton";
+
 // Loading fallback
 const PageLoader = () => (
     <div style={{display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh"}}>
         <div className="loader">Loading...</div>
     </div>
+);
+
+const Suspended = ({ children, fallback: Fallback = PageLoader }) => (
+    <Suspense fallback={<Fallback />}>
+        {children}
+    </Suspense>
 );
 
 // ============================================
@@ -107,87 +119,87 @@ function App() {
                 <GlobalNotification />
                 <SocketProvider>
                     <ErrorBoundary>
-                        <Suspense fallback={<PageLoader/>}>
-                            <Routes>
+                        <Routes>
                             {/* ========== PUBLIC ROUTES ========== */}
                             <Route
                                 path="/"
                                 element={
                                     <AdminRedirect>
-                                        <HomePage/>
+                                        <Suspended fallback={ListingGridSkeleton}>
+                                            <HomePage/>
+                                        </Suspended>
                                     </AdminRedirect>
                                 }
                             />
-                            <Route path="/register" element={<RegisterPage/>}/>
-                            <Route path="/login" element={<LoginPage/>}/>
-                            <Route path="/reset-password" element={<ResetPasswordPage/>}/>
-                            <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
-                            <Route path="/listing/:listingId" element={<ListDetailPage/>}/>
-                            <Route path="/search" element={<SearchPage/>}/>
-                            <Route path="/host/:hostId" element={<HostProfile/>}/>
-                            <Route path="/entire-place" element={<EntirePlaceSearch/>}/>
-                            <Route path="/room-rental" element={<RoomRentalSearch/>}/>
-                            <Route path="/room-rental/:roomId" element={<RoomRentalDetail/>}/>
-                            <Route path="/roommate/search" element={<RoommateSearch/>}/>
-                            <Route path="/roommate/posts/:postId" element={<RoommatePostDetail/>}/>
-                            <Route path="/payment/result" element={<PaymentResultPage/>}/>
-                            <Route path="/payment/callback" element={<PaymentCallback/>}/>
+                            <Route path="/register" element={<Suspended fallback={FormSkeleton}><RegisterPage/></Suspended>}/>
+                            <Route path="/login" element={<Suspended fallback={FormSkeleton}><LoginPage/></Suspended>}/>
+                            <Route path="/reset-password" element={<Suspended fallback={FormSkeleton}><ResetPasswordPage/></Suspended>}/>
+                            <Route path="/forgot-password" element={<Suspended fallback={FormSkeleton}><ForgotPasswordPage/></Suspended>}/>
+                            <Route path="/listing/:listingId" element={<Suspended fallback={DetailPageSkeleton}><ListDetailPage/></Suspended>}/>
+                            <Route path="/search" element={<Suspended fallback={ListingGridSkeleton}><SearchPage/></Suspended>}/>
+                            <Route path="/host/:hostId" element={<Suspended fallback={PageSkeleton}><HostProfile/></Suspended>}/>
+                            <Route path="/entire-place" element={<Suspended fallback={ListingGridSkeleton}><EntirePlaceSearch/></Suspended>}/>
+                            <Route path="/room-rental" element={<Suspended fallback={ListingGridSkeleton}><RoomRentalSearch/></Suspended>}/>
+                            <Route path="/room-rental/:roomId" element={<Suspended fallback={DetailPageSkeleton}><RoomRentalDetail/></Suspended>}/>
+                            <Route path="/roommate/search" element={<Suspended fallback={ListingGridSkeleton}><RoommateSearch/></Suspended>}/>
+                            <Route path="/roommate/posts/:postId" element={<Suspended fallback={DetailPageSkeleton}><RoommatePostDetail/></Suspended>}/>
+                            <Route path="/payment/result" element={<Suspended fallback={PageLoader}><PaymentResultPage/></Suspended>}/>
+                            <Route path="/payment/callback" element={<Suspended fallback={PageLoader}><PaymentCallback/></Suspended>}/>
 
                             {/* ========== PROTECTED ROUTES ========== */}
-                            <Route path="/create-listing" element={<ProtectedRoute><CreateListingPage/></ProtectedRoute>}/>
-                            <Route path="/edit-listing/:listingId" element={<ProtectedRoute><CreateListingPage/></ProtectedRoute>}/>
-                            <Route path="/booking/checkout" element={<ProtectedRoute><BookingCheckoutPage/></ProtectedRoute>}/>
-                            <Route path="/booking/review" element={<ProtectedRoute><BookingReview/></ProtectedRoute>}/>
-                            <Route path="/booking/confirmation" element={<ProtectedRoute><BookingConfirmation/></ProtectedRoute>}/>
-                            <Route path="/messages" element={<ProtectedRoute><MessagesPage/></ProtectedRoute>}/>
-                            <Route path="/messages/:conversationId" element={<ProtectedRoute><MessagesPage/></ProtectedRoute>}/>
-                            <Route path="/:userId/trips" element={<ProtectedRoute><TripList/></ProtectedRoute>}/>
-                            <Route path="/:userId/wishlist" element={<ProtectedRoute><WishList/></ProtectedRoute>}/>
-                            <Route path="/reservations" element={<ProtectedRoute><ReservationList/></ProtectedRoute>}/>
-                            <Route path="/booking-history" element={<ProtectedRoute><UserBookingHistory/></ProtectedRoute>}/>
-                            <Route path="/hosting-history" element={<ProtectedRoute><HostBookingHistory/></ProtectedRoute>}/>
-                            <Route path="/properties" element={<ProtectedRoute><PropertyManagement/></ProtectedRoute>}/>
-                            <Route path="/calendar/:listingId" element={<ProtectedRoute><HostCalendar/></ProtectedRoute>}/>
-                            <Route path="/profile/edit" element={<ProtectedRoute><EditProfilePage/></ProtectedRoute>}/>
-                            <Route path="/payment-reminder/:bookingId" element={<ProtectedRoute><PaymentReminderPage/></ProtectedRoute>}/>
-                            <Route path="/payment-reminder-result" element={<ProtectedRoute><PaymentReminderResultPage/></ProtectedRoute>}/>
-                            <Route path="/identity-verification" element={<ProtectedRoute><IdentityVerificationPage/></ProtectedRoute>}/>
+                            <Route path="/create-listing" element={<ProtectedRoute><Suspended fallback={FormSkeleton}><CreateListingPage/></Suspended></ProtectedRoute>}/>
+                            <Route path="/edit-listing/:listingId" element={<ProtectedRoute><Suspended fallback={FormSkeleton}><CreateListingPage/></Suspended></ProtectedRoute>}/>
+                            <Route path="/booking/checkout" element={<ProtectedRoute><Suspended fallback={PageSkeleton}><BookingCheckoutPage/></Suspended></ProtectedRoute>}/>
+                            <Route path="/booking/review" element={<ProtectedRoute><Suspended fallback={PageSkeleton}><BookingReview/></Suspended></ProtectedRoute>}/>
+                            <Route path="/booking/confirmation" element={<ProtectedRoute><Suspended fallback={PageSkeleton}><BookingConfirmation/></Suspended></ProtectedRoute>}/>
+                            <Route path="/messages" element={<ProtectedRoute><Suspended fallback={PageLoader}><MessagesPage/></Suspended></ProtectedRoute>}/>
+                            <Route path="/messages/:conversationId" element={<ProtectedRoute><Suspended fallback={PageLoader}><MessagesPage/></Suspended></ProtectedRoute>}/>
+                            <Route path="/:userId/trips" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><TripList/></Suspended></ProtectedRoute>}/>
+                            <Route path="/:userId/wishlist" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><WishList/></Suspended></ProtectedRoute>}/>
+                            <Route path="/reservations" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><ReservationList/></Suspended></ProtectedRoute>}/>
+                            <Route path="/booking-history" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><UserBookingHistory/></Suspended></ProtectedRoute>}/>
+                            <Route path="/hosting-history" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><HostBookingHistory/></Suspended></ProtectedRoute>}/>
+                            <Route path="/properties" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><PropertyManagement/></Suspended></ProtectedRoute>}/>
+                            <Route path="/calendar/:listingId" element={<ProtectedRoute><Suspended fallback={PageSkeleton}><HostCalendar/></Suspended></ProtectedRoute>}/>
+                            <Route path="/profile/edit" element={<ProtectedRoute><Suspended fallback={FormSkeleton}><EditProfilePage/></Suspended></ProtectedRoute>}/>
+                            <Route path="/payment-reminder/:bookingId" element={<ProtectedRoute><Suspended fallback={PageSkeleton}><PaymentReminderPage/></Suspended></ProtectedRoute>}/>
+                            <Route path="/payment-reminder-result" element={<ProtectedRoute><Suspended fallback={PageSkeleton}><PaymentReminderResultPage/></Suspended></ProtectedRoute>}/>
+                            <Route path="/identity-verification" element={<ProtectedRoute><Suspended fallback={PageSkeleton}><IdentityVerificationPage/></Suspended></ProtectedRoute>}/>
 
                             {/* Room Rental — Protected */}
-                            <Route path="/room-rental/apply/:listingId" element={<ProtectedRoute><RoomRentalApplicationPage/></ProtectedRoute>}/>
-                            <Route path="/room-rental/applications" element={<ProtectedRoute><HostApplicationDashboard/></ProtectedRoute>}/>
-                            <Route path="/room-rental/my-applications" element={<ProtectedRoute><TenantApplications/></ProtectedRoute>}/>
-                            <Route path="/room-rental/my-requests" element={<ProtectedRoute><MyRentalRequests/></ProtectedRoute>}/>
-                            <Route path="/room-rental/my-agreements" element={<ProtectedRoute><MyAgreements/></ProtectedRoute>}/>
-                            <Route path="/room-rental/my-rentals" element={<ProtectedRoute><MyRentals/></ProtectedRoute>}/>
-                            <Route path="/room-rental/my-payments" element={<ProtectedRoute><MyPayments/></ProtectedRoute>}/>
-                            <Route path="/room-rental/my-rooms" element={<ProtectedRoute><MyRooms/></ProtectedRoute>}/>
-                            <Route path="/room-rental/edit/:roomId" element={<ProtectedRoute><EditRoom/></ProtectedRoute>}/>
-                            <Route path="/room-rental/host/requests" element={<ProtectedRoute><HostRequests/></ProtectedRoute>}/>
-                            <Route path="/room-rental/host/agreements" element={<ProtectedRoute><HostAgreements/></ProtectedRoute>}/>
-                            <Route path="/room-rental/host/rentals" element={<ProtectedRoute><HostRentals/></ProtectedRoute>}/>
-                            <Route path="/room-rental/host/payments" element={<ProtectedRoute><HostPayments/></ProtectedRoute>}/>
+                            <Route path="/room-rental/apply/:listingId" element={<ProtectedRoute><Suspended fallback={FormSkeleton}><RoomRentalApplicationPage/></Suspended></ProtectedRoute>}/>
+                            <Route path="/room-rental/applications" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><HostApplicationDashboard/></Suspended></ProtectedRoute>}/>
+                            <Route path="/room-rental/my-applications" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><TenantApplications/></Suspended></ProtectedRoute>}/>
+                            <Route path="/room-rental/my-requests" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><MyRentalRequests/></Suspended></ProtectedRoute>}/>
+                            <Route path="/room-rental/my-agreements" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><MyAgreements/></Suspended></ProtectedRoute>}/>
+                            <Route path="/room-rental/my-rentals" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><MyRentals/></Suspended></ProtectedRoute>}/>
+                            <Route path="/room-rental/my-payments" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><MyPayments/></Suspended></ProtectedRoute>}/>
+                            <Route path="/room-rental/my-rooms" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><MyRooms/></Suspended></ProtectedRoute>}/>
+                            <Route path="/room-rental/edit/:roomId" element={<ProtectedRoute><Suspended fallback={FormSkeleton}><EditRoom/></Suspended></ProtectedRoute>}/>
+                            <Route path="/room-rental/host/requests" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><HostRequests/></Suspended></ProtectedRoute>}/>
+                            <Route path="/room-rental/host/agreements" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><HostAgreements/></Suspended></ProtectedRoute>}/>
+                            <Route path="/room-rental/host/rentals" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><HostRentals/></Suspended></ProtectedRoute>}/>
+                            <Route path="/room-rental/host/payments" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><HostPayments/></Suspended></ProtectedRoute>}/>
 
                             {/* Roommate — Protected */}
-                            <Route path="/roommate/create" element={<ProtectedRoute><RoommatePostForm/></ProtectedRoute>}/>
-                            <Route path="/roommate/edit/:postId" element={<ProtectedRoute><RoommatePostForm/></ProtectedRoute>}/>
-                            <Route path="/roommate/my-posts" element={<ProtectedRoute><MyRoommatePosts/></ProtectedRoute>}/>
-                            <Route path="/roommate/my-requests" element={<ProtectedRoute><MyRoommateRequests/></ProtectedRoute>}/>
+                            <Route path="/roommate/create" element={<ProtectedRoute><Suspended fallback={FormSkeleton}><RoommatePostForm/></Suspended></ProtectedRoute>}/>
+                            <Route path="/roommate/edit/:postId" element={<ProtectedRoute><Suspended fallback={FormSkeleton}><RoommatePostForm/></Suspended></ProtectedRoute>}/>
+                            <Route path="/roommate/my-posts" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><MyRoommatePosts/></Suspended></ProtectedRoute>}/>
+                            <Route path="/roommate/my-requests" element={<ProtectedRoute><Suspended fallback={ListingGridSkeleton}><MyRoommateRequests/></Suspended></ProtectedRoute>}/>
 
                             {/* ========== ADMIN ROUTES ========== */}
-                            <Route path="/admin" element={<AdminRoute><AdminLayout/></AdminRoute>}>
-                                <Route index element={<AdminDashboard/>}/>
-                                <Route path="dashboard" element={<AdminDashboard/>}/>
-                                <Route path="users" element={<UserList/>}/>
-                                <Route path="users/:id" element={<UserDetail/>}/>
-                                <Route path="verifications" element={<VerificationManagement/>}/>
+                            <Route path="/admin" element={<AdminRoute><Suspended fallback={PageSkeleton}><AdminLayout/></Suspended></AdminRoute>}>
+                                <Route index element={<Suspended fallback={PageSkeleton}><AdminDashboard/></Suspended>}/>
+                                <Route path="dashboard" element={<Suspended fallback={PageSkeleton}><AdminDashboard/></Suspended>}/>
+                                <Route path="users" element={<Suspended fallback={PageSkeleton}><UserList/></Suspended>}/>
+                                <Route path="users/:id" element={<Suspended fallback={PageSkeleton}><UserDetail/></Suspended>}/>
+                                <Route path="verifications" element={<Suspended fallback={PageSkeleton}><VerificationManagement/></Suspended>}/>
                             </Route>
-                            <Route path="/admin/manage" element={<AdminRoute><AdminManagement/></AdminRoute>}/>
+                            <Route path="/admin/manage" element={<AdminRoute><Suspended fallback={PageSkeleton}><AdminManagement/></Suspended></AdminRoute>}/>
                             
                             {/* ========== 404 CATCH-ALL ========== */}
-                            <Route path="*" element={<NotFoundPage/>}/>
+                            <Route path="*" element={<Suspended fallback={PageLoader}><NotFoundPage/></Suspended>}/>
                         </Routes>
-                    </Suspense>
                     </ErrorBoundary>
                 </SocketProvider>
             </BrowserRouter>
