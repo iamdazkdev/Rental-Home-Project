@@ -1,20 +1,72 @@
-import React, {useEffect, useState, useCallback} from "react";
-import {useSelector} from "react-redux";
-import {useNavigate} from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate, useLoaderData, useFetcher, useSubmit, useNavigation } from "react-router-dom";
 import "../../styles/VerificationManagement.scss";
 import VerificationReviewModal from "../../components/verification/VerificationReviewModal";
 import { toast } from "../../stores/useNotificationStore";
+import API_BASE_URL from "../../config/api";
 
+export const verificationManagementLoader = async ({ request }) => {
+    const url = new URL(request.url);
+    const filter = url.searchParams.get("status") || "all";
+    
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/identity-verification/admin/all?status=${filter}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch verifications");
+        
+        const data = await response.json();
+        return { verifications: data.verifications, filter };
+    } catch (error) {
+        console.error("Error fetching verifications:", error);
+        toast.error("Failed to fetch verifications");
+        return { verifications: [], filter };
+    }
+};
+
+export const verificationManagementAction = async ({ request }) => {
+    const formData = await request.formData();
+    const action = formData.get("action");
+    const id = formData.get("id");
+    const adminId = formData.get("adminId");
+    const rejectionReason = formData.get("rejectionReason") || "";
+
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/identity-verification/${id}/review`,
+            {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    status: action,
+                    rejectionReason: action === "rejected" ? rejectionReason : "",
+                    adminId,
+                }),
+            }
+        );
+
+        if (response.ok) {
+            return { success: true, action };
+        } else {
+            throw new Error("Failed to review verification");
+        }
+    } catch (error) {
+        toast.error("Failed to review verification");
+        return { success: false, error: error.message };
+    }
+};
 
 const VerificationManagement = () => {
-    const [verifications, setVerifications] = useState([]);
-    const [filter, setFilter] = useState("all"); // all, pending, approved, rejected
-    const [loading, setLoading] = useState(true);
+    const { verifications, filter } = useLoaderData();
+    const submit = useSubmit();
+    const fetcher = useFetcher();
+    const navigation = useNavigation();
+    
     const [selectedVerification, setSelectedVerification] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [reviewAction, setReviewAction] = useState(""); // approve or reject
     const [rejectionReason, setRejectionReason] = useState("");
-    const [processing, setProcessing] = useState(false);
 
     // Success/Error Modal State
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -27,43 +79,29 @@ const VerificationManagement = () => {
     // Check admin access
     useEffect(() => {
         if (!user) {
-            // User logged out, silently redirect
             navigate("/");
             return;
         }
 
         if (user.email !== "admin@gmail.com") {
-            // User is not admin
             navigate("/");
         }
     }, [user, navigate]);
 
-    // Fetch verifications
-    const fetchVerifications = useCallback(async () => {
-        setLoading(true);
-        try {
-            const response = await fetch(
-                `${API_BASE_URL}/identity-verification/admin/all?status=${filter}`
-            );
-
-            if (response.ok) {
-                const data = await response.json();
-                setVerifications(data.verifications);
-            }
-        } catch (error) {
-            console.error("Error fetching verifications:", error);
-        } finally {
-            setLoading(false);
-        }
-    }, [filter]);
-
+    // Handle Fetcher completion to show success modal
     useEffect(() => {
-        if (user && user.email === "admin@gmail.com") {
-            fetchVerifications();
+        if (fetcher.state === "idle" && fetcher.data?.success && showModal) {
+            setShowModal(false);
+            setSuccessModalType(fetcher.data.action);
+            setSuccessModalUserName(selectedVerification?.fullName || "");
+            setShowSuccessModal(true);
         }
-    }, [user, fetchVerifications]);
+    }, [fetcher.state, fetcher.data, showModal, selectedVerification]);
 
-    // Open review modal
+    const handleFilterChange = (newFilter) => {
+        submit(`?status=${newFilter}`);
+    };
+
     const openReviewModal = (verification, action) => {
         setSelectedVerification(verification);
         setReviewAction(action);
@@ -71,48 +109,21 @@ const VerificationManagement = () => {
         setRejectionReason("");
     };
 
-    // Handle review submission
-    const handleReview = async () => {
+    const handleReview = () => {
         if (reviewAction === "rejected" && !rejectionReason.trim()) {
             toast.info("Please provide a rejection reason");
             return;
         }
 
-        setProcessing(true);
-        try {
-            const response = await fetch(
-                `${API_BASE_URL}/identity-verification/${selectedVerification._id}/review`,
-                {
-                    method: "PATCH",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({
-                        status: reviewAction,
-                        rejectionReason: reviewAction === "rejected" ? rejectionReason : "",
-                        adminId: user._id,
-                    }),
-                }
-            );
-
-            if (response.ok) {
-                // Close review modal first
-                setShowModal(false);
-
-                // Show success modal
-                setSuccessModalType(reviewAction);
-                setSuccessModalUserName(selectedVerification.fullName);
-                setShowSuccessModal(true);
-
-                // Refresh list
-                fetchVerifications();
-            } else {
-                throw new Error("Failed to review verification");
-            }
-        } catch (error) {
-            console.error("Error reviewing verification:", error);
-            toast.error("Failed to review verification");
-        } finally {
-            setProcessing(false);
-        }
+        fetcher.submit(
+            { 
+                action: reviewAction, 
+                id: selectedVerification._id, 
+                adminId: user._id, 
+                rejectionReason 
+            },
+            { method: "post" }
+        );
     };
 
     const formatDate = (date) => {
@@ -134,6 +145,8 @@ const VerificationManagement = () => {
         return badges[status] || badges.pending;
     };
 
+    const isLoading = navigation.state === "loading" || fetcher.state !== "idle";
+
     return (
         <div className="verification-management">
             <div className="management-header">
@@ -145,32 +158,32 @@ const VerificationManagement = () => {
             <div className="filter-tabs">
                 <button
                     className={filter === "all" ? "active" : ""}
-                    onClick={() => setFilter("all")}
+                    onClick={() => handleFilterChange("all")}
                 >
                     All
                 </button>
                 <button
                     className={filter === "pending" ? "active" : ""}
-                    onClick={() => setFilter("pending")}
+                    onClick={() => handleFilterChange("pending")}
                 >
                     ⏳ Pending
                 </button>
                 <button
                     className={filter === "approved" ? "active" : ""}
-                    onClick={() => setFilter("approved")}
+                    onClick={() => handleFilterChange("approved")}
                 >
                     ✅ Approved
                 </button>
                 <button
                     className={filter === "rejected" ? "active" : ""}
-                    onClick={() => setFilter("rejected")}
+                    onClick={() => handleFilterChange("rejected")}
                 >
                     ❌ Rejected
                 </button>
             </div>
 
             {/* Verifications List */}
-            {loading ? (
+            {isLoading && verifications.length === 0 ? (
                 <div className="loading-state">
                     <div className="spinner"></div>
                     <p>Loading verifications...</p>
@@ -329,7 +342,7 @@ const VerificationManagement = () => {
                                     <textarea
                                         value={rejectionReason}
                                         onChange={(e) => setRejectionReason(e.target.value)}
-                                        placeholder="Please provide a clear explanation why this verification is rejected. This will help the user understand what needs to be corrected..."
+                                        placeholder="Please provide a clear explanation why this verification is rejected..."
                                         rows={5}
                                         maxLength={500}
                                         className={rejectionReason.trim() ? "has-content" : ""}
@@ -352,16 +365,16 @@ const VerificationManagement = () => {
                             <button
                                 className="cancel-btn"
                                 onClick={() => setShowModal(false)}
-                                disabled={processing}
+                                disabled={fetcher.state !== "idle"}
                             >
                                 <span>Cancel</span>
                             </button>
                             <button
                                 className={reviewAction === "approved" ? "approve-btn" : "reject-btn"}
                                 onClick={handleReview}
-                                disabled={processing || (reviewAction === "rejected" && !rejectionReason.trim())}
+                                disabled={fetcher.state !== "idle" || (reviewAction === "rejected" && !rejectionReason.trim())}
                             >
-                                {processing ? (
+                                {fetcher.state !== "idle" ? (
                                     <>
                                         <span className="spinner-small"></span>
                                         <span>Processing...</span>
@@ -390,4 +403,3 @@ const VerificationManagement = () => {
 };
 
 export default VerificationManagement;
-

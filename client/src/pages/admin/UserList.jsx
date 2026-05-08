@@ -1,80 +1,84 @@
-import React, {useEffect, useState, useCallback} from "react";
-import {useNavigate} from "react-router-dom";
+import React from "react";
+import { useNavigate, useLoaderData, useNavigation, useSubmit, useFetcher } from "react-router-dom";
 import AdminService from "../../services/admin/AdminService";
 import "../../styles/admin/UserList.scss";
 import { toast, confirmDialog } from "../../stores/useNotificationStore";
 
+export const userListLoader = async ({ request }) => {
+    const url = new URL(request.url);
+    const page = url.searchParams.get("page") || 1;
+    const limit = url.searchParams.get("limit") || 10;
+    const search = url.searchParams.get("search") || "";
+    const role = url.searchParams.get("role") || "";
+    const sortBy = url.searchParams.get("sortBy") || "createdAt";
+    const sortOrder = url.searchParams.get("sortOrder") || "desc";
+
+    try {
+        const response = await AdminService.getUsers({
+            page,
+            limit,
+            search,
+            role,
+            sortBy,
+            sortOrder,
+        });
+        return { 
+            users: response.data, 
+            pagination: response.pagination,
+            filters: { search, role, sortBy, sortOrder }
+        };
+    } catch (error) {
+        toast.error("Failed to fetch users: " + error.message);
+        throw error;
+    }
+};
+
+export const userListAction = async ({ request }) => {
+    const formData = await request.formData();
+    const intent = formData.get("intent");
+    const userId = formData.get("userId");
+
+    try {
+        if (intent === "delete") {
+            await AdminService.deleteUser(userId);
+            toast.success("User deleted successfully");
+        } else if (intent === "updateRole") {
+            const newRole = formData.get("newRole");
+            await AdminService.updateUserRole(userId, newRole);
+            toast.info(`User role updated to ${newRole}`);
+        }
+    } catch (error) {
+        toast.error(`Failed to ${intent}: ` + error.message);
+    }
+    return null;
+};
 
 const UserList = () => {
     const navigate = useNavigate();
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [pagination, setPagination] = useState({
-        page: 1,
-        limit: 10,
-        total: 0,
-        totalPages: 0,
-    });
-    const [filters, setFilters] = useState({
-        search: "",
-        role: "",
-        sortBy: "createdAt",
-        sortOrder: "desc",
-    });
+    const submit = useSubmit();
+    const fetcher = useFetcher();
+    const { users, pagination, filters } = useLoaderData();
+    const navigation = useNavigation();
 
-    const fetchUsers = useCallback(async () => {
-        setLoading(true);
-        try {
-            const response = await AdminService.getUsers({
-                page: pagination.page,
-                limit: pagination.limit,
-                ...filters,
-            });
-
-            setUsers(response.data);
-            setPagination((prev) => {
-                if (prev.total === response.pagination.total && prev.totalPages === response.pagination.totalPages) {
-                    return prev;
-                }
-                return {
-                    ...prev,
-                    total: response.pagination.total,
-                    totalPages: response.pagination.totalPages,
-                };
-            });
-        } catch (error) {
-            toast.error("Failed to fetch users: " + error.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [pagination.page, pagination.limit, filters]);
-
-    useEffect(() => {
-        fetchUsers();
-    }, [fetchUsers]);
+    const isLoading = navigation.state === "loading";
 
     const handleSearch = (e) => {
-        setFilters((prev) => ({...prev, search: e.target.value}));
-        setPagination((prev) => ({...prev, page: 1}));
+        submit({ ...filters, search: e.target.value, page: 1 }, { replace: true });
     };
 
     const handleRoleFilter = (e) => {
-        setFilters((prev) => ({...prev, role: e.target.value}));
-        setPagination((prev) => ({...prev, page: 1}));
+        submit({ ...filters, role: e.target.value, page: 1 }, { replace: true });
+    };
+
+    const handlePageChange = (newPage) => {
+        submit({ ...filters, page: newPage });
     };
 
     const handleDeleteUser = async (userId, userName) => {
         if (!await confirmDialog({ message: `Are you sure you want to delete ${userName}? This action cannot be undone.` })) {
             return;
         }
-
-        try {
-            await AdminService.deleteUser(userId);
-            toast.success("User deleted successfully");
-            fetchUsers();
-        } catch (error) {
-            toast.error("Failed to delete user: " + error.message);
-        }
+        fetcher.submit({ intent: "delete", userId }, { method: "post" });
     };
 
     const handleRoleChange = async (userId, currentRole, userName) => {
@@ -90,17 +94,7 @@ const UserList = () => {
             return;
         }
 
-        try {
-            await AdminService.updateUserRole(userId, newRole.toLowerCase());
-            toast.info(`User role updated to ${newRole}`);
-            fetchUsers();
-        } catch (error) {
-            toast.error("Failed to update role: " + error.message);
-        }
-    };
-
-    const handlePageChange = (newPage) => {
-        setPagination((prev) => ({...prev, page: newPage}));
+        fetcher.submit({ intent: "updateRole", userId, newRole: newRole.toLowerCase() }, { method: "post" });
     };
 
     const getRoleBadgeClass = (role) => {
@@ -114,7 +108,7 @@ const UserList = () => {
         }
     };
 
-    if (loading && users.length === 0) {
+    if (isLoading && users.length === 0) {
         return (
             <div className="user-list-container">
                 <div className="loading-state">
@@ -140,11 +134,11 @@ const UserList = () => {
                     <input
                         type="text"
                         placeholder="Search by name or email..."
-                        value={filters.search}
+                        defaultValue={filters.search}
                         onChange={handleSearch}
                     />
                 </div>
-                <select value={filters.role} onChange={handleRoleFilter}>
+                <select defaultValue={filters.role} onChange={handleRoleFilter}>
                     <option value="">All Roles</option>
                     <option value="user">User</option>
                     <option value="host">Host</option>
@@ -209,6 +203,7 @@ const UserList = () => {
                                             )
                                         }
                                         title="Change Role"
+                                        disabled={fetcher.state !== "idle"}
                                     >
                                         ✏️
                                     </button>
@@ -218,6 +213,7 @@ const UserList = () => {
                                             handleDeleteUser(user._id, `${user.firstName} ${user.lastName}`)
                                         }
                                         title="Delete User"
+                                        disabled={fetcher.state !== "idle"}
                                     >
                                         🗑️
                                     </button>
@@ -234,7 +230,7 @@ const UserList = () => {
                 <div className="pagination">
                     <button
                         onClick={() => handlePageChange(pagination.page - 1)}
-                        disabled={pagination.page === 1}
+                        disabled={Number(pagination.page) === 1}
                     >
                         Previous
                     </button>
@@ -242,8 +238,8 @@ const UserList = () => {
             Page {pagination.page} of {pagination.totalPages}
           </span>
                     <button
-                        onClick={() => handlePageChange(pagination.page + 1)}
-                        disabled={pagination.page === pagination.totalPages}
+                        onClick={() => handlePageChange(Number(pagination.page) + 1)}
+                        disabled={Number(pagination.page) === pagination.totalPages}
                     >
                         Next
                     </button>
@@ -254,4 +250,3 @@ const UserList = () => {
 };
 
 export default UserList;
-

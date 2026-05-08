@@ -1,32 +1,45 @@
-import React, {useEffect, useState, useCallback} from "react";
-import {useNavigate, useParams} from "react-router-dom";
+import React from "react";
+import { useNavigate, useLoaderData, useFetcher, redirect } from "react-router-dom";
 import AdminService from "../../services/admin/AdminService";
 import "../../styles/admin/UserDetail.scss";
 import { toast } from "../../stores/useNotificationStore";
 
+export const userDetailLoader = async ({ params }) => {
+    try {
+        const response = await AdminService.getUserById(params.id);
+        return response.data;
+    } catch (error) {
+        toast.error("Failed to fetch user details: " + error.message);
+        return redirect("/admin/users");
+    }
+};
+
+export const userDetailAction = async ({ request, params }) => {
+    const formData = await request.formData();
+    const intent = formData.get("intent");
+
+    try {
+        if (intent === "delete") {
+            await AdminService.deleteUser(params.id);
+            toast.success("✅ User deleted successfully");
+            return redirect("/admin/users");
+        } else if (intent === "updateRole") {
+            const newRole = formData.get("newRole");
+            await AdminService.updateUserRole(params.id, newRole);
+            toast.info(`User role updated to ${newRole}`);
+            return null;
+        }
+    } catch (error) {
+        toast.error(`Failed to ${intent}: ` + error.message);
+        return null;
+    }
+    return null;
+};
 
 const UserDetail = () => {
-    const {id} = useParams();
     const navigate = useNavigate();
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    const fetchUserDetail = useCallback(async () => {
-        setLoading(true);
-        try {
-            const response = await AdminService.getUserById(id);
-            setUser(response.data);
-        } catch (error) {
-            toast.error("Failed to fetch user details: " + error.message);
-            navigate("/admin/users");
-        } finally {
-            setLoading(false);
-        }
-    }, [id, navigate]);
-
-    useEffect(() => {
-        fetchUserDetail();
-    }, [fetchUserDetail]);
+    const user = useLoaderData();
+    const fetcher = useFetcher();
 
     const handleRoleChange = async () => {
         const newRole = prompt(
@@ -41,13 +54,7 @@ const UserDetail = () => {
             return;
         }
 
-        try {
-            await AdminService.updateUserRole(id, newRole.toLowerCase());
-            toast.info(`User role updated to ${newRole}`);
-            fetchUserDetail();
-        } catch (error) {
-            toast.error("Failed to update role: " + error.message);
-        }
+        fetcher.submit({ intent: "updateRole", newRole: newRole.toLowerCase() }, { method: "post" });
     };
 
     const handleDeleteUser = async () => {
@@ -59,25 +66,8 @@ const UserDetail = () => {
             return;
         }
 
-        try {
-            await AdminService.deleteUser(id);
-            toast.success("✅ User deleted successfully");
-            navigate("/admin/users");
-        } catch (error) {
-            toast.error("Failed to delete user: " + error.message);
-        }
+        fetcher.submit({ intent: "delete" }, { method: "post" });
     };
-
-    if (loading) {
-        return (
-            <div className="user-detail-container">
-                <div className="loading-state">
-                    <div className="spinner"></div>
-                    <p>Loading user details...</p>
-                </div>
-            </div>
-        );
-    }
 
     if (!user) {
         return (
@@ -119,10 +109,10 @@ const UserDetail = () => {
                 </div>
 
                 <div className="profile-actions">
-                    <button className="btn-change-role" onClick={handleRoleChange}>
+                    <button className="btn-change-role" onClick={handleRoleChange} disabled={fetcher.state !== "idle"}>
                         ✏️ Change Role
                     </button>
-                    <button className="btn-delete" onClick={handleDeleteUser}>
+                    <button className="btn-delete" onClick={handleDeleteUser} disabled={fetcher.state !== "idle"}>
                         🗑️ Delete User
                     </button>
                 </div>
@@ -301,4 +291,3 @@ const UserDetail = () => {
 };
 
 export default UserDetail;
-

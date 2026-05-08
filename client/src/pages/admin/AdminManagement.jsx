@@ -1,220 +1,184 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {useSelector} from 'react-redux';
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useLoaderData, useFetcher, useSubmit, useNavigation } from 'react-router-dom';
 import Navbar from '../../components/layout/Navbar';
 import PaymentHistory from '../../components/payment/PaymentHistory';
 import API_BASE_URL from '../../config/api';
 import '../../styles/AdminManagement.scss';
 import { toast, confirmDialog } from "../../stores/useNotificationStore";
+import { store } from "../../redux/store";
 
+const API_ENDPOINTS = {
+    categories: `/user-categories`,
+    types: `/user-property-types`,
+    facilities: `/user-facilities`,
+};
 
-const AdminManagement = () => {
-    const user = useSelector((state) => state.user.profile);
+export const adminManagementLoader = async ({ request }) => {
+    const url = new URL(request.url);
+    const activeTab = url.searchParams.get("tab") || "categories";
+    const user = store.getState().user.profile;
     const userId = user?._id;
 
-    const [activeTab, setActiveTab] = useState('categories'); // categories, types, facilities, payments
-    const [items, setItems] = useState([]);
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [editingItem, setEditingItem] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [paymentHistory, setPaymentHistory] = useState([]);
+    if (!userId) {
+        return { items: [], paymentHistory: [], activeTab };
+    }
 
-    // Form state
-    const [formData, setFormData] = useState({
-        label: '', // for categories
-        name: '', // for types & facilities
-        description: '',
-        icon: '',
-        img: '',
-        category: 'other', // for facilities
-        displayOrder: 0,
-    });
-
-    // Helper function to safely parse number
-    const safeParseInt = (value, defaultValue = 0) => {
-        if (value === '' || value === null || value === undefined) return defaultValue;
-        const parsed = parseInt(value, 10);
-        return isNaN(parsed) ? defaultValue : parsed;
-    };
-
-    // API endpoints map
-    const API_ENDPOINTS = useMemo(() => ({
-        categories: `/user-categories/user/${userId}`,
-        types: `/user-property-types/user/${userId}`,
-        facilities: `/user-facilities/user/${userId}`,
-    }), [userId]);
-
-    // Fetch items based on active tab
-    const fetchItems = useCallback(async () => {
-        if (!userId) return;
-
-        setLoading(true);
-        try {
-            const endpoint = API_ENDPOINTS[activeTab];
-            const response = await fetch(`${API_BASE_URL}${endpoint}?activeOnly=false`);
-            const data = await response.json();
-            setItems(data);
-        } catch (error) {
-            console.error('Error fetching items:', error);
-            toast.error('Failed to load items');
-        } finally {
-            setLoading(false);
-        }
-    }, [userId, activeTab, API_ENDPOINTS]);
-
-    // Fetch payment history
-    const fetchPaymentHistory = useCallback(async () => {
-        if (!userId) return;
-
-        setLoading(true);
-        try {
-            // Fetch as host
+    try {
+        if (activeTab === "payments") {
             const response = await fetch(`${API_BASE_URL}/payment-history/host/${userId}`);
             const data = await response.json();
-            setPaymentHistory(data);
-            console.log('✅ Payment history loaded:', data);
-        } catch (error) {
-            console.error('Error fetching payment history:', error);
-            toast.error('Failed to load payment history');
-        } finally {
-            setLoading(false);
-        }
-    }, [userId]);
-
-    // Initialize user data (fork from global templates)
-    const handleInitialize = async () => {
-        if (!await confirmDialog({ message: 'Initialize from global templates? This will add all default items to your collection.' })) {
-            return;
-        }
-
-        try {
-            const endpoint = API_ENDPOINTS[activeTab];
-            const response = await fetch(`${API_BASE_URL}${endpoint}/initialize`, {
-                method: 'POST',
-            });
+            return { items: [], paymentHistory: data, activeTab };
+        } else {
+            const endpoint = `${API_ENDPOINTS[activeTab]}/user/${userId}`;
+            const response = await fetch(`${API_BASE_URL}${endpoint}?activeOnly=false`);
             const data = await response.json();
-
-            if (response.ok) {
-                toast.info(data.message);
-                fetchItems();
-            } else {
-                toast.error(data.message || 'Failed to initialize');
-            }
-        } catch (error) {
-            console.error('Error initializing:', error);
-            toast.error('Failed to initialize');
+            return { items: data, paymentHistory: [], activeTab };
         }
-    };
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Failed to load data");
+        return { items: [], paymentHistory: [], activeTab };
+    }
+};
 
-    // Create or Update item
-    const handleSave = async () => {
-        if (!userId) return;
+export const adminManagementAction = async ({ request }) => {
+    const formData = await request.formData();
+    const action = formData.get("action");
+    const activeTab = formData.get("activeTab");
+    const userId = store.getState().user.profile?._id;
+    
+    if (!userId) return null;
 
-        const endpoint = API_ENDPOINTS[activeTab];
-        const isEditing = !!editingItem;
-        const url = isEditing
-            ? `${API_BASE_URL}${endpoint}/${editingItem._id}`
-            : `${API_BASE_URL}${endpoint}`;
+    const endpoint = `${API_ENDPOINTS[activeTab]}/user/${userId}`;
 
-        const method = isEditing ? 'PATCH' : 'POST';
+    try {
+        if (action === "initialize") {
+            const response = await fetch(`${API_BASE_URL}${endpoint}/initialize`, { method: 'POST' });
+            const data = await response.json();
+            if (response.ok) toast.info(data.message);
+            else toast.error(data.message || 'Failed to initialize');
+        } 
+        else if (action === "hide" || action === "show" || action === "delete") {
+            const itemId = formData.get("itemId");
+            let fetchUrl, method;
+            
+            if (action === "hide") {
+                fetchUrl = `${API_BASE_URL}${endpoint}/${itemId}`;
+                method = 'DELETE';
+            } else if (action === "show") {
+                fetchUrl = `${API_BASE_URL}${endpoint}/${itemId}/reactivate`;
+                method = 'PATCH';
+            } else if (action === "delete") {
+                fetchUrl = `${API_BASE_URL}${endpoint}/${itemId}?permanent=true`;
+                method = 'DELETE';
+            }
+            
+            const response = await fetch(fetchUrl, { method });
+            const data = await response.json();
+            if (response.ok) toast.info(data.message);
+            else toast.error(data.message || 'Action failed');
+        }
+        else if (action === "save") {
+            const itemId = formData.get("itemId");
+            const isEditing = itemId && itemId !== "null";
+            const url = isEditing
+                ? `${API_BASE_URL}${endpoint}/${itemId}`
+                : `${API_BASE_URL}${endpoint}`;
+            const method = isEditing ? 'PATCH' : 'POST';
+            
+            const payload = {
+                label: formData.get("label"),
+                name: formData.get("name"),
+                description: formData.get("description"),
+                icon: formData.get("icon"),
+                img: formData.get("img"),
+                category: formData.get("category"),
+                displayOrder: parseInt(formData.get("displayOrder") || "0", 10),
+            };
 
-        // Prepare data and ensure no NaN values
-        const dataToSend = {
-            ...formData,
-            displayOrder: isNaN(formData.displayOrder) ? 0 : formData.displayOrder,
-        };
-
-        try {
             const response = await fetch(url, {
                 method,
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(dataToSend),
+                body: JSON.stringify(payload),
             });
-
             const data = await response.json();
-
-            if (response.ok) {
-                toast.info(data.message);
-                setShowAddModal(false);
-                setEditingItem(null);
-                resetForm();
-                fetchItems();
-            } else {
-                toast.error(data.message || 'Failed to save');
-            }
-        } catch (error) {
-            console.error('Error saving:', error);
-            toast.error('Failed to save item');
+            if (response.ok) toast.info(data.message);
+            else toast.error(data.message || 'Failed to save');
+            return { success: response.ok };
         }
+    } catch (error) {
+        toast.error("Action failed");
+        return { success: false };
+    }
+    return { success: true };
+};
+
+const AdminManagement = () => {
+    const { items, paymentHistory, activeTab } = useLoaderData();
+    const user = useSelector((state) => state.user.profile);
+    const submit = useSubmit();
+    const fetcher = useFetcher();
+    const navigation = useNavigation();
+
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
+
+    // Form state
+    const [formData, setFormData] = useState({
+        label: '',
+        name: '',
+        description: '',
+        icon: '',
+        img: '',
+        category: 'other',
+        displayOrder: 0,
+    });
+
+    // Reset modal on success save
+    React.useEffect(() => {
+        if (fetcher.state === "idle" && fetcher.data?.success && showAddModal && fetcher.formData?.get("action") === "save") {
+            setShowAddModal(false);
+            setEditingItem(null);
+            resetForm();
+        }
+    }, [fetcher.state, fetcher.data, showAddModal, fetcher.formData]);
+
+    const handleTabChange = (tab) => {
+        submit(`?tab=${tab}`);
     };
 
-    // Hide item (soft delete)
+    const handleInitialize = async () => {
+        if (!await confirmDialog({ message: 'Initialize from global templates? This will add all default items to your collection.' })) return;
+        fetcher.submit({ action: "initialize", activeTab }, { method: "post" });
+    };
+
     const handleHide = async (itemId) => {
         if (!await confirmDialog({ message: 'Hide this item? You can show it again later.' })) return;
-
-        const endpoint = API_ENDPOINTS[activeTab];
-        try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}/${itemId}`, {
-                method: 'DELETE',
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                toast.info(data.message);
-                fetchItems();
-            } else {
-                toast.error(data.message || 'Failed to hide');
-            }
-        } catch (error) {
-            console.error('Error hiding:', error);
-            toast.error('Failed to hide item');
-        }
+        fetcher.submit({ action: "hide", itemId, activeTab }, { method: "post" });
     };
 
-    // Show item (reactivate)
     const handleShow = async (itemId) => {
-        const endpoint = API_ENDPOINTS[activeTab];
-        try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}/${itemId}/reactivate`, {
-                method: 'PATCH',
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                toast.info(data.message);
-                fetchItems();
-            } else {
-                toast.error(data.message || 'Failed to show');
-            }
-        } catch (error) {
-            console.error('Error showing:', error);
-            toast.error('Failed to show item');
-        }
+        fetcher.submit({ action: "show", itemId, activeTab }, { method: "post" });
     };
 
-    // Delete permanently
     const handleDelete = async (itemId) => {
         if (!await confirmDialog({ message: '⚠️ DELETE PERMANENTLY? This cannot be undone!' })) return;
-
-        const endpoint = API_ENDPOINTS[activeTab];
-        try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}/${itemId}?permanent=true`, {
-                method: 'DELETE',
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                toast.info(data.message);
-                fetchItems();
-            } else {
-                toast.error(data.message || 'Failed to delete');
-            }
-        } catch (error) {
-            console.error('Error deleting:', error);
-            toast.error('Failed to delete item');
-        }
+        fetcher.submit({ action: "delete", itemId, activeTab }, { method: "post" });
     };
 
-    // Open edit modal
+    const handleSave = () => {
+        fetcher.submit(
+            { 
+                action: "save", 
+                activeTab, 
+                itemId: editingItem?._id || "null",
+                ...formData
+            }, 
+            { method: "post" }
+        );
+    };
+
     const handleEdit = (item) => {
         setEditingItem(item);
         setFormData({
@@ -224,12 +188,11 @@ const AdminManagement = () => {
             icon: item.icon || '',
             img: item.img || '',
             category: item.category || 'other',
-            displayOrder: safeParseInt(item.displayOrder, 0),
+            displayOrder: parseInt(item.displayOrder || 0, 10),
         });
         setShowAddModal(true);
     };
 
-    // Reset form
     const resetForm = () => {
         setFormData({
             label: '',
@@ -242,22 +205,11 @@ const AdminManagement = () => {
         });
     };
 
-    // Open add modal
     const handleAdd = () => {
         resetForm();
         setEditingItem(null);
         setShowAddModal(true);
     };
-
-    useEffect(() => {
-        if (userId) {
-            if (activeTab === 'payments') {
-                fetchPaymentHistory();
-            } else {
-                fetchItems();
-            }
-        }
-    }, [activeTab, userId, fetchItems, fetchPaymentHistory]);
 
     if (!user) {
         return (
@@ -267,6 +219,7 @@ const AdminManagement = () => {
         );
     }
 
+    const isLoading = navigation.state === "loading" || fetcher.state !== "idle";
     const activeItems = items.filter(item => item.isActive);
     const hiddenItems = items.filter(item => !item.isActive);
 
@@ -283,25 +236,25 @@ const AdminManagement = () => {
                 <div className="tabs">
                     <button
                         className={activeTab === 'categories' ? 'active' : ''}
-                        onClick={() => setActiveTab('categories')}
+                        onClick={() => handleTabChange('categories')}
                     >
                         🏷️ Categories
                     </button>
                     <button
                         className={activeTab === 'types' ? 'active' : ''}
-                        onClick={() => setActiveTab('types')}
+                        onClick={() => handleTabChange('types')}
                     >
                         🏠 Property Types
                     </button>
                     <button
                         className={activeTab === 'facilities' ? 'active' : ''}
-                        onClick={() => setActiveTab('facilities')}
+                        onClick={() => handleTabChange('facilities')}
                     >
                         ⚙️ Facilities
                     </button>
                     <button
                         className={activeTab === 'payments' ? 'active' : ''}
-                        onClick={() => setActiveTab('payments')}
+                        onClick={() => handleTabChange('payments')}
                     >
                         💰 Payment History
                     </button>
@@ -318,21 +271,20 @@ const AdminManagement = () => {
                                 🔄 Initialize from Templates
                             </button>
                         )}
-                        <button className="btn-refresh"
-                                onClick={activeTab === 'payments' ? fetchPaymentHistory : fetchItems}>
+                        <button className="btn-refresh" onClick={() => handleTabChange(activeTab)}>
                             🔃 Refresh
                         </button>
                     </div>
                 )}
 
                 {/* Loading */}
-                {loading && <div className="loading">Loading...</div>}
+                {isLoading && <div className="loading">Loading...</div>}
 
                 {/* Payment History Tab */}
                 {activeTab === 'payments' && (
                     <div className="payment-history-section">
                         <div className="actions">
-                            <button className="btn-refresh" onClick={fetchPaymentHistory}>
+                            <button className="btn-refresh" onClick={() => handleTabChange('payments')}>
                                 🔃 Refresh
                             </button>
                         </div>
@@ -363,10 +315,10 @@ const AdminManagement = () => {
                                         <span className="item-category">{item.category}</span>
                                     )}
                                     <div className="item-actions">
-                                        <button onClick={() => handleEdit(item)}>✏️ Edit</button>
-                                        <button onClick={() => handleHide(item._id)}>🙈 Hide</button>
+                                        <button onClick={() => handleEdit(item)} disabled={isLoading}>✏️ Edit</button>
+                                        <button onClick={() => handleHide(item._id)} disabled={isLoading}>🙈 Hide</button>
                                         {item.isCustom && (
-                                            <button className="btn-danger" onClick={() => handleDelete(item._id)}>
+                                            <button className="btn-danger" onClick={() => handleDelete(item._id)} disabled={isLoading}>
                                                 🗑️ Delete
                                             </button>
                                         )}
@@ -391,8 +343,8 @@ const AdminManagement = () => {
                                     </div>
                                     <p className="item-description">{item.description}</p>
                                     <div className="item-actions">
-                                        <button onClick={() => handleShow(item._id)}>👁️ Show</button>
-                                        <button className="btn-danger" onClick={() => handleDelete(item._id)}>
+                                        <button onClick={() => handleShow(item._id)} disabled={isLoading}>👁️ Show</button>
+                                        <button className="btn-danger" onClick={() => handleDelete(item._id)} disabled={isLoading}>
                                             🗑️ Delete
                                         </button>
                                     </div>
@@ -476,21 +428,21 @@ const AdminManagement = () => {
                                     type="number"
                                     value={formData.displayOrder}
                                     onChange={e => {
-                                        const value = safeParseInt(e.target.value, 0);
-                                        setFormData({...formData, displayOrder: value});
+                                        const value = parseInt(e.target.value, 10);
+                                        setFormData({...formData, displayOrder: isNaN(value) ? 0 : value});
                                     }}
                                 />
                             </div>
 
                             <div className="modal-actions">
-                                <button className="btn-save" onClick={handleSave}>
-                                    💾 Save
+                                <button className="btn-save" onClick={handleSave} disabled={isLoading}>
+                                    {isLoading ? 'Saving...' : '💾 Save'}
                                 </button>
                                 <button className="btn-cancel" onClick={() => {
                                     setShowAddModal(false);
                                     setEditingItem(null);
                                     resetForm();
-                                }}>
+                                }} disabled={isLoading}>
                                     ❌ Cancel
                                 </button>
                             </div>
@@ -503,4 +455,3 @@ const AdminManagement = () => {
 };
 
 export default AdminManagement;
-

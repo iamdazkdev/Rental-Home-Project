@@ -1,30 +1,25 @@
-import React, {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
+import React from "react";
+import { useNavigate, useLoaderData, useNavigation } from "react-router-dom";
 import AdminService from "../../services/admin/AdminService";
 import "../../styles/admin/AdminDashboard.scss";
 import { toast } from "../../stores/useNotificationStore";
 
+export const adminDashboardLoader = async () => {
+    try {
+        const response = await AdminService.getStats();
+        return response.data;
+    } catch (error) {
+        toast.error("Failed to fetch statistics: " + error.message);
+        throw error; // Let the ErrorBoundary or errorElement catch it
+    }
+};
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetchStats();
-    }, []);
-
-    const fetchStats = async () => {
-        setLoading(true);
-        try {
-            const response = await AdminService.getStats();
-            setStats(response.data);
-        } catch (error) {
-            toast.error("Failed to fetch statistics: " + error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const stats = useLoaderData();
+    const navigation = useNavigation();
+    
+    const loading = navigation.state === "loading";
 
     if (loading) {
         return (
@@ -158,7 +153,7 @@ const AdminDashboard = () => {
                         <p>Manage administrators</p>
                     </button>
 
-                    <button className="action-card" onClick={fetchStats}>
+                    <button className="action-card" onClick={() => navigate(0, { replace: true })}>
                         <div className="action-icon">🔄</div>
                         <h3>Refresh Stats</h3>
                         <p>Update dashboard data</p>
