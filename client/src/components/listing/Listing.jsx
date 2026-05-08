@@ -48,7 +48,8 @@ const Listing = ({ selectedType }) => {
     getFeedListing();
   }, [getFeedListing]);
   const filteredListings = useMemo(() => {
-    if (!listings || listings.length === 0) return [];
+    // Handle case where listings is corrupted in localStorage
+    if (!Array.isArray(listings) || listings.length === 0) return [];
     
     return listings.filter((listing) => {
       // Filter out user's own listings
