@@ -2,7 +2,7 @@
 import "../../styles/ListingCard.scss";
 import {CONFIG, DEFAULT_HEADERS} from "../../constants";
 import { ArrowForwardIos, ArrowBackIosNew, Favorite } from "@mui/icons-material";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 // import { API_ENDPOINTS, HTTP_METHODS } from "../../constants";
@@ -367,4 +367,4 @@ const ListingCard = ({
   );
 };
 
-export default ListingCard;
+export default memo(ListingCard);

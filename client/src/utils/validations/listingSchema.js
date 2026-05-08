@@ -1,0 +1,40 @@
+import { z } from "zod";
+
+export const listingSchema = z.object({
+  category: z.string().optional(),
+  type: z.string().optional(),
+  formLocation: z.object({
+    streetAddress: z.string().min(5, "Street address must be at least 5 characters"),
+    aptSuite: z.string().optional(),
+    city: z.string().min(2, "City is required"),
+    province: z.string().min(2, "Province/State is required"),
+    country: z.string().min(2, "Country is required"),
+  }),
+  guestCount: z.number().min(1, "Must have at least 1 guest").max(20, "Maximum 20 guests").optional(),
+  bedroomCount: z.number().min(1).optional(),
+  bedCount: z.number().min(1).optional(),
+  bathroomCount: z.number().min(1).optional(),
+  roomArea: z.number().min(0).optional(),
+  amenities: z.array(z.string()).min(1, "Select at least 1 amenity").optional(),
+  photos: z.array(z.any()).optional(),
+  formDescription: z.object({
+    title: z.string().min(10, "Title must be at least 10 characters").max(100, "Title cannot exceed 100 characters"),
+    description: z.string().min(50, "Description must be at least 50 characters").max(2000, "Description cannot exceed 2000 characters"),
+    highlight: z.string().min(5, "Highlight is required"),
+    highlightDesc: z.string().min(10, "Highlight description is required"),
+    price: z.number().optional(),
+  }),
+  dailyPrice: z.number().optional(),
+  monthlyPrice: z.number().optional(),
+  hostProfile: z.object({
+    sleepSchedule: z.string().optional(),
+    smoking: z.string().optional(),
+    personality: z.string().optional(),
+    cleanliness: z.string().optional(),
+    occupation: z.string().optional(),
+    hobbies: z.string().optional(),
+    houseRules: z.string().optional(),
+    additionalInfo: z.string().optional(),
+  }).optional(),
+  hostBio: z.string().optional(),
+});

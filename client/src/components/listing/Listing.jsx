@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { categories } from "../../data";
 import "../../styles/Listings.scss";
 import ListingCard from "./ListingCard";
@@ -47,6 +47,21 @@ const Listing = ({ selectedType }) => {
   useEffect(() => {
     getFeedListing();
   }, [getFeedListing]);
+  const filteredListings = useMemo(() => {
+    if (!listings || listings.length === 0) return [];
+    
+    return listings.filter((listing) => {
+      // Filter out user's own listings
+      const creatorId = listing.creator?._id || listing.creator?.id || listing.creator;
+      const notOwnListing = currentUserId ? String(creatorId) !== String(currentUserId) : true;
+
+      // Filter by selected type
+      const matchesType = selectedType ? listing.type === selectedType : true;
+
+      return notOwnListing && matchesType;
+    });
+  }, [listings, currentUserId, selectedType]);
+
   return (
     <>
       <div className="category-list">
@@ -71,19 +86,8 @@ const Listing = ({ selectedType }) => {
         <Loader />
       ) : (
         <div className="listings">
-          {listings && listings.length > 0 ? (
-            listings
-              .filter((listing) => {
-                // Filter out user's own listings
-                const creatorId = listing.creator?._id || listing.creator?.id || listing.creator;
-                const notOwnListing = currentUserId ? String(creatorId) !== String(currentUserId) : true;
-
-                // Filter by selected type
-                const matchesType = selectedType ? listing.type === selectedType : true;
-
-                return notOwnListing && matchesType;
-              })
-              .map(
+          {filteredListings.length > 0 ? (
+            filteredListings.map(
               ({
                 _id,
                 id,

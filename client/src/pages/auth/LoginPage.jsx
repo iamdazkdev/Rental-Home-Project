@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "../../utils/validations/authSchema";
 import "../../styles/Login.scss";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -10,9 +13,17 @@ import {
 import api from "../../services/api";
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+  const {
+    register,
+    handleSubmit: hookFormSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -36,48 +47,34 @@ const LoginPage = () => {
     };
   }, []);
 
-  const handleChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Clear error when user starts typing
-    if (error) setError("");
-  }, [error]);
+  // Removed manual handleChange in favor of react-hook-form
 
   const togglePasswordVisibility = useCallback(() => {
     setShowPassword(prev => !prev);
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const onSubmit = async (data) => {
     // Clear previous messages
     setError("");
     setSuccess("");
     setIsLoading(true);
 
     try {
-      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, formData);
-      const data = response.data;
-      console.log("Login response:", data);
+      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, data);
+      const resData = response.data;
+      console.log("Login response:", resData);
 
       if (response.status === 200) {
         // Success - user logged in
         setSuccess("Login successful! Redirecting to home...");
 
         // Clear form fields after successful login
-        setFormData({
-          email: "",
-          password: "",
-        });
+        reset();
 
         // Dispatch Redux action
-        if (data) {
-          dispatch(setToken(data.token));
-          dispatch(setUser(data.user));
+        if (resData) {
+          dispatch(setToken(resData.token));
+          dispatch(setUser(resData.user));
         }
 
         // Redirect to previous page or home page
@@ -157,28 +154,23 @@ const LoginPage = () => {
           </div>
         )}
 
-        <form className="login_content_form" onSubmit={handleSubmit}>
+        <form className="login_content_form" onSubmit={hookFormSubmit(onSubmit)}>
           <div className="input_group">
             <input
               placeholder="Email Address"
-              name="email"
               type="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className={error && error.includes("email") ? "error" : ""}
+              {...register("email")}
+              className={errors.email || (error && error.includes("email")) ? "error" : ""}
             />
+            {errors.email && <span className="field-error">{errors.email.message}</span>}
           </div>
 
           <div className="input_group password_input_group">
             <input
               placeholder="Password"
-              name="password"
               type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className={error && error.includes("password") ? "error" : ""}
+              {...register("password")}
+              className={errors.password || (error && error.includes("password")) ? "error" : ""}
             />
             <button
               type="button"
@@ -236,6 +228,7 @@ const LoginPage = () => {
                 </svg>
               )}
             </button>
+            {errors.password && <span className="field-error">{errors.password.message}</span>}
           </div>
 
           <div className="forgot_password">

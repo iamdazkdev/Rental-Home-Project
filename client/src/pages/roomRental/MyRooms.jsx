@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -91,11 +91,16 @@ const MyRooms = () => {
     }
   };
 
-  const filteredRooms = rooms.filter(room => {
-    if (filter === 'active') return room.isActive !== false;
-    if (filter === 'inactive') return room.isActive === false;
-    return true;
-  });
+  const activeRoomsCount = useMemo(() => rooms.filter(r => r.isActive !== false).length, [rooms]);
+  const inactiveRoomsCount = useMemo(() => rooms.filter(r => r.isActive === false).length, [rooms]);
+
+  const filteredRooms = useMemo(() => {
+    return rooms.filter(room => {
+      if (filter === 'active') return room.isActive !== false;
+      if (filter === 'inactive') return room.isActive === false;
+      return true;
+    });
+  }, [rooms, filter]);
 
   if (loading) {
     return (
@@ -136,13 +141,13 @@ const MyRooms = () => {
             className={`filter-btn ${filter === 'active' ? 'active' : ''}`}
             onClick={() => setFilter('active')}
           >
-            Active ({rooms.filter(r => r.isActive !== false).length})
+            Active ({activeRoomsCount})
           </button>
           <button
             className={`filter-btn ${filter === 'inactive' ? 'active' : ''}`}
             onClick={() => setFilter('inactive')}
           >
-            Inactive ({rooms.filter(r => r.isActive === false).length})
+            Inactive ({inactiveRoomsCount})
           </button>
         </div>
 

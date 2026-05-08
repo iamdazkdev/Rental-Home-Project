@@ -1,17 +1,17 @@
 import "../../styles/List.scss";
 import { API_ENDPOINTS, HTTP_METHODS } from "../../constants/api";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import Loader from "../../components/ui/Loader";
 import Navbar from "../../components/layout/Navbar";
 import { useDispatch, useSelector } from "react-redux";
 import { setTripList } from "../../redux/slices/listingsSlice";
 import ListingCard from "../../components/listing/ListingCard";
 import Footer from "../../components/common/Footer";
-import ExtendStayModal from "../../components/booking/ExtendStayModal";
-import CheckoutModal from "../../components/payment/CheckoutModal";
-import CancelBookingModal from "../../components/booking/CancelBookingModal";
 import { toast } from "../../stores/useNotificationStore";
 
+const ExtendStayModal = lazy(() => import("../../components/booking/ExtendStayModal"));
+const CheckoutModal = lazy(() => import("../../components/payment/CheckoutModal"));
+const CancelBookingModal = lazy(() => import("../../components/booking/CancelBookingModal"));
 
 const TripList = () => {
   const [loading, setLoading] = useState(true);
@@ -301,27 +301,31 @@ const TripList = () => {
         )}
       </div>
       <Footer />
-      {extendModalOpen && (
-        <ExtendStayModal
-          booking={selectedBooking}
-          onClose={() => setExtendModalOpen(false)}
-          onSubmit={handleExtensionSubmit}
-        />
-      )}
-      {checkoutModalOpen && (
-        <CheckoutModal
-          booking={selectedBooking}
-          onClose={() => setCheckoutModalOpen(false)}
-          onConfirm={handleCheckoutConfirm}
-        />
-      )}
-      {cancelModalOpen && (
-        <CancelBookingModal
-          booking={selectedBooking}
-          onClose={() => setCancelModalOpen(false)}
-          onConfirm={handleCancelConfirm}
-        />
-      )}
+      <Suspense fallback={<div>Loading modal...</div>}>
+        {extendModalOpen && selectedBooking && (
+          <ExtendStayModal
+            booking={selectedBooking}
+            onClose={() => setExtendModalOpen(false)}
+            onSubmit={handleExtensionSubmit}
+          />
+        )}
+
+        {checkoutModalOpen && selectedBooking && (
+          <CheckoutModal
+            booking={selectedBooking}
+            onClose={() => setCheckoutModalOpen(false)}
+            onConfirm={handleCheckoutConfirm}
+          />
+        )}
+
+        {cancelModalOpen && selectedBooking && (
+          <CancelBookingModal
+            booking={selectedBooking}
+            onClose={() => setCancelModalOpen(false)}
+            onConfirm={handleCancelConfirm}
+          />
+        )}
+      </Suspense>
     </>
   );
 };

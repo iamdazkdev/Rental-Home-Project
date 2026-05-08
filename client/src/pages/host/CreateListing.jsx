@@ -1,4 +1,16 @@
 import React from "react";
+
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { listingSchema } from "../../utils/validations/listingSchema";
+import CreateListingLocationForm from "../../components/host/CreateListingLocationForm";
+import CreateListingBasics from "../../components/host/CreateListingBasics";
+import CreateListingAmenitiesSelector from "../../components/host/CreateListingAmenitiesSelector";
+import CreateListingPhotoUpload from "../../components/host/CreateListingPhotoUpload";
+import CreateListingDescriptionForm from "../../components/host/CreateListingDescriptionForm";
+import CreateListingPricing from "../../components/host/CreateListingPricing";
+import CreateListingHostProfile from "../../components/host/CreateListingHostProfile";
+
 import "../../styles/CreateListing.scss";
 import Navbar from "../../components/layout/Navbar";
 import IdentityVerificationForm from "../../components/verification/IdentityVerificationForm";
@@ -451,6 +463,53 @@ const CreateListingPage = () => {
   const isEntirePlaceRental = type === "An entire place"; // Full property, nightly booking
   const isRoommateMatching = type === "A Shared Room"; // Roommate finding (future feature)
 
+
+  // INITIALIZE REACT-HOOK-FORM
+  const methods = useForm({
+    resolver: zodResolver(listingSchema),
+    defaultValues: {
+      category: category,
+      type: type,
+      formLocation: formLocation,
+      guestCount: guestCount,
+      bedroomCount: bedroomCount,
+      bedCount: bedCount,
+      bathroomCount: bathroomCount,
+      roomArea: roomArea,
+      amenities: amenities,
+      photos: photos,
+      formDescription: formDescription,
+      dailyPrice: dailyPrice,
+      monthlyPrice: monthlyPrice,
+      hostProfile: hostProfile,
+      hostBio: hostBio,
+    }
+  });
+
+  const onSubmit = async (data) => {
+    // We will use `data` directly to ensure we use validated inputs
+    // but we can also rely on Zustand store if needed.
+    // For now, let's sync react-hook-form data back to Zustand before submitting
+    setCategory(data.category);
+    setType(data.type);
+    setFormLocation(data.formLocation);
+    setGuestCount(data.guestCount);
+    setBedroomCount(data.bedroomCount);
+    setBedCount(data.bedCount);
+    setBathroomCount(data.bathroomCount);
+    setRoomArea(data.roomArea);
+    setAmenities(data.amenities);
+    setPhotos(data.photos);
+    setFormDescription(data.formDescription);
+    setDailyPrice(data.dailyPrice);
+    setMonthlyPrice(data.monthlyPrice);
+    setHostProfile(data.hostProfile);
+    setHostBio(data.hostBio);
+    
+    // Call original logic via a mock event
+    await handleSubmit({ preventDefault: () => {} });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -851,580 +910,61 @@ const CreateListingPage = () => {
               )}
 
             {/* Form Content */}
-            <form onSubmit={handleSubmit} className="form-content">
-              {/* Step 1: Property Details */}
-              <div className="step-section">
-                <div className="step-header">
-                  <div className="step-number">1</div>
-                  <h2>🏠 Tell us about your place</h2>
-                </div>
-
-                {/* Show selected type info only (not selectable again) */}
-                {type && (
-                  <div className="selected-type-info">
-                    <div className="info-label">Selected Property Type:</div>
-                    <div className="selected-type-badge">
-                      {types?.find(t => t.name === type)?.icon} <strong>{type}</strong>
-                    </div>
-                  </div>
-                )}
-
-                {/* Categories - Filter out "All" category */}
-                <div style={{ marginBottom: "40px" }}>
-                  <h3 className="section-title">
-                    Which category best describes your place?
-                  </h3>
-                  <div className="categories-grid">
-                    {categories?.filter(item => item.label !== "All").map((item, index) => (
-                      <div
-                        key={index}
-                        onClick={() => setCategory(item.label)}
-                        className={`category-item ${
-                          category === item.label ? "selected" : ""
-                        }`}
-                      >
-                        <div className="icon">{item.icon}</div>
-                        <div className="content">
-                          <h4>{item.label}</h4>
-                          <p>
-                            {item.description || "Perfect for your listing"}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 2: Location */}
-              <div className="step-section">
-                <div className="step-header">
-                  <div className="step-number">2</div>
-                  <h2>📍 Where's your place located?</h2>
-                </div>
-
-                <div className="location-grid">
-                  <div className="full-width form-group">
-                    <label>🏠 Street Address</label>
-                    <input
-                      type="text"
-                      placeholder="Enter your street address"
-                      name="streetAddress"
-                      value={formLocation.streetAddress}
-                      onChange={handleChangeLocation}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>🏢 Apartment, Suite (Optional)</label>
-                    <input
-                      type="text"
-                      placeholder="Apt, Suite, etc."
-                      name="aptSuite"
-                      value={formLocation.aptSuite}
-                      onChange={handleChangeLocation}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>🏙️ City</label>
-                    <input
-                      type="text"
-                      placeholder="Enter city"
-                      name="city"
-                      value={formLocation.city}
-                      onChange={handleChangeLocation}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>🗺️ Province/State</label>
-                    <input
-                      type="text"
-                      placeholder="Enter province/state"
-                      name="province"
-                      value={formLocation.province}
-                      onChange={handleChangeLocation}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>🌍 Country</label>
-                    <input
-                      type="text"
-                      placeholder="Enter country"
-                      name="country"
-                      value={formLocation.country}
-                      onChange={handleChangeLocation}
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 3: Basic Info */}
-              <div className="step-section">
-                <div className="step-header">
-                  <div className="step-number">3</div>
-                  <h2>📊 Share some basics about your place</h2>
-                </div>
-
-                <div className="basics-grid">
-                  {[
-                    {
-                      label: "👥 Guests",
-                      value: guestCount,
-                      setter: setGuestCount,
-                    },
-                    {
-                      label: "🛏️ Bedrooms",
-                      value: bedroomCount,
-                      setter: setBedroomCount,
-                    },
-                    {
-                      label: "🚿 Bathrooms",
-                      value: bathroomCount,
-                      setter: setBathroomCount,
-                    },
-                    { label: "🛌 Beds", value: bedCount, setter: setBedCount },
-                    ...(isRoomRental
-                      ? [
-                          {
-                            label: "📏 Room Area (m²)",
-                            value: roomArea,
-                            setter: setRoomArea,
-                          },
-                        ]
-                      : []),
-                  ].map((item, index) => (
-                    <div key={index} className="basic-item">
-                      <div className="label">{item.label}</div>
-                      <div className="counter">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            item.setter(Math.max(1, item.value - 1))
-                          }
-                        >
-                          -
-                        </button>
-                        <span className="count">{item.value}</span>
-                        <button
-                          type="button"
-                          onClick={() => item.setter(item.value + 1)}
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Step 4: Amenities */}
-              <div className="step-section">
-                <div className="step-header">
-                  <div className="step-number">4</div>
-                  <h2>✨ Tell guests what your place has to offer</h2>
-                </div>
-
-                <div className="amenities-grid">
-                  {facilities?.map((item, index) => (
-                    <div
-                      key={index}
-                      onClick={() => handleSelectAmenities(item.name)}
-                      className={`amenity-item ${
-                        amenities.includes(item.name) ? "selected" : ""
-                      }`}
-                    >
-                      <div className="icon">{item.icon}</div>
-                      <span className="name">{item.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Step 5: Photos */}
-              <div className="step-section">
-                <div className="step-header">
-                  <div className="step-number">5</div>
-                  <h2>📸 Show off your space with photos</h2>
-                </div>
-
-                <div className="photo-section">
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <div className="photo-gallery">
-                      {photos.length === 0 ? (
-                        <div className="upload-placeholder">
-                          <div className="upload-icon">📸</div>
-                          <div className="upload-text">
-                            Upload your property photos
-                          </div>
-                          <div className="upload-hint">
-                            Drag photos here or click below to browse
-                          </div>
-                        </div>
-                      ) : (
-                        <SortableContext
-                          items={photos.map((photo) => photo.id)}
-                          strategy={horizontalListSortingStrategy}
-                        >
-                          {/* Featured Photo (First) */}
-                          {photos.length > 0 && (
-                            <SortablePhotoItem
-                              key={photos[0].id}
-                              id={photos[0].id}
-                              photo={photos[0]}
-                              index={0}
-                              onDelete={handleDeletePhoto}
-                            />
-                          )}
-
-                          {/* Remaining Photos Grid */}
-                          {photos.length > 1 && (
-                            <div className="photos-grid">
-                              {photos.slice(1).map((photo, index) => (
-                                <SortablePhotoItem
-                                  key={photo.id}
-                                  id={photo.id}
-                                  photo={photo}
-                                  index={index + 1}
-                                  onDelete={handleDeletePhoto}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </SortableContext>
-                      )}
-                    </div>
-                  </DndContext>
-
-                  <input
-                    id="image"
-                    type="file"
-                    style={{ display: "none" }}
-                    accept="image/*"
-                    onChange={handleUploadPhotos}
-                    multiple
-                    disabled={photos.length >= 6}
-                  />
-                  <label
-                    htmlFor="image"
-                    className={`upload-button ${
-                      photos.length >= 6 ? "disabled" : ""
-                    }`}
-                  >
-                    <span className="upload-icon">📤</span>
-                    {photos.length >= 6
-                      ? "Đã đủ 6 ảnh"
-                      : `Upload Photos (${photos.length}/6)`}
-                  </label>
-
-                  {photos.length > 0 && (
-                    <div className="photo-count">
-                      {photos.length} ảnh đã upload{" "}
-                      {photos.length < 6 &&
-                        `- Bạn có thể thêm ${6 - photos.length} ảnh nữa`}
-                      {photos.length === 6 && " - Đã đạt giới hạn tối đa"}
-                    </div>
-                  )}
-
-                  {/* Warning Message */}
-                  {photoWarning && (
-                    <div className="photo-warning">{photoWarning}</div>
-                  )}
-                </div>
-              </div>
-
-              {/* Step 6: Description */}
-              <div className="step-section">
-                <div className="step-header">
-                  <div className="step-number">6</div>
-                  <h2>📝 Create your description</h2>
-                </div>
-
-                <div className="description-section">
-                  <div className="description-grid">
-                    <div className="full-width form-group">
-                      <label>📋 Title</label>
-                      <input
-                        type="text"
-                        placeholder="Give your listing a catchy title"
-                        name="title"
-                        value={formDescription.title}
-                        onChange={handleChangeDescription}
-                        required
-                      />
-                    </div>
-
-                    <div className="full-width form-group">
-                      <label>📖 Description</label>
-                      <textarea
-                        placeholder="Describe your space in detail"
-                        name="description"
-                        value={formDescription.description}
-                        onChange={handleChangeDescription}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>⭐ Highlight</label>
-                      <input
-                        type="text"
-                        placeholder="What makes your place special?"
-                        name="highlight"
-                        value={formDescription.highlight}
-                        onChange={handleChangeDescription}
-                        required
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>💫 Highlight Details</label>
-                      <input
-                        type="text"
-                        placeholder="Tell us more about the highlight"
-                        name="highlightDesc"
-                        value={formDescription.highlightDesc}
-                        onChange={handleChangeDescription}
-                        required
-                      />
-                    </div>
-
-                    {/* Pricing Section - Different for Room Rental vs Entire Place */}
-                    {isRoomRental ? (
-                      // Room Rental: Monthly pricing only
-                      <div className="full-width form-group">
-                        <label>💰 Set your monthly rent</label>
-                        <p className="pricing-hint">
-                          💡 <strong>Room Rental</strong> - Monthly rent for your room.
-                        </p>
-                        <div className="price-input-wrapper">
-                          <span className="currency">₫</span>
-                          <input
-                            type="number"
-                            placeholder="3000000"
-                            value={monthlyPrice || ""}
-                            onChange={handleMonthlyPriceChange}
-                            required
-                            min="1"
-                          />
-                          <span className="per-unit">/month</span>
-                        </div>
-                        <p className="price-note">
-                          💡 Default deposit: 1 month's rent ({monthlyPrice ? monthlyPrice.toLocaleString() : '0'} ₫)
-                        </p>
-                      </div>
-                    ) : isEntirePlaceRental ? (
-                      // Entire Place: Nightly pricing
-                      <div className="full-width form-group price-group">
-                        <label>💰 Set your price per night</label>
-                        <p className="pricing-hint">
-                          🏠 <strong>Entire Place Rental</strong> - Guests book nightly and pay per night.
-                        </p>
-                        <div className="price-input-wrapper">
-                          <span className="currency">$</span>
-                          <input
-                            type="number"
-                            placeholder="100"
-                            name="price"
-                            value={formDescription.price}
-                            onChange={handleChangeDescription}
-                            required
-                            min="1"
-                          />
-                          <span className="per-unit">/night</span>
-                        </div>
-                      </div>
-                    ) : (
-                      // Roommate Matching or other types
-                      <div className="full-width form-group price-group">
-                        <label>💰 Pricing</label>
-                        <p className="pricing-hint">This feature is under development.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 7: Host Profile (for Room Rental only - where host lives with tenant) */}
-              {isRoomRental && (
-                <div className="step-section host-profile-section">
+            <FormProvider {...methods}>
+              <form onSubmit={methods.handleSubmit(onSubmit)} className="form-content">
+                
+                {/* Step 1: Property Details */}
+                <div className="step-section">
                   <div className="step-header">
-                    <div className="step-number">7</div>
-                    <div>
-                      <h2>👤 Tell guests about yourself</h2>
-                      <p className="step-subtitle">
-                        🏠 <strong>Important for Room Rental:</strong> You'll be living with your tenant.
-                        Help them understand your lifestyle and expectations.
-                      </p>
-                    </div>
+                    <div className="step-number">1</div>
+                    <h2>🏠 Tell us about your place</h2>
                   </div>
-
-                  <div className="host-profile-grid">
-                    {/* About Yourself - Host Bio */}
-                    <div className="full-width form-group highlight-field">
-                      <label>✍️ About Yourself</label>
-                      <textarea
-                        value={hostBio}
-                        onChange={(e) => setHostBio(e.target.value)}
-                        placeholder="Introduce yourself to potential guests. Share what makes you a great host, your lifestyle, what you're looking for in a guest, etc. This will be displayed on all your Room/Shared Room listings."
-                        rows="5"
-                        required
-                      />
-                      <p className="field-note">💡 This introduction will be saved to your profile and displayed on all Room/Shared Room listings you create.</p>
+                  {type && (
+                    <div className="selected-type-info">
+                      <div className="info-label">Selected Property Type:</div>
+                      <div className="selected-type-badge">
+                        {types?.find(t => t.name === type)?.icon} <strong>{type}</strong>
+                      </div>
                     </div>
-
-                    {/* Sleep Schedule */}
-                    <div className="form-group">
-                      <label>🌙 Sleep Schedule</label>
-                      <select
-                        name="sleepSchedule"
-                        value={hostProfile.sleepSchedule}
-                        onChange={handleHostProfileChange}
-                        required
-                      >
-                        <option value="">Select your schedule</option>
-                        <option value="early_bird">Early Bird (Sleep before 10 PM)</option>
-                        <option value="night_owl">Night Owl (Sleep after midnight)</option>
-                        <option value="flexible">Flexible</option>
-                      </select>
-                    </div>
-
-                    {/* Smoking */}
-                    <div className="form-group">
-                      <label>🚬 Smoking</label>
-                      <select
-                        name="smoking"
-                        value={hostProfile.smoking}
-                        onChange={handleHostProfileChange}
-                        required
-                      >
-                        <option value="">Select option</option>
-                        <option value="no">Non-smoker</option>
-                        <option value="outside_only">Smoke outside only</option>
-                        <option value="yes">Smoker</option>
-                      </select>
-                    </div>
-
-                    {/* Personality */}
-                    <div className="form-group">
-                      <label>😊 Personality</label>
-                      <select
-                        name="personality"
-                        value={hostProfile.personality}
-                        onChange={handleHostProfileChange}
-                        required
-                      >
-                        <option value="">Select personality</option>
-                        <option value="introvert">Introvert (Quiet, private)</option>
-                        <option value="extrovert">Extrovert (Social, outgoing)</option>
-                        <option value="ambivert">Ambivert (Balanced)</option>
-                      </select>
-                    </div>
-
-                    {/* Cleanliness */}
-                    <div className="form-group">
-                      <label>🧹 Cleanliness Level</label>
-                      <select
-                        name="cleanliness"
-                        value={hostProfile.cleanliness}
-                        onChange={handleHostProfileChange}
-                        required
-                      >
-                        <option value="">Select level</option>
-                        <option value="very_clean">Very Clean (Everything organized)</option>
-                        <option value="moderate">Moderate (Tidy but lived-in)</option>
-                        <option value="relaxed">Relaxed (Clean but casual)</option>
-                      </select>
-                    </div>
-
-                    {/* Occupation */}
-                    <div className="full-width form-group">
-                      <label>💼 Occupation</label>
-                      <input
-                        type="text"
-                        name="occupation"
-                        placeholder="e.g., Software Engineer, Student, Freelancer"
-                        value={hostProfile.occupation}
-                        onChange={handleHostProfileChange}
-                        required
-                      />
-                    </div>
-
-
-                    {/* Hobbies */}
-                    <div className="full-width form-group">
-                      <label>🎨 Hobbies & Interests</label>
-                      <textarea
-                        name="hobbies"
-                        placeholder="Tell us about your hobbies, interests, and what you like to do in your free time"
-                        value={hostProfile.hobbies}
-                        onChange={handleHostProfileChange}
-                        rows="3"
-                        required
-                      />
-                    </div>
-
-                    {/* House Rules */}
-                    <div className="full-width form-group">
-                      <label>📋 House Rules</label>
-                      <textarea
-                        name="houseRules"
-                        placeholder="e.g., No loud music after 10 PM, Clean up after yourself, etc."
-                        value={hostProfile.houseRules}
-                        onChange={handleHostProfileChange}
-                        rows="4"
-                        required
-                      />
-                    </div>
-
-                    {/* Additional Info */}
-                    <div className="full-width form-group">
-                      <label>💬 Additional Information (Optional)</label>
-                      <textarea
-                        name="additionalInfo"
-                        placeholder="Anything else guests should know about you or your home?"
-                        value={hostProfile.additionalInfo}
-                        onChange={handleHostProfileChange}
-                        rows="3"
-                      />
+                  )}
+                  <div style={{ marginBottom: "40px" }}>
+                    <h3 className="section-title">Which category best describes your place?</h3>
+                    <div className="categories-grid">
+                      {categories?.filter(item => item.label !== "All").map((item, index) => (
+                        <div
+                          key={index}
+                          onClick={() => {
+                            setCategory(item.label);
+                            methods.setValue("category", item.label, { shouldValidate: true });
+                          }}
+                          className={`category-item ${
+                            category === item.label ? "selected" : ""
+                          }`}
+                        >
+                          <div className="icon">{item.icon}</div>
+                          <div className="content">
+                            <h4>{item.label}</h4>
+                            <p>{item.description || "Perfect for your listing"}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
-              )}
 
-              {/* Submit Section */}
-              <div className={`submit-section ${isLoading ? "loading" : ""}`}>
-                <button
-                  type="submit"
-                  className={`submit-button ${isLoading ? "loading" : ""}`}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="loading-spinner"></div>
-                      <span>{isEditMode ? "Updating..." : "Creating Your Dream Listing..."}</span>
-                    </>
-                  ) : (
-                    <>{isEditMode ? "💾 UPDATE LISTING" : "✨ CREATE YOUR DREAM LISTING"}</>
-                  )}
+                <CreateListingLocationForm />
+                <CreateListingBasics type={type} />
+                <CreateListingAmenitiesSelector />
+                <CreateListingPhotoUpload />
+                <CreateListingDescriptionForm />
+                <CreateListingPricing type={type} />
+                {requiresHostProfile && <CreateListingHostProfile />}
+
+                <button className="submit_btn" type="submit" disabled={isLoading}>
+                  {isLoading ? "Saving..." : isEditMode ? "Update Listing" : "Create Listing"}
                 </button>
-                <p className={`note ${isLoading ? "loading" : ""}`}>
-                  {isLoading
-                    ? `🚀 Almost there! Your listing is being ${isEditMode ? "updated" : "created"}...`
-                    : `🎉 Ready to ${isEditMode ? "update" : "share"} your space with the world!`}
-                </p>
-              </div>
-            </form>
+              </form>
+            </FormProvider>
           </div>
         </div>
         </div>

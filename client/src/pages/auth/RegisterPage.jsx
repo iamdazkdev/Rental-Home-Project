@@ -1,4 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema } from "../../utils/validations/authSchema";
 import "../../styles/Register.scss";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -8,14 +11,25 @@ import { API_ENDPOINTS } from "../../constants/api";
 import api from "../../services/api";
 
 const RegisterPage = () => {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    profileImage: null,
+  const {
+    register,
+    handleSubmit: hookFormSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      profileImage: null,
+    },
   });
+
+  const profileImage = watch("profileImage");
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,13 +37,11 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleChange = useCallback((e) => {
-    const { name, value, files } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === "profileImage" ? files[0] : value,
-    }));
-  }, []);
+  const handleImageChange = useCallback((e) => {
+    if (e.target.files && e.target.files[0]) {
+      setValue("profileImage", e.target.files[0], { shouldValidate: true });
+    }
+  }, [setValue]);
 
   const togglePasswordVisibility = useCallback(() => {
     setShowPassword(prev => !prev);
@@ -38,13 +50,6 @@ const RegisterPage = () => {
   const toggleConfirmPasswordVisibility = useCallback(() => {
     setShowConfirmPassword(prev => !prev);
   }, []);
-  const [passwordMatch, setPasswordMatch] = useState(true);
-  useEffect(() => {
-    setPasswordMatch(
-      formData.password === formData.confirmPassword ||
-        formData.confirmPassword === ""
-    );
-  }, [formData.password, formData.confirmPassword]);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -58,9 +63,7 @@ const RegisterPage = () => {
     };
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const onSubmit = async (data) => {
     // Clear previous messages
     setError("");
     setSuccess("");
@@ -68,8 +71,8 @@ const RegisterPage = () => {
 
     try {
       const register_form = new FormData();
-      for (var key in formData) {
-        register_form.append(key, formData[key]);
+      for (var key in data) {
+        register_form.append(key, data[key]);
       }
 
       const response = await api.post(API_ENDPOINTS.AUTH.REGISTER, register_form);
@@ -83,8 +86,8 @@ const RegisterPage = () => {
         // Auto-login with the registered credentials
         try {
           const loginResponse = await api.post(API_ENDPOINTS.AUTH.LOGIN, {
-            email: formData.email,
-            password: formData.password,
+            email: data.email,
+            password: data.password,
           });
 
           const loginData = loginResponse.data;
@@ -192,49 +195,42 @@ const RegisterPage = () => {
           </div>
         )}
 
-        <form className="register_content_form" onSubmit={handleSubmit}>
+        <form className="register_content_form" onSubmit={hookFormSubmit(onSubmit)}>
           <div className="name_row">
             <div className="input_group">
               <input
                 placeholder="First Name"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-                className="name_input"
+                {...register("firstName")}
+                className={`name_input ${errors.firstName ? "error" : ""}`}
               />
+              {errors.firstName && <span className="field-error">{errors.firstName.message}</span>}
             </div>
             <div className="input_group">
               <input
                 placeholder="Last Name"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-                className="name_input"
+                {...register("lastName")}
+                className={`name_input ${errors.lastName ? "error" : ""}`}
               />
+              {errors.lastName && <span className="field-error">{errors.lastName.message}</span>}
             </div>
           </div>
 
           <div className="input_group">
             <input
               placeholder="Email Address"
-              name="email"
               type="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
+              {...register("email")}
+              className={errors.email ? "error" : ""}
             />
+            {errors.email && <span className="field-error">{errors.email.message}</span>}
           </div>
 
           <div className="input_group password_input_group">
             <input
               placeholder="Password"
-              name="password"
               type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={handleChange}
-              required
+              {...register("password")}
+              className={errors.password ? "error" : ""}
             />
             <button
               type="button"
@@ -292,17 +288,15 @@ const RegisterPage = () => {
                 </svg>
               )}
             </button>
+            {errors.password && <span className="field-error">{errors.password.message}</span>}
           </div>
 
           <div className="input_group password_input_group">
             <input
               placeholder="Confirm Password"
-              name="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              className={!passwordMatch ? "error" : ""}
+              {...register("confirmPassword")}
+              className={errors.confirmPassword ? "error" : ""}
             />
             <button
               type="button"
@@ -364,8 +358,8 @@ const RegisterPage = () => {
                 </svg>
               )}
             </button>
-            {!passwordMatch && (
-              <span className="error_message">Passwords do not match</span>
+            {errors.confirmPassword && (
+              <span className="field-error">{errors.confirmPassword.message}</span>
             )}
           </div>
 
@@ -373,18 +367,16 @@ const RegisterPage = () => {
             <input
               id="profileImageInput"
               type="file"
-              name="profileImage"
               accept="image/*"
-              required
               style={{ display: "none" }}
-              onChange={handleChange}
+              onChange={handleImageChange}
             />
 
             <div className="upload_container">
-              {formData.profileImage ? (
+              {profileImage ? (
                 <div className="preview_container">
                   <img
-                    src={URL.createObjectURL(formData.profileImage)}
+                    src={URL.createObjectURL(profileImage)}
                     alt="Profile preview"
                     className="profile_preview"
                   />
@@ -421,7 +413,7 @@ const RegisterPage = () => {
 
           <button
             type="submit"
-            disabled={!passwordMatch || isLoading}
+            disabled={isLoading}
             className="register_btn"
           >
             <span>{isLoading ? "Creating Account..." : "Create Account"}</span>
