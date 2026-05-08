@@ -35,10 +35,10 @@ const Listing = ({ selectedType }) => {
 
       const data = await response.json();
       console.log("Fetched listings:", data);
-      dispatch(setListings({ listings: data }));
+      dispatch(setListings(data));
     } catch (error) {
       console.error("Error fetching listings:", error.message);
-      dispatch(setListings({ listings: [] }));
+      dispatch(setListings([]));
     } finally {
       setLoading(false);
     }
