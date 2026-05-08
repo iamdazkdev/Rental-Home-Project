@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../config/api_config.dart';
 
 class SocketService {
@@ -7,7 +7,7 @@ class SocketService {
   factory SocketService() => _instance;
   SocketService._internal();
 
-  IO.Socket? _socket;
+  io.Socket? _socket;
   final Set<String> _onlineUsers = {};
 
   // Callbacks
@@ -16,7 +16,7 @@ class SocketService {
   Function(String, bool)? onUserStatusChange;
   Function(Map<String, dynamic>)? onNewMessageNotification;
 
-  IO.Socket? get socket => _socket;
+  io.Socket? get socket => _socket;
   Set<String> get onlineUsers => _onlineUsers;
 
   bool isUserOnline(String userId) => _onlineUsers.contains(userId);
@@ -30,9 +30,9 @@ class SocketService {
     try {
       debugPrint('🔌 Connecting to socket server...');
 
-      _socket = IO.io(
+      _socket = io.io(
         ApiConfig.socketUrl,
-        IO.OptionBuilder()
+        io.OptionBuilder()
             .setTransports(['websocket', 'polling'])
             .disableAutoConnect()
             .build(),
@@ -111,12 +111,14 @@ class SocketService {
     // This matches the format that web client sends (from API response)
     final messageObject = {
       'conversationId': conversationId,
-      'senderId': senderInfo ?? {
-        '_id': senderId,
-      },
-      'receiverId': receiverInfo ?? {
-        '_id': receiverId,
-      },
+      'senderId': senderInfo ??
+          {
+            '_id': senderId,
+          },
+      'receiverId': receiverInfo ??
+          {
+            '_id': receiverId,
+          },
       'message': messageText,
       'messageType': 'text',
       'createdAt': DateTime.now().toIso8601String(),
@@ -172,4 +174,3 @@ class SocketService {
     }
   }
 }
-

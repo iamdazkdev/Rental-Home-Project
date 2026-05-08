@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../config/api_config.dart';
 import '../../models/conversation.dart';
 import '../../services/chat_service.dart';
 import '../../utils/auth_storage.dart';
@@ -66,7 +67,7 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
   String _getAvatarUrl(String? path) {
     if (path == null || path.isEmpty) return '';
     if (path.startsWith('http')) return path;
-    return 'http://localhost:3001/$path';
+    return '${ApiConfig.baseUrl}/$path';
   }
 
   @override
@@ -230,10 +231,10 @@ class _ConversationsScreenState extends State<ConversationsScreen> {
                     ],
 
                     // Last message
-                    if (conversation.lastMessage != null) ...[
+                    if (conversation.lastMessage.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
-                        conversation.lastMessage!,
+                        conversation.lastMessage,
                         style: TextStyle(
                           fontSize: 14,
                           color: isUnread ? Colors.black87 : Colors.grey,

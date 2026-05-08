@@ -439,11 +439,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                               profileImagePath:
                                   _listing!.creatorData?['profileImagePath'],
                             ),
-                            listing: ListingInfo(
-                              id: _listing!.id,
-                              title: _listing!.title,
-                              listingPhotoPaths: _listing!.listingPhotoPaths,
-                            ),
+                            listingId: _listing!.id,
+                            listingTitle: _listing!.title,
+                            listingPhotoPaths: _listing!.listingPhotoPaths,
                             lastMessage: 'Start a conversation...',
                             lastMessageAt: DateTime.now(),
                             unreadCount: 0,

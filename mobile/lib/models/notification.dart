@@ -1,10 +1,32 @@
+import 'package:json_annotation/json_annotation.dart';
+
+import '../core/utils/json_converters.dart';
+
+part 'notification.g.dart';
+
+@JsonSerializable()
 class AppNotification {
+  @JsonKey(name: '_id')
+  @MongoIdConverter()
   final String id;
+
+  @JsonKey(name: 'userId')
   final String userId;
+
+  @JsonKey(name: 'type')
   final String type;
+
+  @JsonKey(name: 'message')
   final String message;
+
+  @JsonKey(name: 'data')
   final Map<String, dynamic>? data;
+
+  @JsonKey(name: 'isRead', defaultValue: false)
   final bool isRead;
+
+  @JsonKey(name: 'createdAt')
+  @NullableDateTimeConverter()
   final DateTime? createdAt;
 
   AppNotification({
@@ -17,30 +39,8 @@ class AppNotification {
     this.createdAt,
   });
 
-  factory AppNotification.fromJson(Map<String, dynamic> json) {
-    return AppNotification(
-      id: json['_id'] ?? json['id'] ?? '',
-      userId: json['userId'] ?? '',
-      type: json['type'] ?? '',
-      message: json['message'] ?? '',
-      data: json['data'],
-      isRead: json['isRead'] ?? false,
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : null,
-    );
-  }
+  factory AppNotification.fromJson(Map<String, dynamic> json) =>
+      _$AppNotificationFromJson(json);
 
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'userId': userId,
-      'type': type,
-      'message': message,
-      'data': data,
-      'isRead': isRead,
-      'createdAt': createdAt?.toIso8601String(),
-    };
-  }
+  Map<String, dynamic> toJson() => _$AppNotificationToJson(this);
 }
-

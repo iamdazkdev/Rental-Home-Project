@@ -1,21 +1,64 @@
+import 'package:json_annotation/json_annotation.dart';
+
+import '../config/api_config.dart';
+import '../core/utils/json_converters.dart';
+
+part 'user.g.dart';
+
+@JsonSerializable()
 class User {
+  @JsonKey(name: '_id')
+  @MongoIdConverter()
   final String id;
+
+  @JsonKey(name: 'firstName')
   final String firstName;
+
+  @JsonKey(name: 'lastName')
   final String lastName;
+
+  @JsonKey(name: 'email')
   final String email;
+
+  @JsonKey(name: 'profileImagePath')
   final String? profileImagePath;
+
+  @JsonKey(name: 'wishList')
+  @StringListConverter()
   final List<String> wishlist;
+
+  @JsonKey(name: 'propertyList')
+  @StringListConverter()
   final List<String> propertyList;
+
+  @JsonKey(name: 'tripList')
+  @StringListConverter()
   final List<String> tripList;
+
+  @JsonKey(name: 'reservationList')
+  @StringListConverter()
   final List<String> reservationList;
+
+  @JsonKey(name: 'createdAt')
+  @NullableDateTimeConverter()
   final DateTime? memberSince;
 
-  // Host Profile Info (for shared rooms)
+  @JsonKey(name: 'sleepSchedule')
   final String? sleepSchedule;
-  final bool? isSmoker;
+
+  @JsonKey(name: 'isSmoker')
+  final String? isSmoker;
+
+  @JsonKey(name: 'cleanliness')
   final String? cleanliness;
+
+  @JsonKey(name: 'personality')
   final String? personality;
+
+  @JsonKey(name: 'noiseLevel')
   final String? noiseLevel;
+
+  @JsonKey(name: 'bio')
   final String? bio;
 
   User({
@@ -37,72 +80,18 @@ class User {
     this.bio,
   });
 
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserToJson(this);
+
+  /// Full display name
   String get fullName => '$firstName $lastName';
 
+  /// Profile image URL — resolves relative paths via ApiConfig.baseUrl
   String? get profileImage {
-    if (profileImagePath == null || profileImagePath!.isEmpty) {
-      return null;
-    }
-    // If already a full URL (Cloudinary), return as is
-    if (profileImagePath!.startsWith('http')) {
-      return profileImagePath;
-    }
-    // Otherwise, construct URL
-    return 'http://localhost:3001/$profileImagePath';
-  }
-
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['_id'] ?? json['id'] ?? '',
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
-      email: json['email'] ?? '',
-      profileImagePath: json['profileImagePath'],
-      wishlist: json['wishList'] != null
-          ? List<String>.from(json['wishList'].map((x) => x.toString()))
-          : [],
-      propertyList: json['propertyList'] != null
-          ? List<String>.from(json['propertyList'].map((x) => x.toString()))
-          : [],
-      tripList: json['tripList'] != null
-          ? List<String>.from(json['tripList'].map((x) => x.toString()))
-          : [],
-      reservationList: json['reservationList'] != null
-          ? List<String>.from(json['reservationList'].map((x) => x.toString()))
-          : [],
-      memberSince: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : null,
-      sleepSchedule: json['hostProfile']?['sleepSchedule'],
-      isSmoker: json['hostProfile']?['isSmoker'],
-      cleanliness: json['hostProfile']?['cleanliness'],
-      personality: json['hostProfile']?['personality'],
-      noiseLevel: json['hostProfile']?['noiseLevel'],
-      bio: json['hostProfile']?['bio'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'firstName': firstName,
-      'lastName': lastName,
-      'email': email,
-      'profileImagePath': profileImagePath,
-      'wishList': wishlist,
-      'propertyList': propertyList,
-      'tripList': tripList,
-      'reservationList': reservationList,
-      'createdAt': memberSince?.toIso8601String(),
-      'hostProfile': {
-        'sleepSchedule': sleepSchedule,
-        'isSmoker': isSmoker,
-        'cleanliness': cleanliness,
-        'personality': personality,
-        'noiseLevel': noiseLevel,
-        'bio': bio,
-      },
-    };
+    if (profileImagePath == null || profileImagePath!.isEmpty) return null;
+    if (profileImagePath!.startsWith('http')) return profileImagePath;
+    return '${ApiConfig.baseUrl}/$profileImagePath';
   }
 
   User copyWith({
@@ -117,7 +106,7 @@ class User {
     List<String>? reservationList,
     DateTime? memberSince,
     String? sleepSchedule,
-    bool? isSmoker,
+    String? isSmoker,
     String? cleanliness,
     String? personality,
     String? noiseLevel,
@@ -143,4 +132,3 @@ class User {
     );
   }
 }
-

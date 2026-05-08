@@ -1,34 +1,107 @@
 import 'dart:convert';
 
+import 'package:json_annotation/json_annotation.dart';
+
+import '../config/api_config.dart';
+import '../core/utils/json_converters.dart';
+
+part 'listing.g.dart';
+
+@JsonSerializable()
 class Listing {
+  @JsonKey(name: '_id')
+  @MongoIdConverter()
   final String id;
+
+  @JsonKey(name: 'creator')
   final String creator;
+
+  @JsonKey(name: 'category', defaultValue: '')
   final String category;
+
+  @JsonKey(name: 'type', defaultValue: '')
   final String type;
+
+  @JsonKey(name: 'streetAddress', defaultValue: '')
   final String streetAddress;
+
+  @JsonKey(name: 'aptSuite', defaultValue: '')
   final String aptSuite;
+
+  @JsonKey(name: 'city', defaultValue: '')
   final String city;
+
+  @JsonKey(name: 'province', defaultValue: '')
   final String province;
+
+  @JsonKey(name: 'country', defaultValue: '')
   final String country;
+
+  @JsonKey(name: 'guestCount')
+  @SafeIntConverter()
   final int guestCount;
+
+  @JsonKey(name: 'bedroomCount')
+  @SafeIntConverter()
   final int bedroomCount;
+
+  @JsonKey(name: 'bedCount')
+  @SafeIntConverter()
   final int bedCount;
+
+  @JsonKey(name: 'bathroomCount')
+  @SafeIntConverter()
   final int bathroomCount;
+
+  @JsonKey(name: 'amenities')
+  @StringListConverter()
   final List<String> amenities;
+
+  @JsonKey(name: 'listingPhotoPaths')
+  @StringListConverter()
   final List<String> listingPhotoPaths;
+
+  @JsonKey(name: 'title', defaultValue: '')
   final String title;
+
+  @JsonKey(name: 'description', defaultValue: '')
   final String description;
+
+  @JsonKey(name: 'highlight', defaultValue: '')
   final String highlight;
+
+  @JsonKey(name: 'highlightDesc', defaultValue: '')
   final String highlightDesc;
+
+  @JsonKey(name: 'price')
+  @SafeDoubleConverter()
   final double price;
+
+  @JsonKey(name: 'priceType')
   final String? priceType;
+
+  @JsonKey(name: 'isAvailable', defaultValue: true)
   final bool isAvailable;
+
+  @JsonKey(name: 'isHidden', defaultValue: false)
   final bool isHidden;
+
+  @JsonKey(name: 'createdAt')
+  @NullableDateTimeConverter()
   final DateTime? createdAt;
+
+  @JsonKey(name: 'updatedAt')
+  @NullableDateTimeConverter()
   final DateTime? updatedAt;
+
+  @JsonKey(name: 'roomArea')
+  @NullableSafeDoubleConverter()
   final double? roomArea;
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? creatorData;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final Map<String, dynamic>? hostProfile;
 
   Listing({
@@ -62,27 +135,90 @@ class Listing {
     this.roomArea,
   });
 
+  /// Custom fromJson that normalizes the raw JSON before passing to generated code.
+  /// Handles: creator (String or populated Map), isActive→isHidden inversion,
+  /// hostProfile (JSON string or Map).
+  factory Listing.fromJson(Map<String, dynamic> json) {
+    // Normalize creator field
+    String creatorId = '';
+    Map<String, dynamic>? creatorData;
+    if (json['creator'] is String) {
+      creatorId = json['creator'];
+    } else if (json['creator'] is Map) {
+      creatorData = Map<String, dynamic>.from(json['creator']);
+      creatorId = creatorData['_id']?.toString() ?? '';
+    }
+
+    // Normalize isHidden from isActive
+    final bool isHidden = !(json['isActive'] ?? true);
+
+    // Normalize hostProfile
+    Map<String, dynamic>? hostProfile;
+    if (json['hostProfile'] is Map) {
+      hostProfile = Map<String, dynamic>.from(json['hostProfile']);
+    } else if (json['hostProfile'] is String) {
+      try {
+        hostProfile =
+            Map<String, dynamic>.from(jsonDecode(json['hostProfile']));
+      } catch (_) {}
+    }
+
+    final normalized = Map<String, dynamic>.from(json);
+    normalized['creator'] = creatorId;
+    normalized['isHidden'] = isHidden;
+
+    final listing = _$ListingFromJson(normalized);
+    return Listing(
+      id: listing.id,
+      creator: listing.creator,
+      category: listing.category,
+      type: listing.type,
+      streetAddress: listing.streetAddress,
+      aptSuite: listing.aptSuite,
+      city: listing.city,
+      province: listing.province,
+      country: listing.country,
+      guestCount: listing.guestCount,
+      bedroomCount: listing.bedroomCount,
+      bedCount: listing.bedCount,
+      bathroomCount: listing.bathroomCount,
+      amenities: listing.amenities,
+      listingPhotoPaths: listing.listingPhotoPaths,
+      title: listing.title,
+      description: listing.description,
+      highlight: listing.highlight,
+      highlightDesc: listing.highlightDesc,
+      price: listing.price,
+      priceType: listing.priceType,
+      isAvailable: listing.isAvailable,
+      isHidden: isHidden,
+      creatorData: creatorData,
+      hostProfile: hostProfile,
+      createdAt: listing.createdAt,
+      updatedAt: listing.updatedAt,
+      roomArea: listing.roomArea,
+    );
+  }
+
+  Map<String, dynamic> toJson() => _$ListingToJson(this);
+
+  // --- Computed properties ---
+
   String get fullAddress =>
       '$streetAddress, $aptSuite, $city, $province, $country';
 
   String get shortAddress => '$city, $province';
 
-  // Get hostId from creator field
   String get hostId => creator;
 
-  // isActive means available and not hidden
   bool get isActive => isAvailable && !isHidden;
 
   List<String> get photoUrls {
     return listingPhotoPaths
-        .where((path) => !path.startsWith('blob:')) // Filter out blob URLs
+        .where((path) => !path.startsWith('blob:'))
         .map((path) {
-      // If already a full URL (Cloudinary), return as is
-      if (path.startsWith('http')) {
-        return path;
-      }
-      // Otherwise, construct URL
-      return 'http://localhost:3001/$path';
+      if (path.startsWith('http')) return path;
+      return '${ApiConfig.baseUrl}/$path';
     }).toList();
   }
 
@@ -93,16 +229,12 @@ class Listing {
   }
 
   double get dailyPrice {
-    if (priceType == 'monthly') {
-      return price / 30;
-    }
+    if (priceType == 'monthly') return price / 30;
     return price;
   }
 
   double get monthlyPrice {
-    if (priceType == 'daily') {
-      return price * 30;
-    }
+    if (priceType == 'daily') return price * 30;
     return price;
   }
 
@@ -117,9 +249,7 @@ class Listing {
     return 'Host';
   }
 
-  String? get hostProfileImage {
-    return creatorData?['profileImagePath'];
-  }
+  String? get hostProfileImage => creatorData?['profileImagePath'];
 
   String get hostInitial {
     if (creatorData != null) {
@@ -129,112 +259,6 @@ class Listing {
       }
     }
     return 'H';
-  }
-
-  factory Listing.fromJson(Map<String, dynamic> json) {
-    // Extract creator ID and data
-    String creatorId;
-    Map<String, dynamic>? creatorData;
-
-    if (json['creator'] is String) {
-      creatorId = json['creator'];
-      creatorData = null;
-    } else if (json['creator'] is Map) {
-      creatorData = Map<String, dynamic>.from(json['creator']);
-      creatorId = creatorData['_id'] ?? creatorData['id'] ?? '';
-    } else {
-      creatorId = '';
-      creatorData = null;
-    }
-
-    // Backend uses isActive (true = visible, false = hidden)
-    // Mobile uses isHidden (true = hidden, false = visible)
-    // So we need to invert: isHidden = !isActive
-    bool isActive = json['isActive'] ?? true;
-    bool isHidden = !isActive;
-
-    // Parse hostProfile
-    Map<String, dynamic>? hostProfile;
-    if (json['hostProfile'] != null) {
-      if (json['hostProfile'] is String) {
-        // If it's a JSON string, decode it
-        try {
-          final decoded = jsonDecode(json['hostProfile']);
-          hostProfile = Map<String, dynamic>.from(decoded);
-        } catch (e) {
-          hostProfile = null;
-        }
-      } else if (json['hostProfile'] is Map) {
-        hostProfile = Map<String, dynamic>.from(json['hostProfile']);
-      }
-    }
-
-    return Listing(
-      id: json['_id'] ?? json['id'] ?? '',
-      creator: creatorId,
-      creatorData: creatorData,
-      hostProfile: hostProfile,
-      category: json['category'] ?? '',
-      type: json['type'] ?? '',
-      streetAddress: json['streetAddress'] ?? '',
-      aptSuite: json['aptSuite'] ?? '',
-      city: json['city'] ?? '',
-      province: json['province'] ?? '',
-      country: json['country'] ?? '',
-      guestCount: json['guestCount'] ?? 0,
-      bedroomCount: json['bedroomCount'] ?? 0,
-      bedCount: json['bedCount'] ?? 0,
-      bathroomCount: json['bathroomCount'] ?? 0,
-      amenities:
-          json['amenities'] != null ? List<String>.from(json['amenities']) : [],
-      listingPhotoPaths: json['listingPhotoPaths'] != null
-          ? List<String>.from(json['listingPhotoPaths'])
-          : [],
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      highlight: json['highlight'] ?? '',
-      highlightDesc: json['highlightDesc'] ?? '',
-      price: (json['price'] ?? 0).toDouble(),
-      priceType: json['priceType'],
-      isAvailable: json['isAvailable'] ?? true,
-      isHidden: isHidden,
-      // Use the inverted isActive value
-      roomArea: json['roomArea'] != null ? (json['roomArea']).toDouble() : null,
-      createdAt:
-          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      updatedAt:
-          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'creator': creator,
-      'category': category,
-      'type': type,
-      'streetAddress': streetAddress,
-      'aptSuite': aptSuite,
-      'city': city,
-      'province': province,
-      'country': country,
-      'guestCount': guestCount,
-      'bedroomCount': bedroomCount,
-      'bedCount': bedCount,
-      'bathroomCount': bathroomCount,
-      'amenities': amenities,
-      'listingPhotoPaths': listingPhotoPaths,
-      'title': title,
-      'description': description,
-      'highlight': highlight,
-      'highlightDesc': highlightDesc,
-      'price': price,
-      'priceType': priceType,
-      'isAvailable': isAvailable,
-      'isHidden': isHidden,
-      'createdAt': createdAt?.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
-    };
   }
 
   Listing copyWith({

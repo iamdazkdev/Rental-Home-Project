@@ -1,56 +1,88 @@
+import 'package:json_annotation/json_annotation.dart';
+
+import '../core/utils/json_converters.dart';
+
+part 'message.g.dart';
+
+/// Extracts an ID from a field that can be String, Map with _id, or null.
+String _extractId(dynamic field) {
+  if (field == null) return '';
+  if (field is String) return field;
+  if (field is Map) return field['_id']?.toString() ?? '';
+  return field.toString();
+}
+
+/// Unified Message model.
+/// Combines old Message + MessageModel into a single class.
+@JsonSerializable()
 class Message {
+  @JsonKey(name: '_id')
+  @MongoIdConverter()
   final String id;
+
+  @JsonKey(name: 'conversationId', defaultValue: '')
   final String conversationId;
+
+  @JsonKey(name: 'senderId', fromJson: _extractId)
   final String senderId;
+
+  @JsonKey(name: 'receiverId', fromJson: _extractId)
   final String receiverId;
-  final String text;
+
+  @JsonKey(name: 'message', defaultValue: '')
+  final String message;
+
+  @JsonKey(name: 'messageType', defaultValue: 'text')
+  final String messageType;
+
+  @JsonKey(name: 'listingId')
+  final String? listingId;
+
+  @JsonKey(name: 'isRead')
+  final bool? isRead;
+
+  @JsonKey(name: 'createdAt')
+  @SafeDateTimeConverter()
   final DateTime createdAt;
-  final bool read;
+
+  @JsonKey(name: 'updatedAt')
+  @SafeDateTimeConverter()
+  final DateTime updatedAt;
 
   Message({
     required this.id,
     required this.conversationId,
     required this.senderId,
     required this.receiverId,
-    required this.text,
+    required this.message,
+    this.messageType = 'text',
+    this.listingId,
+    this.isRead,
     required this.createdAt,
-    this.read = false,
+    required this.updatedAt,
   });
 
+  /// Custom fromJson to handle field aliases (text↔message, read↔isRead).
   factory Message.fromJson(Map<String, dynamic> json) {
-    // Helper function to extract ID from field (can be String or Object)
-    String extractId(dynamic field) {
-      if (field == null) return '';
-      if (field is String) return field;
-      if (field is Map) return field['_id']?.toString() ?? '';
-      return field.toString();
-    }
-
-    return Message(
-      id: json['_id'] ?? '',
-      conversationId: json['conversationId'] ?? '',
-      senderId: extractId(json['senderId']),
-      receiverId: extractId(json['receiverId']),
-      text: json['text']?.toString() ?? json['message']?.toString() ?? '',
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
-          : DateTime.now(),
-      read: json['read'] ?? json['isRead'] ?? false,
-    );
+    final normalized = Map<String, dynamic>.from(json);
+    // Normalize: 'text' → 'message'
+    normalized['message'] = json['message'] ?? json['text'] ?? '';
+    // Normalize: 'read' → 'isRead'
+    normalized['isRead'] = json['isRead'] ?? json['read'];
+    // Ensure updatedAt exists
+    normalized['updatedAt'] = json['updatedAt'] ?? json['createdAt'];
+    return _$MessageFromJson(normalized);
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'conversationId': conversationId,
-      'senderId': senderId,
-      'receiverId': receiverId,
-      'text': text,
-      'createdAt': createdAt.toIso8601String(),
-      'read': read,
-    };
-  }
+  Map<String, dynamic> toJson() => _$MessageToJson(this);
 
+  /// Backward-compat alias for old `text` field
+  String get text => message;
+
+  /// Backward-compat alias for old `read` field
+  bool get read => isRead ?? false;
+
+  /// Formatted time for UI display
   String get formattedTime {
     final now = DateTime.now();
     final difference = now.difference(createdAt);
@@ -65,71 +97,5 @@ class Message {
   }
 }
 
-/// MessageModel for state management
-class MessageModel {
-  final String id;
-  final String conversationId;
-  final String senderId;
-  final String receiverId;
-  final String message;
-  final String messageType;
-  final String? listingId;
-  final bool? isRead;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  MessageModel({
-    required this.id,
-    required this.conversationId,
-    required this.senderId,
-    required this.receiverId,
-    required this.message,
-    this.messageType = 'text',
-    this.listingId,
-    this.isRead,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory MessageModel.fromJson(Map<String, dynamic> json) {
-    // Helper function to extract ID from field (can be String or Object)
-    String extractId(dynamic field) {
-      if (field == null) return '';
-      if (field is String) return field;
-      if (field is Map) return field['_id']?.toString() ?? '';
-      return field.toString();
-    }
-
-    return MessageModel(
-      id: json['_id'] ?? json['id'] ?? '',
-      conversationId: json['conversationId'] ?? '',
-      senderId: extractId(json['senderId']),
-      receiverId: extractId(json['receiverId']),
-      message: json['message'] ?? json['text'] ?? '',
-      messageType: json['messageType'] ?? 'text',
-      listingId: json['listingId'],
-      isRead: json['isRead'] ?? json['read'],
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : DateTime.now(),
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'])
-          : DateTime.now(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'conversationId': conversationId,
-      'senderId': senderId,
-      'receiverId': receiverId,
-      'message': message,
-      'messageType': messageType,
-      'listingId': listingId,
-      'isRead': isRead,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-    };
-  }
-}
+/// Backward-compatible alias
+typedef MessageModel = Message;

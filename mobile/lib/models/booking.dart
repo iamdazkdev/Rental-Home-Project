@@ -1,53 +1,170 @@
-import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 import '../core/enums/booking_enums.dart';
+import '../core/utils/json_converters.dart';
 
+part 'booking.g.dart';
+
+/// Robust date parser – handles ISO 8601 and legacy JS Date.toDateString()
+DateTime _parseBookingDate(dynamic value) {
+  if (value == null) return DateTime.now();
+  if (value is DateTime) return value;
+  try {
+    final dateStr = value.toString();
+    try {
+      return DateTime.parse(dateStr);
+    } catch (_) {
+      // Fallback: JS Date format "Tue Dec 23 2025"
+      final parts = dateStr.split(' ');
+      if (parts.length >= 4) {
+        const months = {
+          'Jan': '01',
+          'Feb': '02',
+          'Mar': '03',
+          'Apr': '04',
+          'May': '05',
+          'Jun': '06',
+          'Jul': '07',
+          'Aug': '08',
+          'Sep': '09',
+          'Oct': '10',
+          'Nov': '11',
+          'Dec': '12',
+        };
+        final month = months[parts[1]];
+        if (month != null) {
+          final day = parts[2].padLeft(2, '0');
+          final year = parts[3];
+          return DateTime.parse('$year-$month-$day');
+        }
+      }
+      throw Exception('Unable to parse date: $dateStr');
+    }
+  } catch (e) {
+    debugPrint('⚠️ Error parsing date: $value - $e');
+    return DateTime.now();
+  }
+}
+
+DateTime? _parseBookingDateOrNull(dynamic value) {
+  if (value == null) return null;
+  return _parseBookingDate(value);
+}
+
+@JsonSerializable()
 class Booking {
+  @JsonKey(name: '_id')
+  @MongoIdConverter()
   final String id;
+
+  @JsonKey(name: 'customerId')
+  @MongoIdConverter()
   final String customerId;
+
+  @JsonKey(name: 'hostId')
+  @MongoIdConverter()
   final String hostId;
+
+  @JsonKey(name: 'listingId')
+  @MongoIdConverter()
   final String listingId;
+
+  @JsonKey(name: 'startDate', fromJson: _parseBookingDate)
   final DateTime startDate;
+
+  @JsonKey(name: 'endDate', fromJson: _parseBookingDate)
   final DateTime endDate;
+
+  @JsonKey(name: 'totalPrice')
+  @SafeDoubleConverter()
   final double totalPrice;
 
-  // Use bookingStatus as primary (v2.0), fallback to status
+  @JsonKey(name: 'bookingStatus', defaultValue: 'pending')
   final String bookingStatus;
-  final String status; // Legacy field for backward compatibility
 
-  // Payment fields (v2.0)
-  final String? paymentMethod; // vnpay, cash
-  final String? paymentType; // full, deposit, cash
-  final String? paymentStatus; // paid, partially_paid, unpaid
+  @JsonKey(name: 'status', defaultValue: 'pending')
+  final String status;
+
+  @JsonKey(name: 'paymentMethod')
+  final String? paymentMethod;
+
+  @JsonKey(name: 'paymentType')
+  final String? paymentType;
+
+  @JsonKey(name: 'paymentStatus')
+  final String? paymentStatus;
+
+  @JsonKey(name: 'depositAmount')
+  @NullableSafeDoubleConverter()
   final double? depositAmount;
+
+  @JsonKey(name: 'depositPercentage')
+  @NullableSafeIntConverter()
   final int? depositPercentage;
+
+  @JsonKey(name: 'remainingAmount')
+  @NullableSafeDoubleConverter()
   final double? remainingAmount;
+
+  @JsonKey(name: 'paidAmount')
+  @NullableSafeDoubleConverter()
   final double? paidAmount;
+
+  @JsonKey(name: 'finalTotalPrice')
+  @NullableSafeDoubleConverter()
   final double? finalTotalPrice;
+
+  @JsonKey(name: 'finalEndDate')
   final String? finalEndDate;
 
+  @JsonKey(name: 'remainingDueDate', fromJson: _parseBookingDateOrNull)
+  final DateTime? remainingDueDate;
+
+  @JsonKey(name: 'createdAt', fromJson: _parseBookingDateOrNull)
   final DateTime? createdAt;
+
+  @JsonKey(name: 'updatedAt', fromJson: _parseBookingDateOrNull)
   final DateTime? updatedAt;
 
-  // Extension
+  @JsonKey(name: 'extensionDays')
   final int? extensionDays;
+
+  @JsonKey(name: 'newEndDate', fromJson: _parseBookingDateOrNull)
   final DateTime? newEndDate;
+
+  @JsonKey(name: 'extensionCost')
+  @NullableSafeDoubleConverter()
   final double? extensionCost;
+
+  @JsonKey(name: 'extensionStatus')
   final String? extensionStatus;
 
-  // Reviews
+  @JsonKey(name: 'homeReview')
   final String? homeReview;
+
+  @JsonKey(name: 'homeRating')
+  @NullableSafeDoubleConverter()
   final double? homeRating;
+
+  @JsonKey(name: 'hostReview')
   final String? hostReview;
+
+  @JsonKey(name: 'hostRating')
+  @NullableSafeDoubleConverter()
   final double? hostRating;
 
-  // Populated fields
+  /// Populated fields from API joins (excluded from generated code)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final dynamic customer;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final dynamic host;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final dynamic listing;
 
-  Booking({
+  const Booking({
     required this.id,
     required this.customerId,
     required this.hostId,
@@ -55,8 +172,8 @@ class Booking {
     required this.startDate,
     required this.endDate,
     required this.totalPrice,
-    required this.status,
-    String? bookingStatus,
+    this.bookingStatus = 'pending',
+    this.status = 'pending',
     this.paymentMethod,
     this.paymentType,
     this.paymentStatus,
@@ -66,6 +183,7 @@ class Booking {
     this.paidAmount,
     this.finalTotalPrice,
     this.finalEndDate,
+    this.remainingDueDate,
     this.createdAt,
     this.updatedAt,
     this.extensionDays,
@@ -79,264 +197,203 @@ class Booking {
     this.customer,
     this.host,
     this.listing,
-  }) : bookingStatus = bookingStatus ?? status;
+  });
+
+  /// Custom fromJson that normalizes populated fields and status aliases
+  /// before delegating to generated code.
+  factory Booking.fromJson(Map<String, dynamic> json) {
+    final normalized = Map<String, dynamic>.from(json);
+
+    // Normalize status fields
+    normalized['bookingStatus'] =
+        json['bookingStatus'] ?? json['status'] ?? 'pending';
+    normalized['status'] = json['status'] ?? json['bookingStatus'] ?? 'pending';
+
+    // Normalize finalTotalPrice
+    normalized['finalTotalPrice'] =
+        json['finalTotalPrice'] ?? json['totalPrice'];
+
+    // Extract populated data before MongoIdConverter processes the IDs
+    final dynamic customer =
+        json['customerId'] is Map ? json['customerId'] : null;
+    final dynamic host = json['hostId'] is Map ? json['hostId'] : null;
+    final dynamic listing = json['listingId'] is Map ? json['listingId'] : null;
+
+    final booking = _$BookingFromJson(normalized);
+    return Booking(
+      id: booking.id,
+      customerId: booking.customerId,
+      hostId: booking.hostId,
+      listingId: booking.listingId,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      totalPrice: booking.totalPrice,
+      bookingStatus: booking.bookingStatus,
+      status: booking.status,
+      paymentMethod: booking.paymentMethod,
+      paymentType: booking.paymentType,
+      paymentStatus: booking.paymentStatus,
+      depositAmount: booking.depositAmount,
+      depositPercentage: booking.depositPercentage,
+      remainingAmount: booking.remainingAmount,
+      paidAmount: booking.paidAmount,
+      finalTotalPrice: booking.finalTotalPrice,
+      finalEndDate: booking.finalEndDate,
+      remainingDueDate: booking.remainingDueDate,
+      createdAt: booking.createdAt,
+      updatedAt: booking.updatedAt,
+      extensionDays: booking.extensionDays,
+      newEndDate: booking.newEndDate,
+      extensionCost: booking.extensionCost,
+      extensionStatus: booking.extensionStatus,
+      homeReview: booking.homeReview,
+      homeRating: booking.homeRating,
+      hostReview: booking.hostReview,
+      hostRating: booking.hostRating,
+      customer: customer,
+      host: host,
+      listing: listing,
+    );
+  }
+
+  factory Booking.empty() {
+    return Booking(
+      id: '',
+      customerId: '',
+      hostId: '',
+      listingId: '',
+      startDate: DateTime.now(),
+      endDate: DateTime.now(),
+      totalPrice: 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => _$BookingToJson(this);
+
+  // ---------------------------------------------------------------------------
+  // Enum getters
+  // ---------------------------------------------------------------------------
+
+  String get effectiveStatus =>
+      bookingStatus.isNotEmpty ? bookingStatus : status;
+
+  BookingStatus get statusEnum => BookingStatus.fromString(effectiveStatus);
+
+  PaymentStatus get paymentStatusEnum =>
+      PaymentStatus.fromString(paymentStatus);
+
+  PaymentMethod get paymentMethodEnum =>
+      PaymentMethod.fromString(paymentMethod);
+
+  PaymentType get paymentTypeEnum => PaymentType.fromString(paymentType);
+
+  // ---------------------------------------------------------------------------
+  // Booking status checks
+  // ---------------------------------------------------------------------------
 
   int get numberOfNights {
     final effectiveEndDate = newEndDate ?? endDate;
     return effectiveEndDate.difference(startDate).inDays;
   }
 
-  /// Get the effective status (prefer bookingStatus over status)
-  String get effectiveStatus =>
-      bookingStatus.isNotEmpty ? bookingStatus : status;
-
-  /// Get as BookingStatus enum
-  BookingStatus get statusEnum => BookingStatus.fromString(effectiveStatus);
-
-  /// Get as PaymentStatus enum
-  PaymentStatus get paymentStatusEnum =>
-      PaymentStatus.fromString(paymentStatus);
-
-  /// Get as PaymentMethod enum
-  PaymentMethod get paymentMethodEnum =>
-      PaymentMethod.fromString(paymentMethod);
-
-  /// Get as PaymentType enum
-  PaymentType get paymentTypeEnum => PaymentType.fromString(paymentType);
-
-  // Status checks using bookingStatus (v2.0)
   bool get isDraft => effectiveStatus == 'draft';
-
   bool get isPending => effectiveStatus == 'pending';
-
   bool get isApproved =>
       effectiveStatus == 'approved' || effectiveStatus == 'accepted';
-
   bool get isCheckedIn => effectiveStatus == 'checked_in';
-
   bool get isCheckedOut =>
       effectiveStatus == 'checked_out' || effectiveStatus == 'checkedOut';
-
   bool get isCompleted => effectiveStatus == 'completed';
-
   bool get isCancelled => effectiveStatus == 'cancelled';
-
   bool get isRejected => effectiveStatus == 'rejected';
-
   bool get isExpired => effectiveStatus == 'expired';
 
+  // ---------------------------------------------------------------------------
   // Payment status checks
+  // ---------------------------------------------------------------------------
+
   bool get isUnpaid => paymentStatus == null || paymentStatus == 'unpaid';
-
   bool get isPartiallyPaid => paymentStatus == 'partially_paid';
-
   bool get isPaid => paymentStatus == 'paid';
-
   bool get isRefunded => paymentStatus == 'refunded';
 
+  // ---------------------------------------------------------------------------
   // Payment type checks
+  // ---------------------------------------------------------------------------
+
   bool get isFullPayment => paymentType == 'full';
-
   bool get isDepositPayment => paymentType == 'deposit';
-
   bool get isCashPayment => paymentType == 'cash' || paymentMethod == 'cash';
+  bool get hasDeposit =>
+      paymentTypeEnum == PaymentType.deposit && (depositAmount ?? 0) > 0;
 
-  // Computed amount helpers
+  // ---------------------------------------------------------------------------
+  // Computed amounts
+  // ---------------------------------------------------------------------------
+
   double get effectiveTotalPrice => finalTotalPrice ?? totalPrice;
-
   double get effectiveRemainingAmount =>
       remainingAmount ?? (totalPrice - (paidAmount ?? 0));
-
   bool get hasRemainingPayment =>
       isDepositPayment && effectiveRemainingAmount > 0;
+  double get amountDue => remainingAmount ?? 0;
 
-  // Action availability checks
+  // ---------------------------------------------------------------------------
+  // Action availability
+  // ---------------------------------------------------------------------------
+
   bool get canCheckout => isApproved && DateTime.now().isAfter(startDate);
-
   bool get canExtend => isApproved && !isCompleted && !isCheckedOut;
-
   bool get canCancel =>
       isPending || (isApproved && DateTime.now().isBefore(startDate));
-
   bool get canPayRemaining => isDepositPayment && isPartiallyPaid && !isPaid;
-
   bool get canReview => isCheckedOut && homeReview == null;
 
-  // Guest info helpers
+  // ---------------------------------------------------------------------------
+  // Guest/Listing info helpers
+  // ---------------------------------------------------------------------------
+
   String? get guestName {
     if (customer is Map) {
-      final firstName = customer['firstName'] ?? '';
-      final lastName = customer['lastName'] ?? '';
-      return '$firstName $lastName'.trim();
+      return '${customer['firstName'] ?? ''} ${customer['lastName'] ?? ''}'
+          .trim();
     }
     return null;
   }
 
-  String? get guestEmail {
-    if (customer is Map) {
-      return customer['email'];
-    }
-    return null;
-  }
+  String? get guestEmail => customer is Map ? customer['email'] : null;
+  String? get guestProfileImage =>
+      customer is Map ? customer['profileImagePath'] : null;
 
-  String? get guestProfileImage {
-    if (customer is Map) {
-      return customer['profileImagePath'];
-    }
-    return null;
-  }
-
-  // Listing info helpers
-  String? get listingTitle {
-    if (listing is Map) {
-      return listing['title'];
-    }
-    return null;
-  }
+  String? get listingTitle => listing is Map ? listing['title'] : null;
+  String? get listingCity => listing is Map ? listing['city'] : null;
 
   String? get listingImage {
     if (listing is Map) {
       final photos = listing['listingPhotoPaths'] as List?;
-      if (photos != null && photos.isNotEmpty) {
-        return photos.first.toString();
-      }
+      if (photos != null && photos.isNotEmpty) return photos.first.toString();
     }
     return null;
   }
 
-  // Rejection reason (from extensions or booking)
+  String? get listingPhoto => listingImage;
+
   String? get rejectionReason {
-    // Check for rejection reason in root
     if (listing is Map && listing['rejectionReason'] != null) {
       return listing['rejectionReason'];
     }
     return null;
   }
 
-  factory Booking.fromJson(Map<String, dynamic> json) {
-    // Safe date parsing helper - handles ISO format and fallback for old JS format
-    DateTime? parseDate(dynamic value) {
-      if (value == null) return null;
-      try {
-        final dateStr = value.toString();
+  String? get agreementId => null;
+  String? get agreementUrl => null;
+  String? get cancellationReason => null;
+  String? get transactionId => null;
+  DateTime? get paidAt => null;
 
-        // Try ISO format first (2025-12-23T00:00:00.000Z)
-        try {
-          return DateTime.parse(dateStr);
-        } catch (_) {
-          // Fallback: handle old JS Date format (Tue Dec 23 2025)
-          // This is for old data in DB, new bookings use ISO format
-          final parts = dateStr.split(' ');
-          if (parts.length >= 4) {
-            final months = {
-              'Jan': '01',
-              'Feb': '02',
-              'Mar': '03',
-              'Apr': '04',
-              'May': '05',
-              'Jun': '06',
-              'Jul': '07',
-              'Aug': '08',
-              'Sep': '09',
-              'Oct': '10',
-              'Nov': '11',
-              'Dec': '12'
-            };
-
-            final month = months[parts[1]];
-            final day = parts[2].padLeft(2, '0');
-            final year = parts[3];
-
-            if (month != null) {
-              return DateTime.parse('$year-$month-$day');
-            }
-          }
-          throw Exception('Unable to parse date: $dateStr');
-        }
-      } catch (e) {
-        debugPrint('⚠️ Error parsing date: $value - $e');
-        return null;
-      }
-    }
-
-    // Parse required dates with fallback to current time
-    final startDate = parseDate(json['startDate']) ?? DateTime.now();
-    final endDate = parseDate(json['endDate']) ??
-        DateTime.now().add(const Duration(days: 1));
-
-    return Booking(
-      id: json['_id'] ?? json['id'] ?? '',
-      customerId: json['customerId'] is String
-          ? json['customerId']
-          : json['customerId']?['_id'] ?? '',
-      hostId: json['hostId'] is String
-          ? json['hostId']
-          : json['hostId']?['_id'] ?? '',
-      listingId: json['listingId'] is String
-          ? json['listingId']
-          : json['listingId']?['_id'] ?? '',
-      startDate: startDate,
-      endDate: endDate,
-      totalPrice: (json['totalPrice'] ?? 0).toDouble(),
-      status: json['status'] ?? json['bookingStatus'] ?? 'pending',
-      bookingStatus: json['bookingStatus'] ?? json['status'] ?? 'pending',
-      paymentMethod: json['paymentMethod'],
-      paymentType: json['paymentType'],
-      paymentStatus: json['paymentStatus'],
-      depositAmount: json['depositAmount']?.toDouble(),
-      depositPercentage: json['depositPercentage'],
-      remainingAmount: json['remainingAmount']?.toDouble(),
-      paidAmount: json['paidAmount']?.toDouble(),
-      finalTotalPrice: json['finalTotalPrice']?.toDouble(),
-      finalEndDate: json['finalEndDate'],
-      createdAt: parseDate(json['createdAt']),
-      updatedAt: parseDate(json['updatedAt']),
-      extensionDays: json['extensionDays'],
-      newEndDate: parseDate(json['newEndDate']),
-      extensionCost: json['extensionCost']?.toDouble(),
-      extensionStatus: json['extensionStatus'],
-      homeReview: json['homeReview'],
-      homeRating: json['homeRating']?.toDouble(),
-      hostReview: json['hostReview'],
-      hostRating: json['hostRating']?.toDouble(),
-      customer: json['customerId'] is Map ? json['customerId'] : null,
-      host: json['hostId'] is Map ? json['hostId'] : null,
-      listing: json['listingId'] is Map ? json['listingId'] : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'customerId': customerId,
-      'hostId': hostId,
-      'listingId': listingId,
-      'startDate': startDate.toIso8601String(),
-      'endDate': endDate.toIso8601String(),
-      'totalPrice': totalPrice,
-      'status': status,
-      'bookingStatus': bookingStatus,
-      'paymentMethod': paymentMethod,
-      'paymentType': paymentType,
-      'paymentStatus': paymentStatus,
-      'depositAmount': depositAmount,
-      'depositPercentage': depositPercentage,
-      'remainingAmount': remainingAmount,
-      'paidAmount': paidAmount,
-      'finalTotalPrice': finalTotalPrice,
-      'finalEndDate': finalEndDate,
-      'createdAt': createdAt?.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
-      'extensionDays': extensionDays,
-      'newEndDate': newEndDate?.toIso8601String(),
-      'extensionCost': extensionCost,
-      'extensionStatus': extensionStatus,
-      'homeReview': homeReview,
-      'homeRating': homeRating,
-      'hostReview': hostReview,
-      'hostRating': hostRating,
-    };
-  }
+  // ---------------------------------------------------------------------------
+  // copyWith
+  // ---------------------------------------------------------------------------
 
   Booking copyWith({
     String? id,
@@ -346,11 +403,18 @@ class Booking {
     DateTime? startDate,
     DateTime? endDate,
     double? totalPrice,
+    String? bookingStatus,
     String? status,
     String? paymentMethod,
+    String? paymentType,
     String? paymentStatus,
     double? depositAmount,
     int? depositPercentage,
+    double? remainingAmount,
+    double? paidAmount,
+    double? finalTotalPrice,
+    String? finalEndDate,
+    DateTime? remainingDueDate,
     DateTime? createdAt,
     DateTime? updatedAt,
     int? extensionDays,
@@ -364,6 +428,10 @@ class Booking {
     dynamic customer,
     dynamic host,
     dynamic listing,
+    BookingStatus? bookingStatusEnum,
+    PaymentStatus? paymentStatusEnum,
+    PaymentMethod? paymentMethodEnum,
+    PaymentType? paymentTypeEnum,
   }) {
     return Booking(
       id: id ?? this.id,
@@ -373,11 +441,21 @@ class Booking {
       startDate: startDate ?? this.startDate,
       endDate: endDate ?? this.endDate,
       totalPrice: totalPrice ?? this.totalPrice,
+      bookingStatus:
+          bookingStatusEnum?.value ?? bookingStatus ?? this.bookingStatus,
       status: status ?? this.status,
-      paymentMethod: paymentMethod ?? this.paymentMethod,
-      paymentStatus: paymentStatus ?? this.paymentStatus,
+      paymentMethod:
+          paymentMethodEnum?.value ?? paymentMethod ?? this.paymentMethod,
+      paymentType: paymentTypeEnum?.value ?? paymentType ?? this.paymentType,
+      paymentStatus:
+          paymentStatusEnum?.value ?? paymentStatus ?? this.paymentStatus,
       depositAmount: depositAmount ?? this.depositAmount,
       depositPercentage: depositPercentage ?? this.depositPercentage,
+      remainingAmount: remainingAmount ?? this.remainingAmount,
+      paidAmount: paidAmount ?? this.paidAmount,
+      finalTotalPrice: finalTotalPrice ?? this.finalTotalPrice,
+      finalEndDate: finalEndDate ?? this.finalEndDate,
+      remainingDueDate: remainingDueDate ?? this.remainingDueDate,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       extensionDays: extensionDays ?? this.extensionDays,
@@ -395,287 +473,5 @@ class Booking {
   }
 }
 
-/// BookingModel for Cubit/BLoC state management
-/// Uses Equatable for efficient state comparison in BLoC pattern
-class BookingModel extends Equatable {
-  final String id;
-  final String customerId;
-  final String hostId;
-  final String listingId;
-  final DateTime startDate;
-  final DateTime endDate;
-  final double totalPrice;
-
-  // Status fields
-  final BookingStatus bookingStatus;
-  final PaymentStatus paymentStatus;
-  final PaymentMethod paymentMethod;
-  final PaymentType paymentType;
-
-  // Payment fields
-  final double depositAmount;
-  final int depositPercentage;
-  final double remainingAmount;
-  final double paidAmount;
-  final double finalTotalPrice;
-  final DateTime? remainingDueDate;
-
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-
-  // Extension
-  final int extensionDays;
-  final DateTime? newEndDate;
-  final double extensionCost;
-  final String? extensionStatus;
-
-  // Listing data (populated)
-  final Map<String, dynamic>? listing;
-  final Map<String, dynamic>? host;
-  final Map<String, dynamic>? customer;
-
-  const BookingModel({
-    required this.id,
-    required this.customerId,
-    required this.hostId,
-    required this.listingId,
-    required this.startDate,
-    required this.endDate,
-    required this.totalPrice,
-    this.bookingStatus = BookingStatus.pending,
-    this.paymentStatus = PaymentStatus.unpaid,
-    this.paymentMethod = PaymentMethod.cash,
-    this.paymentType = PaymentType.cash,
-    this.depositAmount = 0,
-    this.depositPercentage = 0,
-    this.remainingAmount = 0,
-    this.paidAmount = 0,
-    this.finalTotalPrice = 0,
-    this.remainingDueDate,
-    this.createdAt,
-    this.updatedAt,
-    this.extensionDays = 0,
-    this.newEndDate,
-    this.extensionCost = 0,
-    this.extensionStatus,
-    this.listing,
-    this.host,
-    this.customer,
-  });
-
-  factory BookingModel.fromJson(Map<String, dynamic> json) {
-    return BookingModel(
-      id: json['_id'] ?? json['id'] ?? '',
-      customerId: _extractId(json['customerId']),
-      hostId: _extractId(json['hostId']),
-      listingId: _extractId(json['listingId']),
-      startDate: _parseDate(json['startDate']),
-      endDate: _parseDate(json['endDate']),
-      totalPrice: (json['totalPrice'] ?? 0).toDouble(),
-      bookingStatus: BookingStatus.fromString(
-          json['bookingStatus'] ?? json['status'] ?? 'pending'),
-      paymentStatus: PaymentStatus.fromString(json['paymentStatus']),
-      paymentMethod: PaymentMethod.fromString(json['paymentMethod']),
-      paymentType: PaymentType.fromString(json['paymentType']),
-      depositAmount: (json['depositAmount'] ?? 0).toDouble(),
-      depositPercentage: json['depositPercentage'] ?? 0,
-      remainingAmount: (json['remainingAmount'] ?? 0).toDouble(),
-      paidAmount: (json['paidAmount'] ?? 0).toDouble(),
-      finalTotalPrice:
-          (json['finalTotalPrice'] ?? json['totalPrice'] ?? 0).toDouble(),
-      remainingDueDate: json['remainingDueDate'] != null
-          ? _parseDate(json['remainingDueDate'])
-          : null,
-      createdAt:
-          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      updatedAt:
-          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
-      extensionDays: json['extensionDays'] ?? 0,
-      newEndDate:
-          json['newEndDate'] != null ? _parseDate(json['newEndDate']) : null,
-      extensionCost: (json['extensionCost'] ?? 0).toDouble(),
-      extensionStatus: json['extensionStatus'],
-      listing: json['listingId'] is Map ? json['listingId'] : null,
-      host: json['hostId'] is Map ? json['hostId'] : null,
-      customer: json['customerId'] is Map ? json['customerId'] : null,
-    );
-  }
-
-  static String _extractId(dynamic field) {
-    if (field is Map) return field['_id'] ?? field['id'] ?? '';
-    return field?.toString() ?? '';
-  }
-
-  static DateTime _parseDate(dynamic date) {
-    if (date == null) return DateTime.now();
-    if (date is DateTime) return date;
-    try {
-      return DateTime.parse(date.toString());
-    } catch (e) {
-      return DateTime.now();
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'customerId': customerId,
-      'hostId': hostId,
-      'listingId': listingId,
-      'startDate': startDate.toIso8601String(),
-      'endDate': endDate.toIso8601String(),
-      'totalPrice': totalPrice,
-      'bookingStatus': bookingStatus.value,
-      'paymentStatus': paymentStatus.value,
-      'paymentMethod': paymentMethod.value,
-      'paymentType': paymentType.value,
-      'depositAmount': depositAmount,
-      'depositPercentage': depositPercentage,
-      'remainingAmount': remainingAmount,
-      'paidAmount': paidAmount,
-      'finalTotalPrice': finalTotalPrice,
-      'extensionDays': extensionDays,
-      'extensionCost': extensionCost,
-      'extensionStatus': extensionStatus,
-    };
-  }
-
-  int get numberOfNights {
-    final effectiveEndDate = newEndDate ?? endDate;
-    return effectiveEndDate.difference(startDate).inDays;
-  }
-
-  bool get isPending => bookingStatus == BookingStatus.pending;
-
-  bool get isApproved => bookingStatus == BookingStatus.approved;
-
-  bool get isCompleted => bookingStatus == BookingStatus.completed;
-
-  bool get isCancelled => bookingStatus == BookingStatus.cancelled;
-
-  bool get isRejected => bookingStatus == BookingStatus.rejected;
-
-  bool get isPaid => paymentStatus == PaymentStatus.paid;
-
-  bool get isPartiallyPaid =>
-      paymentStatus == PaymentStatus.partiallyPaid;
-
-  bool get hasDeposit =>
-      paymentType == PaymentType.deposit && depositAmount > 0;
-
-  bool get hasRemainingPayment => remainingAmount > 0;
-
-  String get listingTitle => listing?['title'] ?? 'Property';
-
-  String get listingCity => listing?['city'] ?? '';
-
-  String? get listingPhoto {
-    final photos = listing?['listingPhotoPaths'] as List?;
-    return photos?.isNotEmpty == true ? photos!.first.toString() : null;
-  }
-
-  BookingModel copyWith({
-    String? id,
-    String? customerId,
-    String? hostId,
-    String? listingId,
-    DateTime? startDate,
-    DateTime? endDate,
-    double? totalPrice,
-    BookingStatus? bookingStatus,
-    PaymentStatus? paymentStatus,
-    PaymentMethod? paymentMethod,
-    PaymentType? paymentType,
-    double? depositAmount,
-    int? depositPercentage,
-    double? remainingAmount,
-    double? paidAmount,
-    double? finalTotalPrice,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    int? extensionDays,
-    DateTime? newEndDate,
-    double? extensionCost,
-    String? extensionStatus,
-    Map<String, dynamic>? listing,
-    Map<String, dynamic>? host,
-    Map<String, dynamic>? customer,
-  }) {
-    return BookingModel(
-      id: id ?? this.id,
-      customerId: customerId ?? this.customerId,
-      hostId: hostId ?? this.hostId,
-      listingId: listingId ?? this.listingId,
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
-      totalPrice: totalPrice ?? this.totalPrice,
-      bookingStatus: bookingStatus ?? this.bookingStatus,
-      paymentStatus: paymentStatus ?? this.paymentStatus,
-      paymentMethod: paymentMethod ?? this.paymentMethod,
-      paymentType: paymentType ?? this.paymentType,
-      depositAmount: depositAmount ?? this.depositAmount,
-      depositPercentage: depositPercentage ?? this.depositPercentage,
-      remainingAmount: remainingAmount ?? this.remainingAmount,
-      paidAmount: paidAmount ?? this.paidAmount,
-      finalTotalPrice: finalTotalPrice ?? this.finalTotalPrice,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      extensionDays: extensionDays ?? this.extensionDays,
-      newEndDate: newEndDate ?? this.newEndDate,
-      extensionCost: extensionCost ?? this.extensionCost,
-      extensionStatus: extensionStatus ?? this.extensionStatus,
-      listing: listing ?? this.listing,
-      host: host ?? this.host,
-      customer: customer ?? this.customer,
-    );
-  }
-
-  factory BookingModel.empty() {
-    return BookingModel(
-      id: '',
-      customerId: '',
-      hostId: '',
-      listingId: '',
-      startDate: DateTime.now(),
-      endDate: DateTime.now(),
-      totalPrice: 0,
-    );
-  }
-
-  // Additional getters for compatibility
-  BookingStatus get status => bookingStatus;
-
-  String? get agreementId => null;
-
-  String? get agreementUrl => null;
-
-  double get amountDue => remainingAmount;
-
-  String? get cancellationReason => null;
-
-  String? get transactionId => null;
-
-  DateTime? get paidAt => null;
-
-  @override
-  List<Object?> get props => [
-        id,
-        customerId,
-        hostId,
-        listingId,
-        startDate,
-        endDate,
-        totalPrice,
-        bookingStatus,
-        paymentStatus,
-        paymentMethod,
-        paymentType,
-        depositAmount,
-        depositPercentage,
-        remainingAmount,
-        paidAmount,
-        finalTotalPrice,
-        extensionDays,
-        extensionCost,
-      ];
-}
+/// Backward-compatible alias
+typedef BookingModel = Booking;

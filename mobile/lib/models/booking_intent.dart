@@ -1,54 +1,124 @@
-import 'package:flutter/foundation.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-/// BookingIntent Model (v3.0)
-/// Implements temporary reservation/locking mechanism for concurrent booking handling
-///
-/// Purpose:
-/// - Prevents overbooking when multiple users try to book the same listing
-/// - Holds a temporary lock while user proceeds with payment
-/// - Auto-expires to release lock if payment not completed
-///
-/// Status Flow:
-/// LOCKED -> PAID (success) or EXPIRED (timeout) or CANCELLED (user cancelled)
+import '../core/utils/json_converters.dart';
+
+part 'booking_intent.g.dart';
+
+@JsonEnum(valueField: 'value')
+enum BookingIntentStatus {
+  @JsonValue('locked')
+  locked('locked'),
+  @JsonValue('paid')
+  paid('paid'),
+  @JsonValue('expired')
+  expired('expired'),
+  @JsonValue('cancelled')
+  cancelled('cancelled'),
+  @JsonValue('failed')
+  failed('failed');
+
+  final String value;
+
+  const BookingIntentStatus(this.value);
+}
+
+@JsonSerializable()
 class BookingIntent {
+  @JsonKey(name: '_id')
+  @MongoIdConverter()
   final String id;
+
+  @JsonKey(name: 'intentId', defaultValue: '')
   final String intentId;
+
+  @JsonKey(name: 'tempOrderId')
   final String? tempOrderId;
+
+  @JsonKey(name: 'customerId')
+  @MongoIdConverter()
   final String customerId;
+
+  @JsonKey(name: 'hostId')
+  @MongoIdConverter()
   final String hostId;
+
+  @JsonKey(name: 'listingId')
+  @MongoIdConverter()
   final String listingId;
-  final String bookingType; // entire_place, room_rental
+
+  @JsonKey(name: 'bookingType', defaultValue: 'entire_place')
+  final String bookingType;
+
+  @JsonKey(name: 'startDate')
+  @SafeDateTimeConverter()
   final DateTime startDate;
+
+  @JsonKey(name: 'endDate')
+  @SafeDateTimeConverter()
   final DateTime endDate;
+
+  @JsonKey(name: 'totalPrice')
+  @SafeDoubleConverter()
   final double totalPrice;
 
-  // Intent status for concurrency control
+  @JsonKey(name: 'status', unknownEnumValue: BookingIntentStatus.locked)
   final BookingIntentStatus status;
 
-  // Payment details
-  final String paymentMethod; // vnpay, cash
-  final String paymentType; // full, deposit, cash
+  @JsonKey(name: 'paymentMethod', defaultValue: 'vnpay')
+  final String paymentMethod;
+
+  @JsonKey(name: 'paymentType', defaultValue: 'full')
+  final String paymentType;
+
+  @JsonKey(name: 'paymentAmount')
+  @SafeDoubleConverter()
   final double paymentAmount;
+
+  @JsonKey(name: 'depositPercentage')
+  @SafeIntConverter()
   final int depositPercentage;
+
+  @JsonKey(name: 'depositAmount')
+  @SafeDoubleConverter()
   final double depositAmount;
+
+  @JsonKey(name: 'remainingAmount')
+  @SafeDoubleConverter()
   final double remainingAmount;
 
-  // Lock timing
+  @JsonKey(name: 'lockedAt')
+  @SafeDateTimeConverter()
   final DateTime lockedAt;
+
+  @JsonKey(name: 'expiresAt')
+  @SafeDateTimeConverter()
   final DateTime expiresAt;
+
+  @JsonKey(name: 'paidAt')
+  @NullableDateTimeConverter()
   final DateTime? paidAt;
+
+  @JsonKey(name: 'cancelledAt')
+  @NullableDateTimeConverter()
   final DateTime? cancelledAt;
 
-  // Transaction info
+  @JsonKey(name: 'transactionId')
   final String? transactionId;
+
+  @JsonKey(name: 'vnpTransactionNo')
   final String? vnpTransactionNo;
 
-  // Created booking reference
+  @JsonKey(name: 'bookingId')
   final String? bookingId;
 
-  // Populated fields
+  /// Populated fields from API joins (excluded from code gen)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final dynamic customer;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final dynamic host;
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
   final dynamic listing;
 
   BookingIntent({
@@ -81,136 +151,67 @@ class BookingIntent {
     this.listing,
   });
 
-  bool get isLocked => status == BookingIntentStatus.locked;
-
-  bool get isPaid => status == BookingIntentStatus.paid;
-
-  bool get isExpired => status == BookingIntentStatus.expired;
-
-  bool get isCancelled => status == BookingIntentStatus.cancelled;
-
-  bool get isFailed => status == BookingIntentStatus.failed;
-
-  bool get isActive => isLocked && DateTime.now().isBefore(expiresAt);
-
-  Duration get remainingTime => expiresAt.difference(DateTime.now());
-
-  // Alias for compatibility
-  Duration get timeRemaining => remainingTime;
-
-  // Check if intent is still valid (not expired)
-  bool get isValid => isActive && !isExpired;
-
-  // Check if this is a full payment (not deposit)
-  bool get isFullPayment => paymentType == 'full';
-
-  double get effectivePaymentAmount {
-    if (paymentType == 'deposit') {
-      return depositAmount;
-    }
-    return totalPrice;
-  }
-
   factory BookingIntent.fromJson(Map<String, dynamic> json) {
-    DateTime? parseDate(dynamic value) {
-      if (value == null) return null;
-      try {
-        return DateTime.parse(value.toString());
-      } catch (e) {
-        debugPrint('⚠️ Error parsing date: $value - $e');
-        return null;
-      }
-    }
+    // Extract populated data
+    final dynamic customer =
+        json['customerId'] is Map ? json['customerId'] : null;
+    final dynamic host = json['hostId'] is Map ? json['hostId'] : null;
+    final dynamic listing = json['listingId'] is Map ? json['listingId'] : null;
 
+    final intent = _$BookingIntentFromJson(json);
     return BookingIntent(
-      id: json['_id'] ?? json['id'] ?? '',
-      intentId: json['intentId'] ?? '',
-      tempOrderId: json['tempOrderId'],
-      customerId: json['customerId'] is String
-          ? json['customerId']
-          : json['customerId']?['_id'] ?? '',
-      hostId: json['hostId'] is String
-          ? json['hostId']
-          : json['hostId']?['_id'] ?? '',
-      listingId: json['listingId'] is String
-          ? json['listingId']
-          : json['listingId']?['_id'] ?? '',
-      bookingType: json['bookingType'] ?? 'entire_place',
-      startDate: parseDate(json['startDate']) ?? DateTime.now(),
-      endDate: parseDate(json['endDate']) ??
-          DateTime.now().add(const Duration(days: 1)),
-      totalPrice: (json['totalPrice'] ?? 0).toDouble(),
-      status: BookingIntentStatus.fromString(json['status'] ?? 'locked'),
-      paymentMethod: json['paymentMethod'] ?? 'vnpay',
-      paymentType: json['paymentType'] ?? 'full',
-      paymentAmount: (json['paymentAmount'] ?? 0).toDouble(),
-      depositPercentage: json['depositPercentage'] ?? 0,
-      depositAmount: (json['depositAmount'] ?? 0).toDouble(),
-      remainingAmount: (json['remainingAmount'] ?? 0).toDouble(),
-      lockedAt: parseDate(json['lockedAt']) ?? DateTime.now(),
-      expiresAt: parseDate(json['expiresAt']) ??
-          DateTime.now().add(const Duration(minutes: 10)),
-      paidAt: parseDate(json['paidAt']),
-      cancelledAt: parseDate(json['cancelledAt']),
-      transactionId: json['transactionId'],
-      vnpTransactionNo: json['vnpTransactionNo'],
-      bookingId: json['bookingId'],
-      customer: json['customerId'] is Map ? json['customerId'] : null,
-      host: json['hostId'] is Map ? json['hostId'] : null,
-      listing: json['listingId'] is Map ? json['listingId'] : null,
+      id: intent.id,
+      intentId: intent.intentId,
+      tempOrderId: intent.tempOrderId,
+      customerId: intent.customerId,
+      hostId: intent.hostId,
+      listingId: intent.listingId,
+      bookingType: intent.bookingType,
+      startDate: intent.startDate,
+      endDate: intent.endDate,
+      totalPrice: intent.totalPrice,
+      status: intent.status,
+      paymentMethod: intent.paymentMethod,
+      paymentType: intent.paymentType,
+      paymentAmount: intent.paymentAmount,
+      depositPercentage: intent.depositPercentage,
+      depositAmount: intent.depositAmount,
+      remainingAmount: intent.remainingAmount,
+      lockedAt: intent.lockedAt,
+      expiresAt: intent.expiresAt,
+      paidAt: intent.paidAt,
+      cancelledAt: intent.cancelledAt,
+      transactionId: intent.transactionId,
+      vnpTransactionNo: intent.vnpTransactionNo,
+      bookingId: intent.bookingId,
+      customer: customer,
+      host: host,
+      listing: listing,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'intentId': intentId,
-      'tempOrderId': tempOrderId,
-      'customerId': customerId,
-      'hostId': hostId,
-      'listingId': listingId,
-      'bookingType': bookingType,
-      'startDate': startDate.toIso8601String(),
-      'endDate': endDate.toIso8601String(),
-      'totalPrice': totalPrice,
-      'status': status.value,
-      'paymentMethod': paymentMethod,
-      'paymentType': paymentType,
-      'paymentAmount': paymentAmount,
-      'depositPercentage': depositPercentage,
-      'depositAmount': depositAmount,
-      'remainingAmount': remainingAmount,
-    };
+  Map<String, dynamic> toJson() => _$BookingIntentToJson(this);
+
+  // --- Computed properties ---
+
+  bool get isLocked => status == BookingIntentStatus.locked;
+  bool get isPaid => status == BookingIntentStatus.paid;
+  bool get isExpired => status == BookingIntentStatus.expired;
+  bool get isCancelled => status == BookingIntentStatus.cancelled;
+  bool get isFailed => status == BookingIntentStatus.failed;
+  bool get isActive => isLocked && DateTime.now().isBefore(expiresAt);
+
+  Duration get remainingTime => expiresAt.difference(DateTime.now());
+  Duration get timeRemaining => remainingTime;
+
+  bool get isValid => isActive && !isExpired;
+  bool get isFullPayment => paymentType == 'full';
+
+  double get effectivePaymentAmount {
+    if (paymentType == 'deposit') return depositAmount;
+    return totalPrice;
   }
 }
 
-enum BookingIntentStatus {
-  locked('locked'),
-  paid('paid'),
-  expired('expired'),
-  cancelled('cancelled'),
-  failed('failed');
-
-  final String value;
-
-  const BookingIntentStatus(this.value);
-
-  static BookingIntentStatus fromString(String status) {
-    switch (status.toLowerCase()) {
-      case 'locked':
-        return BookingIntentStatus.locked;
-      case 'paid':
-        return BookingIntentStatus.paid;
-      case 'expired':
-        return BookingIntentStatus.expired;
-      case 'cancelled':
-        return BookingIntentStatus.cancelled;
-      case 'failed':
-        return BookingIntentStatus.failed;
-      default:
-        return BookingIntentStatus.locked;
-    }
-  }
-}
-
-/// Type alias for backward compatibility with state management code
+/// Type alias for backward compatibility
 typedef BookingIntentModel = BookingIntent;

@@ -1,167 +1,53 @@
+import 'package:json_annotation/json_annotation.dart';
+
+import '../core/utils/json_converters.dart';
+
+part 'conversation.g.dart';
+
+@JsonSerializable()
 class Conversation {
+  @JsonKey(name: '_id')
+  @MongoIdConverter()
   final String id;
+
+  @JsonKey(name: 'conversationId', defaultValue: '')
   final String conversationId;
-  final OtherUser otherUser;
-  final ListingInfo? listing;
-  final String? lastMessage;
-  final DateTime? lastMessageAt;
+
+  @JsonKey(name: 'participants')
+  @StringListConverter()
+  final List<String> participants;
+
+  @JsonKey(name: 'otherUser')
+  final UserInfo otherUser;
+
+  @JsonKey(name: 'listingId')
+  final String? listingId;
+
+  @JsonKey(name: 'listingTitle')
+  final String? listingTitle;
+
+  @JsonKey(name: 'listingPhotoPaths')
+  @NullableStringListConverter()
+  final List<String>? listingPhotoPaths;
+
+  @JsonKey(name: 'lastMessage', defaultValue: '')
+  final String lastMessage;
+
+  @JsonKey(name: 'lastMessageAt')
+  @SafeDateTimeConverter()
+  final DateTime lastMessageAt;
+
+  @JsonKey(name: 'lastMessageSenderId')
   final String? lastMessageSenderId;
+
+  @JsonKey(name: 'unreadCount')
+  @SafeIntConverter()
   final int unreadCount;
 
   Conversation({
     required this.id,
-    required this.conversationId,
-    required this.otherUser,
-    this.listing,
-    this.lastMessage,
-    this.lastMessageAt,
-    this.lastMessageSenderId,
-    this.unreadCount = 0,
-  });
-
-  // Getter for listingId
-  String? get listingId => listing?.id;
-
-  // Getter for listingTitle
-  String? get listingTitle => listing?.title;
-
-  factory Conversation.fromJson(Map<String, dynamic> json) {
-    // Helper to extract ID from field (can be String or Object)
-    String? extractId(dynamic field) {
-      if (field == null) return null;
-      if (field is String) return field;
-      if (field is Map) return field['_id']?.toString();
-      return field.toString();
-    }
-
-    return Conversation(
-      id: json['_id'] ?? '',
-      conversationId: json['conversationId'] ?? '',
-      otherUser: OtherUser.fromJson(json['otherUser'] ?? {}),
-      listing: json['listing'] != null
-          ? ListingInfo.fromJson(json['listing'])
-          : null,
-      lastMessage: json['lastMessage'],
-      lastMessageAt: json['lastMessageAt'] != null
-          ? DateTime.parse(json['lastMessageAt'])
-          : null,
-      lastMessageSenderId: extractId(json['lastMessageSenderId']),
-      unreadCount: json['unreadCount'] ?? 0,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'conversationId': conversationId,
-      'otherUser': otherUser.toJson(),
-      'listing': listing?.toJson(),
-      'lastMessage': lastMessage,
-      'lastMessageAt': lastMessageAt?.toIso8601String(),
-      'lastMessageSenderId': lastMessageSenderId,
-      'unreadCount': unreadCount,
-    };
-  }
-
-  String get formattedTime {
-    if (lastMessageAt == null) return '';
-
-    final now = DateTime.now();
-    final difference = now.difference(lastMessageAt!);
-
-    if (difference.inDays == 0) {
-      return '${lastMessageAt!.hour.toString().padLeft(2, '0')}:${lastMessageAt!.minute.toString().padLeft(2, '0')}';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
-    } else {
-      return '${lastMessageAt!.day}/${lastMessageAt!.month}/${lastMessageAt!.year}';
-    }
-  }
-}
-
-class OtherUser {
-  final String id;
-  final String firstName;
-  final String lastName;
-  final String? profileImagePath;
-
-  OtherUser({
-    required this.id,
-    required this.firstName,
-    required this.lastName,
-    this.profileImagePath,
-  });
-
-  String get fullName => '$firstName $lastName';
-
-  factory OtherUser.fromJson(Map<String, dynamic> json) {
-    return OtherUser(
-      id: json['_id'] ?? '',
-      firstName: json['firstName'] ?? 'Unknown',
-      lastName: json['lastName'] ?? 'User',
-      profileImagePath: json['profileImagePath'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'firstName': firstName,
-      'lastName': lastName,
-      'profileImagePath': profileImagePath,
-    };
-  }
-}
-
-class ListingInfo {
-  final String id;
-  final String title;
-  final List<String> listingPhotoPaths;
-
-  ListingInfo({
-    required this.id,
-    required this.title,
-    required this.listingPhotoPaths,
-  });
-
-  factory ListingInfo.fromJson(Map<String, dynamic> json) {
-    return ListingInfo(
-      id: json['_id'] ?? '',
-      title: json['title'] ?? 'Unknown Listing',
-      listingPhotoPaths: List<String>.from(json['listingPhotoPaths'] ?? []),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'title': title,
-      'listingPhotoPaths': listingPhotoPaths,
-    };
-  }
-
-  String? get firstPhoto =>
-      listingPhotoPaths.isNotEmpty ? listingPhotoPaths.first : null;
-}
-
-/// ConversationModel for state management (flatter structure, no nested objects)
-class ConversationModel {
-  final String id;
-  final List<String> participants;
-  final UserInfo otherUser;
-  final String? listingId;
-  final String? listingTitle;
-  final List<String>? listingPhotoPaths;
-  final String lastMessage;
-  final DateTime lastMessageAt;
-  final String? lastMessageSenderId;
-  final int unreadCount;
-
-  ConversationModel({
-    required this.id,
-    required this.participants,
+    this.conversationId = '',
+    this.participants = const [],
     required this.otherUser,
     this.listingId,
     this.listingTitle,
@@ -172,69 +58,79 @@ class ConversationModel {
     this.unreadCount = 0,
   });
 
-  factory ConversationModel.fromJson(Map<String, dynamic> json) {
-    // Safe parsing of otherUser
-    Map<String, dynamic> otherUserMap = {};
-    if (json['otherUser'] != null) {
-      if (json['otherUser'] is Map) {
-        otherUserMap = Map<String, dynamic>.from(json['otherUser']);
-      }
+  /// Listing info as computed object
+  ListingInfo? get listing => listingId != null
+      ? ListingInfo(
+          id: listingId!,
+          title: listingTitle ?? 'Unknown Listing',
+          listingPhotoPaths: listingPhotoPaths ?? [],
+        )
+      : null;
+
+  /// Formatted relative time for UI display
+  String get formattedTime {
+    final now = DateTime.now();
+    final difference = now.difference(lastMessageAt);
+
+    if (difference.inDays == 0) {
+      return '${lastMessageAt.hour.toString().padLeft(2, '0')}:${lastMessageAt.minute.toString().padLeft(2, '0')}';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      return '${lastMessageAt.day}/${lastMessageAt.month}/${lastMessageAt.year}';
     }
+  }
 
-    // Safe parsing of listing
-    String? listingId;
-    String? listingTitle;
-    List<String>? listingPhotos;
+  /// Custom fromJson to handle nested listing and otherUser structures.
+  factory Conversation.fromJson(Map<String, dynamic> json) {
+    final normalized = Map<String, dynamic>.from(json);
 
-    if (json['listing'] != null && json['listing'] is Map) {
+    // Normalize conversationId
+    normalized['conversationId'] = json['conversationId'] ?? json['_id'] ?? '';
+
+    // Extract listing data from nested object
+    if (json['listing'] is Map) {
       final listing = Map<String, dynamic>.from(json['listing']);
-      listingId = listing['_id']?.toString();
-      listingTitle = listing['title']?.toString();
-
-      if (listing['listingPhotoPaths'] != null &&
-          listing['listingPhotoPaths'] is List) {
-        listingPhotos = List<String>.from(listing['listingPhotoPaths']);
+      normalized['listingId'] = listing['_id']?.toString();
+      normalized['listingTitle'] = listing['title']?.toString();
+      if (listing['listingPhotoPaths'] is List) {
+        normalized['listingPhotoPaths'] = listing['listingPhotoPaths'];
       }
     }
 
-    return ConversationModel(
-      id: json['conversationId'] ?? json['_id'] ?? '',
-      participants: List<String>.from(json['participants'] ?? []),
-      otherUser: UserInfo.fromJson(otherUserMap),
-      listingId: listingId,
-      listingTitle: listingTitle,
-      listingPhotoPaths: listingPhotos,
-      lastMessage: json['lastMessage']?.toString() ?? '',
-      lastMessageAt: json['lastMessageAt'] != null
-          ? DateTime.tryParse(json['lastMessageAt'].toString()) ??
-              DateTime.now()
-          : DateTime.now(),
-      lastMessageSenderId: json['lastMessageSenderId']?.toString(),
-      unreadCount: json['unreadCount'] is int ? json['unreadCount'] : 0,
-    );
+    // Ensure otherUser exists
+    if (json['otherUser'] == null || json['otherUser'] is! Map) {
+      normalized['otherUser'] = {
+        '_id': '',
+        'firstName': 'Unknown',
+        'lastName': 'User',
+      };
+    }
+
+    return _$ConversationFromJson(normalized);
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'conversationId': id,
-      'participants': participants,
-      'otherUser': otherUser.toJson(),
-      'listingId': listingId,
-      'listingTitle': listingTitle,
-      'listingPhotoPaths': listingPhotoPaths,
-      'lastMessage': lastMessage,
-      'lastMessageAt': lastMessageAt.toIso8601String(),
-      'lastMessageSenderId': lastMessageSenderId,
-      'unreadCount': unreadCount,
-    };
-  }
+  Map<String, dynamic> toJson() => _$ConversationToJson(this);
 }
 
-/// UserInfo class for ConversationModel (simpler than OtherUser)
+/// Backward-compatible alias
+typedef ConversationModel = Conversation;
+
+@JsonSerializable()
 class UserInfo {
+  @JsonKey(name: '_id')
+  @MongoIdConverter()
   final String id;
+
+  @JsonKey(name: 'firstName', defaultValue: 'Unknown')
   final String firstName;
+
+  @JsonKey(name: 'lastName', defaultValue: 'User')
   final String lastName;
+
+  @JsonKey(name: 'profileImagePath')
   final String? profileImagePath;
 
   UserInfo({
@@ -244,21 +140,42 @@ class UserInfo {
     this.profileImagePath,
   });
 
-  factory UserInfo.fromJson(Map<String, dynamic> json) {
-    return UserInfo(
-      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
-      firstName: json['firstName']?.toString() ?? '',
-      lastName: json['lastName']?.toString() ?? '',
-      profileImagePath: json['profileImagePath']?.toString(),
-    );
-  }
+  String get fullName => '$firstName $lastName';
 
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'firstName': firstName,
-      'lastName': lastName,
-      'profileImagePath': profileImagePath,
-    };
-  }
+  factory UserInfo.fromJson(Map<String, dynamic> json) =>
+      _$UserInfoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$UserInfoToJson(this);
+}
+
+/// Backward-compatible alias
+typedef OtherUser = UserInfo;
+
+/// Listing info for conversation context
+@JsonSerializable()
+class ListingInfo {
+  @JsonKey(name: '_id')
+  @MongoIdConverter()
+  final String id;
+
+  @JsonKey(name: 'title', defaultValue: 'Unknown Listing')
+  final String title;
+
+  @JsonKey(name: 'listingPhotoPaths')
+  @StringListConverter()
+  final List<String> listingPhotoPaths;
+
+  ListingInfo({
+    required this.id,
+    required this.title,
+    required this.listingPhotoPaths,
+  });
+
+  factory ListingInfo.fromJson(Map<String, dynamic> json) =>
+      _$ListingInfoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ListingInfoToJson(this);
+
+  String? get firstPhoto =>
+      listingPhotoPaths.isNotEmpty ? listingPhotoPaths.first : null;
 }

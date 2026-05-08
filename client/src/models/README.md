@@ -11,6 +11,7 @@ This folder contains domain models for the client application. Models provide a 
 models/
 ├── types.js          # Type constants and enums
 ├── PaymentInfo.js    # Payment information model
+├── PaymentHistory.js # Payment transaction history model
 ├── Booking.js        # Booking model
 ├── User.js           # User model
 ├── Listing.js        # Listing/Property model
@@ -255,6 +256,65 @@ if (listing.requiresHostProfile && !listing.hostProfile) {
 
 ---
 
+### 6. PaymentHistory (`PaymentHistory.js`)
+Represents a single payment transaction in the payment history.
+
+**Properties:**
+- `id` - Payment record ID
+- `bookingId` - Associated booking ID
+- `customerId` - Customer user ID
+- `hostId` - Host user ID
+- `listingId` - Property listing ID
+- `amount` - Payment amount
+- `method` - Payment method (vnpay, cash, bank_transfer, credit_card, debit_card)
+- `status` - Payment status (pending, paid, failed, refunded, cancelled)
+- `transactionId` - Transaction ID
+- `type` - Payment type (deposit, partial, full, remaining, refund, adjustment)
+- `paidAt` - Payment date
+- `notes` - Payment notes
+- `recordedBy` - Who recorded the payment
+- `refundedAt` / `refundReason` - Refund info
+- `vnpayData` - VNPay response data
+
+**Computed Properties:**
+- `formattedAmount` - Vietnamese formatted amount
+- `formattedPaidAt` - Vietnamese formatted date/time
+- `methodLabel` - Human-readable method name
+- `typeLabel` - Human-readable type label
+- `statusLabel` - Human-readable status
+- Status checks: `isPaid`, `isPending`, `isFailed`, `isRefunded`, `isCancelled`
+- Type checks: `isDeposit`, `isFull`, `isRemaining`, `isRefund`
+- Method checks: `isVNPay`, `isCash`, `isBankTransfer`
+
+**Methods:**
+- `static fromApiResponse(data)` - Create from API response
+- `static fromApiResponseArray(dataArray)` - Create array from API response
+- `toApiPayload()` - Convert to API payload
+- `clone()` - Create a copy
+- `getStatusColor()` - Get color for status display
+- `getStatusIcon()` - Get emoji icon for status
+- `getMethodIcon()` - Get emoji icon for method
+
+**Usage:**
+```javascript
+import PaymentHistory from '@/models/PaymentHistory';
+
+// From API response
+const payments = PaymentHistory.fromApiResponseArray(apiData);
+
+// Display payment info
+payments.forEach(payment => {
+  console.log(`${payment.getStatusIcon()} ${payment.typeLabel}: ${payment.formattedAmount} VND`);
+  console.log(`Method: ${payment.getMethodIcon()} ${payment.methodLabel}`);
+});
+
+// Filter by status
+const paidPayments = payments.filter(p => p.isPaid);
+const pendingPayments = payments.filter(p => p.isPending);
+```
+
+---
+
 ## Benefits of Using Models
 
 ### 1. **Type Safety (sort of)**
@@ -414,7 +474,7 @@ const isDeposit = booking.paymentInfo.isDeposit;
 Potential additions:
 1. **Validation library** (e.g., Yup, Zod)
 2. **TypeScript** for real type safety
-3. **More models** (Review, Message, Notification, etc.)
+3. **More models** (Review, Message, Notification, RoomRental, RoommatePost, etc.)
 4. **Serialization** (JSON, localStorage)
 5. **Immutability** (using Immer)
 6. **State management integration** (Redux Toolkit slices)
@@ -434,5 +494,5 @@ When adding new models:
 
 ---
 
-**Last Updated:** December 25, 2025
+**Last Updated:** March 5, 2026
 

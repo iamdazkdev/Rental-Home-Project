@@ -1,6 +1,4 @@
-import {CONFIG} from "../../constants/api";
-
-const API_BASE_URL = CONFIG.API_BASE_URL || "http://localhost:3001";
+import API_BASE_URL from "../../config/api";
 
 /**
  * Admin API Service
