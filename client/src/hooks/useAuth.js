@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
  */
 const useAuth = () => {
     const user = useSelector((state) => state.user.profile);
-    const token = useSelector((state) => state.token);
+    const token = useSelector((state) => state.auth.token);
 
     return {
         user,
