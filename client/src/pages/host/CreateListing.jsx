@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { Box, Typography, Button } from "@mui/material";
+import { HomeWork, ArrowForward, LightbulbOutlined } from "@mui/icons-material";
 
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +17,6 @@ import "../../styles/CreateListing.scss";
 import Navbar from "../../components/layout/Navbar";
 import IdentityVerificationForm from "../../components/verification/IdentityVerificationForm";
 // Removed static imports - will fetch from API
-import { useState, useEffect } from "react";
 import { getIcon } from "../../utils/iconMapper";
 
 import {
@@ -770,34 +771,144 @@ const CreateListingPage = () => {
       <Navbar />
 
       {/* Type Selection Modal - Full Screen, Mandatory */}
+      {/* Type Selection UI - Replaces the old Modal */}
       {showTypeModal && (
-        <div className="type-selection-modal-overlay">
-          <div className="type-selection-modal">
-            <div className="modal-header">
-              <h1>🏠 Choose Your Property Type</h1>
-              <p className="modal-subtitle">Select what type of place guests will have access to</p>
-            </div>
+        <Box sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1000,
+          bgcolor: 'background.default',
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          {/* Main Content Canvas */}
+          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', p: { xs: 3, md: 6 }, position: 'relative', zIndex: 10, pt: { xs: 12, md: 6 } }}>
+            {/* Intentional Asymmetry Background */}
+            <Box sx={{ 
+              position: 'absolute', 
+              top: 0, 
+              left: 0, 
+              width: '100%', 
+              height: '614px', 
+              background: 'linear-gradient(135deg, #424666 0%, #595e7f 100%)', 
+              zIndex: -1, 
+              clipPath: 'polygon(0 0, 100% 0, 100% 80%, 0% 100%)' 
+            }} />
+            
+            <Box sx={{ 
+              bgcolor: 'background.paper', 
+              borderRadius: '2rem', 
+              p: { xs: 4, md: 8 }, 
+              maxWidth: 'lg', 
+              width: '100%', 
+              mx: 'auto', 
+              boxShadow: '0px 40px 80px rgba(26,28,30,0.08)' 
+            }}>
+              <Box sx={{ textAlign: 'center', mb: 8, maxWidth: 'md', mx: 'auto' }}>
+                <Box sx={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  width: 64, 
+                  height: 64, 
+                  borderRadius: '50%', 
+                  bgcolor: 'rgba(248,57,90,0.1)', 
+                  color: 'primary.main', 
+                  mb: 3 
+                }}>
+                  <HomeWork sx={{ fontSize: 32 }} />
+                </Box>
+                <Typography variant="h3" sx={{ fontFamily: 'Manrope, sans-serif', fontWeight: 800, mb: 2, color: '#1a1c1e', letterSpacing: '-0.02em', fontSize: { xs: '2.25rem', md: '3.5rem' } }}>
+                  Choose Your Property Type
+                </Typography>
+                <Typography variant="body1" sx={{ color: 'text.secondary', fontSize: '1.125rem', opacity: 0.8 }}>
+                  Select what type of place guests will have access to. This helps us tailor the experience for your future guests.
+                </Typography>
+              </Box>
 
-            <div className="type-selection-grid">
-              {types?.map((item, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleTypeSelection(item.name)}
-                  className="type-selection-card"
-                >
-                  <div className="type-icon-large">{item.icon}</div>
-                  <h3>{item.name}</h3>
-                  <p>{item.description}</p>
-                  <div className="select-button">Select →</div>
-                </div>
-              ))}
-            </div>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 4, mb: 6 }}>
+                {types?.map((item, index) => (
+                  <Box 
+                    key={index} 
+                    onClick={() => handleTypeSelection(item.name)}
+                    sx={{ 
+                      bgcolor: 'background.default', 
+                      borderRadius: 3, 
+                      p: 4, 
+                      border: '1px solid', 
+                      borderColor: 'rgba(199, 196, 216, 0.15)', 
+                      transition: 'all 0.3s', 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center', 
+                      textAlign: 'center', 
+                      height: '100%', 
+                      '&:hover': { 
+                        bgcolor: 'background.paper',
+                        borderColor: 'primary.main', 
+                        boxShadow: '0px 20px 40px rgba(26,28,30,0.06)',
+                        '& .icon-container': { bgcolor: 'rgba(248,57,90,0.1)', color: 'primary.main' },
+                        '& .select-btn': { bgcolor: 'primary.main', color: 'white', borderColor: 'transparent' },
+                        '& .card-title': { color: 'primary.main' }
+                      } 
+                    }}
+                  >
+                    <Box className="icon-container" sx={{ 
+                      width: 80, 
+                      height: 80, 
+                      borderRadius: '50%', 
+                      bgcolor: 'rgba(226, 226, 229, 0.5)', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      mb: 3, 
+                      transition: 'all 0.3s', 
+                      color: 'text.primary',
+                      '& svg': { fontSize: 40 }
+                    }}>
+                      {item.icon}
+                    </Box>
+                    <Typography className="card-title" variant="h5" sx={{ fontFamily: 'Manrope, sans-serif', fontWeight: 600, mb: 1.5, color: '#1a1c1e', transition: 'color 0.3s' }}>
+                      {item.name}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 4, flexGrow: 1, lineHeight: 1.6 }}>
+                      {item.description}
+                    </Typography>
+                    <Button 
+                      className="select-btn" 
+                      variant="outlined" 
+                      color="primary" 
+                      fullWidth 
+                      sx={{ 
+                        py: 1.5, 
+                        transition: 'all 0.3s', 
+                        borderColor: 'rgba(199, 196, 216, 0.5)',
+                        color: 'primary.main',
+                        textTransform: 'none',
+                        fontWeight: 500
+                      }} 
+                      endIcon={<ArrowForward sx={{ fontSize: 18 }} />}
+                    >
+                      Select
+                    </Button>
+                  </Box>
+                ))}
+              </Box>
 
-            <div className="modal-footer">
-              <p>💡 You must select a type to continue</p>
-            </div>
-          </div>
-        </div>
+              <Box sx={{ textAlign: 'center', borderTop: '1px solid', borderColor: 'rgba(199, 196, 216, 0.15)', pt: 4 }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, fontStyle: 'italic' }}>
+                  <LightbulbOutlined sx={{ color: 'primary.main', fontSize: 20 }} />
+                  You must select a type to continue
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
       )}
 
       {loadingListing ? (

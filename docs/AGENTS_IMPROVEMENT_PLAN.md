@@ -5,10 +5,11 @@ Kế hoạch này vạch ra lộ trình từng bước để "nâng cấp" bộ 
 ---
 
 ## 🎯 Giai đoạn 1: Tái Cấu Trúc Nền Tảng (Foundation Restructure)
+
 *Mục tiêu: Quy hoạch lại thư mục `.agents` để có sự phân tách rõ ràng giữa quy trình (workflows), kỹ năng cụ thể (skills), và luật cốt lõi (rules).*
 
 - [x] **Bước 1.1: Tạo cấu trúc thư mục chuẩn**
-  - Xây dựng lại cấu trúc: 
+  - Xây dựng lại cấu trúc:
     - `.agents/workflows/` (Quy trình làm việc: Plan, TDD, Review...)
     - `.agents/skills/` (Kỹ năng cụ thể: React, Express, Flutter...)
     - `.agents/rules/` (Luật bắt buộc theo từng framework)
@@ -20,6 +21,7 @@ Kế hoạch này vạch ra lộ trình từng bước để "nâng cấp" bộ 
 ---
 
 ## 🌐 Giai đoạn 2: Bơm "Đồ Chơi" cho Frontend (ReactJS)
+
 *Mục tiêu: Cung cấp cho AI đủ kiến thức để xử lý các UI/UX phức tạp, form động và tối ưu hiệu năng.*
 
 - [x] **Bước 2.1: Bổ sung Skill Quản lý Form & Validation**
@@ -34,6 +36,7 @@ Kế hoạch này vạch ra lộ trình từng bước để "nâng cấp" bộ 
 ---
 
 ## ⚙️ Giai đoạn 3: Bơm "Đồ Chơi" cho Backend (ExpressJS)
+
 *Mục tiêu: Đảm bảo Backend không bị nghẽn, xử lý được background jobs và bảo mật tốt hơn.*
 
 - [x] **Bước 3.1: Bổ sung Skill Background Jobs & Message Queues**
@@ -48,6 +51,7 @@ Kế hoạch này vạch ra lộ trình từng bước để "nâng cấp" bộ 
 ---
 
 ## 📱 Giai đoạn 4: Bơm "Đồ Chơi" cho Mobile (Flutter)
+
 *Mục tiêu: Ứng dụng mượt mà, hỗ trợ offline-first và tương tác phần cứng tốt.*
 
 - [x] **Bước 4.1: Bổ sung Skill Offline-First / Caching**
@@ -60,6 +64,7 @@ Kế hoạch này vạch ra lộ trình từng bước để "nâng cấp" bộ 
 ---
 
 ## 🛠 Giai đoạn 5: Chuẩn hóa DevOps & Agentic Loops
+
 *Mục tiêu: Tự động hóa CI/CD và nâng tầm AI thành một "Kỹ sư thực thụ" biết tự kiểm tra chéo.*
 
 - [x] **Bước 5.1: Xây dựng luồng `/security-review` chuyên sâu**
@@ -74,6 +79,7 @@ Kế hoạch này vạch ra lộ trình từng bước để "nâng cấp" bộ 
 ## 🏁 Đề xuất Thực Thi (Action Plan)
 
 Để không làm gián đoạn dự án, tôi khuyên bạn nên thực hiện theo thứ tự:
+
 1. **Tuần 1:** Hoàn thiện Giai đoạn 1 (Tái cấu trúc) và Giai đoạn 2 (Frontend) - Đặc biệt là form/validation vì bạn đang làm `CreateListingDescriptionForm`.
 2. **Tuần 2:** Triển khai Giai đoạn 3 (Backend) để củng cố hệ thống API.
 3. **Tuần 3:** Cập nhật Giai đoạn 4 (Flutter Mobile) và Giai đoạn 5 (DevOps).

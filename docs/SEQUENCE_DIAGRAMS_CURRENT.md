@@ -9,6 +9,7 @@
 ## DANH MỤC SEQUENCE DIAGRAMS
 
 ### 1. Authentication & User Management (SD01 - SD05)
+
 - SD01: Đăng ký
 - SD02: Đăng nhập
 - SD03: Quên mật khẩu
@@ -16,11 +17,13 @@
 - SD05: Đăng xuất
 
 ### 2. Identity Verification (SD06 - SD08)
+
 - SD06: Xác thực danh tính (User)
 - SD07: Quản lý xác thực danh tính (Admin)
 - SD08: Cập nhật xác thực danh tính
 
 ### 3. PROCESS 1 - Entire Place Rental (SD10 - SD22)
+
 - SD10: Tạo listing Entire Place
 - SD11: Chỉnh sửa listing
 - SD12: Ẩn/Hiện listing
@@ -36,6 +39,7 @@
 - SD22: Xem lịch sử booking
 
 ### 4. PROCESS 2 - Room Rental (SD30 - SD42)
+
 - SD30: Tạo listing Room
 - SD31: Tìm kiếm Room
 - SD32: Xem chi tiết Room
@@ -51,6 +55,7 @@
 - SD42: Xem danh sách thuê
 
 ### 5. PROCESS 3 - Roommate Matching (SD50 - SD60)
+
 - SD50: Tạo bài đăng tìm bạn cùng phòng
 - SD51: Tìm kiếm bài đăng Roommate
 - SD52: Xem chi tiết bài đăng
@@ -64,18 +69,21 @@
 - SD60: Xem yêu cầu nhận được
 
 ### 6. Messaging & Communication (SD70 - SD73)
+
 - SD70: Gửi tin nhắn
 - SD71: Xem danh sách hội thoại
 - SD72: Xem lịch sử tin nhắn
 - SD73: Liên hệ Host
 
 ### 7. Reviews & Wishlist (SD80 - SD83)
+
 - SD80: Viết đánh giá
 - SD81: Xem đánh giá
 - SD82: Thêm vào Wishlist
 - SD83: Xóa khỏi Wishlist
 
 ### 8. Admin Management (SD90 - SD95)
+
 - SD90: Xem Admin Dashboard
 - SD91: Quản lý Users
 - SD92: Quản lý Listings
@@ -2795,4 +2803,3 @@ sequenceDiagram
 **Document Status:** CURRENT  
 **Version:** 2.0  
 **Last Modified:** December 30, 2025
-

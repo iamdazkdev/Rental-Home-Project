@@ -19,6 +19,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 ## DANH MỤC USE CASES
 
 ### 1. Authentication & User Management (UC01 - UC05)
+
 - UC01: Đăng ký
 - UC02: Đăng nhập  
 - UC03: Quên mật khẩu
@@ -26,11 +27,13 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 - UC05: Đăng xuất
 
 ### 2. Identity Verification (UC06 - UC08)
+
 - UC06: Xác thực danh tính (User)
 - UC07: Quản lý xác thực danh tính (Admin)
 - UC08: Cập nhật xác thực danh tính
 
 ### 3. PROCESS 1 - Entire Place Rental (UC10 - UC22)
+
 - UC10: Tạo listing Entire Place
 - UC11: Chỉnh sửa listing
 - UC12: Ẩn/Hiện listing
@@ -46,6 +49,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 - UC22: Xem lịch sử booking
 
 ### 4. PROCESS 2 - Room Rental (UC30 - UC42)
+
 - UC30: Tạo listing Room
 - UC31: Tìm kiếm Room
 - UC32: Xem chi tiết Room
@@ -61,6 +65,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 - UC42: Xem danh sách thuê
 
 ### 5. PROCESS 3 - Roommate Matching (UC50 - UC60)
+
 - UC50: Tạo bài đăng tìm bạn cùng phòng
 - UC51: Tìm kiếm bài đăng Roommate
 - UC52: Xem chi tiết bài đăng
@@ -74,18 +79,21 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 - UC60: Xem yêu cầu nhận được
 
 ### 6. Messaging & Communication (UC70 - UC73)
+
 - UC70: Gửi tin nhắn
 - UC71: Xem danh sách hội thoại
 - UC72: Xem lịch sử tin nhắn
 - UC73: Liên hệ Host
 
 ### 7. Reviews & Wishlist (UC80 - UC83)
+
 - UC80: Viết đánh giá
 - UC81: Xem đánh giá
 - UC82: Thêm vào Wishlist
 - UC83: Xóa khỏi Wishlist
 
 ### 8. Admin Management (UC90 - UC95)
+
 - UC90: Xem Admin Dashboard
 - UC91: Quản lý Users
 - UC92: Quản lý Listings
@@ -109,6 +117,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Tài khoản được tạo thành công<br>- User được tự động đăng nhập<br>- User được chuyển đến trang chủ |
 
 **Main Flow:**
+
 1. Guest truy cập `/register`
 2. Guest nhập thông tin:
    - First Name
@@ -125,6 +134,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 9. Hệ thống chuyển hướng đến `/`
 
 **Alternate Flow(s):**
+
 - **6a. Email đã tồn tại:**
   - 6a.1. Hệ thống hiển thị lỗi "An account with this email already exists"
   - 6a.2. Use case quay lại bước 2
@@ -138,12 +148,14 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 5c.2. Use case quay lại bước 2
 
 **Exception Flow(s):**
+
 - **3.1. File ảnh không hợp lệ:**
   - 3.1.a. Hệ thống hiển thị "Only image files are allowed"
 - **7.1. Server error:**
   - 7.1.a. Hệ thống hiển thị "Failed to create account"
 
 **Notes:**
+
 - Password phải đủ mạnh (tối thiểu 8 ký tự)
 - Sau đăng ký, user tự động được đăng nhập (không cần qua trang login)
 - Token được lưu vào Redux store
@@ -162,6 +174,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - User được đăng nhập<br>- JWT token được tạo<br>- Socket.IO connection được thiết lập<br>- User được chuyển đến trang chủ (hoặc Admin Dashboard nếu là Admin) |
 
 **Main Flow:**
+
 1. Guest truy cập `/login`
 2. Guest nhập Email
 3. Guest nhập Password
@@ -176,6 +189,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
     - Nếu User → Chuyển đến `/`
 
 **Alternate Flow(s):**
+
 - **6a. Email không tồn tại:**
   - 6a.1. Hệ thống hiển thị "User not found"
   - 6a.2. Use case quay lại bước 2
@@ -185,10 +199,12 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 6b.2. Use case quay lại bước 3
 
 **Exception Flow(s):**
+
 - **9.1. Không thể kết nối Socket:**
   - 9.1.a. Hệ thống vẫn cho phép đăng nhập nhưng real-time features bị disable
 
 **Notes:**
+
 - Admin được redirect tự động đến Admin Dashboard
 - Socket connection cho phép real-time messaging
 
@@ -206,6 +222,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Email chứa reset link được gửi<br>- Reset token được tạo và lưu |
 
 **Main Flow:**
+
 1. Guest truy cập `/forgot-password`
 2. Guest nhập Email
 3. Guest click "SEND RESET LINK"
@@ -216,15 +233,18 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 8. Hệ thống hiển thị "Reset link sent to your email"
 
 **Alternate Flow(s):**
+
 - **5a. Email không tồn tại:**
   - 5a.1. Hệ thống hiển thị "No account found with this email"
   - 5a.2. Use case quay lại bước 2
 
 **Exception Flow(s):**
+
 - **7.1. Gửi email thất bại:**
   - 7.1.a. Hệ thống hiển thị "Failed to send email. Please try again."
 
 **Notes:**
+
 - Reset link format: `/reset-password?token=xxx&email=xxx`
 - Token hết hạn sau 1 giờ
 
@@ -242,6 +262,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Password được cập nhật<br>- Guest được chuyển đến trang đăng nhập |
 
 **Main Flow:**
+
 1. Guest click link reset từ email
 2. Hệ thống chuyển đến `/reset-password?token=xxx&email=xxx`
 3. Guest nhập Password mới
@@ -254,6 +275,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 10. Hệ thống chuyển hướng đến `/login`
 
 **Alternate Flow(s):**
+
 - **6a. Password không khớp:**
   - 6a.1. Hệ thống hiển thị cảnh báo "Passwords do not match"
   - 6a.2. Use case quay lại bước 3
@@ -267,10 +289,12 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 7b.2. Use case kết thúc
 
 **Exception Flow(s):**
+
 - **8.1. Cập nhật thất bại:**
   - 8.1.a. Hệ thống hiển thị "Failed to reset password"
 
 **Notes:**
+
 - Token chỉ có thể sử dụng một lần
 - Sau reset, token bị vô hiệu hóa
 
@@ -288,6 +312,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Session được xóa<br>- Socket.IO connection bị ngắt<br>- Actor được chuyển đến trang chủ |
 
 **Main Flow:**
+
 1. Actor click vào avatar menu
 2. Actor click "Log Out"
 3. Hệ thống xóa token khỏi Redux store
@@ -295,6 +320,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 5. Hệ thống chuyển hướng đến `/`
 
 **Notes:**
+
 - Token bị xóa hoàn toàn từ client
 - Cần đăng nhập lại để sử dụng các tính năng yêu cầu authentication
 
@@ -314,6 +340,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Thông tin xác thực được lưu<br>- Status = "pending"<br>- Đợi Admin duyệt |
 
 **Main Flow:**
+
 1. User chọn tạo listing type "Room(s)" hoặc "A Shared Room"
 2. Hệ thống kiểm tra verification status
 3. Hệ thống hiển thị form Identity Verification
@@ -331,6 +358,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 12. User đợi Admin duyệt
 
 **Alternate Flow(s):**
+
 - **2a. User đã có verification approved:**
   - 2a.1. Hệ thống cho phép tiếp tục tạo listing
 
@@ -343,10 +371,12 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 2c.2. User có thể submit lại
 
 **Exception Flow(s):**
+
 - **9.1. Upload ảnh thất bại:**
   - 9.1.a. Hệ thống hiển thị "Failed to upload images"
 
 **Notes:**
+
 - Identity Verification là bắt buộc cho Room Rental và Roommate
 - Mỗi user chỉ có 1 verification record
 - Có thể cập nhật lại nếu bị rejected
@@ -365,6 +395,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Verification được approve hoặc reject |
 
 **Main Flow:**
+
 1. Admin truy cập Admin Dashboard
 2. Admin click vào tab "Identity Verification"
 3. Hệ thống hiển thị danh sách verifications pending
@@ -377,12 +408,14 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 9. Hệ thống hiển thị thông báo thành công
 
 **Alternate Flow(s):**
+
 - **6a. Admin reject:**
   - 6a.1. Dialog yêu cầu nhập rejection reason
   - 6a.2. Admin nhập lý do và confirm
   - 6a.3. Status = "rejected" với rejectionReason
 
 **Notes:**
+
 - Admin có thể filter theo status: pending, approved, rejected
 - Rejection reason hiển thị cho user khi họ xem verification status
 
@@ -402,6 +435,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Listing được tạo thành công<br>- Listing hiển thị trên trang chủ<br>- User trở thành Host |
 
 **Main Flow:**
+
 1. User click "Become a Host"
 2. Hệ thống hiển thị dialog chọn type
 3. User chọn "An entire place"
@@ -421,15 +455,18 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 10. Hệ thống chuyển hướng đến listing detail
 
 **Alternate Flow(s):**
+
 - **7a. Thiếu thông tin bắt buộc:**
   - 7a.1. Hệ thống highlight các field cần điền
   - 7a.2. Use case quay lại bước tương ứng
 
 **Exception Flow(s):**
+
 - **8.1. Upload ảnh thất bại:**
   - 8.1.a. Hệ thống hiển thị lỗi và cho phép retry
 
 **Notes:**
+
 - Minimum 5 ảnh, maximum 10 ảnh
 - Giá theo ngày (daily rate)
 - Listing tự động active sau khi tạo
@@ -448,6 +485,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - BookingIntent được tạo (LOCKED)<br>- Listing bị khóa tạm thời cho user này<br>- User được chuyển đến trang thanh toán |
 
 **Main Flow:**
+
 1. Guest chọn ngày check-in và check-out trên Listing Detail
 2. Hệ thống tính tổng tiền
 3. Guest click "Reserve"
@@ -461,6 +499,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
    - Cash
 
 **Alternate Flow(s):**
+
 - **4a. Ngày đã được đặt:**
   - 4a.1. Hệ thống hiển thị "These dates are already booked"
   - 4a.2. Use case quay lại bước 1
@@ -470,10 +509,12 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 4b.2. Guest có thể chờ hoặc chọn ngày khác
 
 **Exception Flow(s):**
+
 - **5.1. Tạo BookingIntent thất bại:**
   - 5.1.a. Hệ thống hiển thị lỗi và refresh availability
 
 **Notes:**
+
 - BookingIntent tự động hết hạn sau 10 phút
 - Nếu không thanh toán, lock được giải phóng
 - Chỉ 1 user có thể lock 1 ngày tại 1 thời điểm
@@ -492,6 +533,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Payment thành công → Booking được tạo<br>- VNPay Full → Booking auto-approved<br>- VNPay Deposit → Booking pending |
 
 **Main Flow:**
+
 1. Guest chọn "VNPay Full Payment" hoặc "VNPay Deposit (30%)"
 2. Guest đồng ý điều khoản
 3. Guest click "Pay Now"
@@ -507,6 +549,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 11. Hệ thống hiển thị Payment Success với thông tin booking
 
 **Alternate Flow(s):**
+
 - **6a. Guest hủy thanh toán:**
   - 6a.1. VNPay redirect về với response code khác 00
   - 6a.2. Hệ thống hiển thị "Payment cancelled"
@@ -517,11 +560,13 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 8a.2. Guest có thể thử lại
 
 **Exception Flow(s):**
+
 - **7.1. VNPay timeout:**
   - 7.1.a. BookingIntent hết hạn
   - 7.1.b. Listing lock được giải phóng
 
 **Notes:**
+
 - VNPay Full → Auto-approved (không cần Host xác nhận)
 - VNPay Deposit 30% → Cần Host approve + Guest trả phần còn lại
 - Payment history được ghi nhận
@@ -540,6 +585,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Booking được tạo với status = "pending"<br>- paymentStatus = "unpaid"<br>- Host nhận được thông báo |
 
 **Main Flow:**
+
 1. Guest chọn "Cash Payment"
 2. Guest đồng ý điều khoản
 3. Guest click "Reserve"
@@ -554,6 +600,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 8. Hệ thống chuyển về Trip List
 
 **Notes:**
+
 - Cash payment không auto-approve
 - Host cần xác nhận booking
 - Guest thanh toán khi check-in
@@ -572,6 +619,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Booking status = "approved" hoặc "rejected"<br>- Guest nhận notification |
 
 **Main Flow:**
+
 1. Host truy cập Booking Requests
 2. Host xem danh sách booking pending
 3. Host click vào một booking để xem chi tiết
@@ -584,12 +632,14 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 8. Hệ thống hiển thị thông báo thành công
 
 **Alternate Flow(s):**
+
 - **5a. Reject booking:**
   - 5a.1. Hệ thống hiển thị dialog nhập lý do
   - 5a.2. Host nhập rejection reason
   - 5a.3. Hệ thống lưu reason vào booking.rejectionReason
 
 **Notes:**
+
 - VNPay Full payment → auto-approved, không qua bước này
 - Deposit và Cash cần Host approve
 - Rejection reason hiển thị cho Guest
@@ -608,6 +658,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Booking status = "cancelled"<br>- Cancellation reason được lưu<br>- Host nhận notification |
 
 **Main Flow:**
+
 1. Guest truy cập Trip List
 2. Guest chọn booking muốn hủy
 3. Guest click "Cancel Request"
@@ -621,6 +672,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 9. Hệ thống hiển thị thông báo thành công
 
 **Alternate Flow(s):**
+
 - **3a. Booking đã check-in:**
   - 3a.1. Nút Cancel không hiển thị
   
@@ -628,6 +680,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 3b.1. Không thể cancel booking đã bị reject
 
 **Notes:**
+
 - Guest có thể hủy bất cứ lúc nào trước check-in
 - Refund policy tùy thuộc vào chính sách Host (hiện tại không tự động refund)
 
@@ -645,6 +698,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - RentalRequest được tạo với status = "REQUESTED"<br>- Host nhận notification |
 
 **Main Flow:**
+
 1. Tenant xem chi tiết phòng
 2. Tenant click "Request to Rent"
 3. Hệ thống kiểm tra identity verification
@@ -660,6 +714,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 10. Hệ thống hiển thị thông báo thành công
 
 **Alternate Flow(s):**
+
 - **3a. Chưa xác thực danh tính:**
   - 3a.1. Hệ thống hiển thị dialog yêu cầu xác thực
   - 3a.2. Tenant click "Verify My Identity"
@@ -670,11 +725,13 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 7a.2. Use case quay lại bước 5
 
 **Exception Flow(s):**
+
 - **8.1. Tạo request thất bại:**
   - 8.1.a. Hệ thống hiển thị lỗi
   - 8.1.b. Tenant có thể thử lại
 
 **Notes:**
+
 - Message là bắt buộc (50-1000 ký tự)
 - Tenant cần được Host approve trước khi có Agreement
 - Một Tenant chỉ có thể gửi 1 request active cho 1 phòng
@@ -693,6 +750,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Host xem được thông tin chi tiết yêu cầu |
 
 **Main Flow:**
+
 1. Host truy cập "Room Rental Requests"
 2. Hệ thống hiển thị danh sách requests
 3. Host click vào một request để xem chi tiết
@@ -708,10 +766,12 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
    - Reject request (UC35)
 
 **Alternate Flow(s):**
+
 - **2a. Không có request nào:**
   - 2a.1. Hệ thống hiển thị "No rental requests yet"
 
 **Notes:**
+
 - Requests được sắp xếp theo thời gian (mới nhất trước)
 - Host có thể filter theo status
 
@@ -729,6 +789,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Request status = "APPROVED" hoặc "REJECTED"<br>- Nếu approved → RentalAgreement được tạo<br>- Tenant nhận notification |
 
 **Main Flow (Approve):**
+
 1. Host xem chi tiết request (UC34)
 2. Host click "Approve"
 3. Hệ thống hiển thị confirm dialog
@@ -739,6 +800,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 8. Hệ thống hiển thị thông báo thành công
 
 **Main Flow (Reject):**
+
 1. Host xem chi tiết request
 2. Host click "Reject"
 3. Hệ thống hiển thị dialog nhập lý do
@@ -751,11 +813,13 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 8. Hệ thống hiển thị thông báo thành công
 
 **Alternate Flow(s):**
+
 - **4a. Host hủy approve:**
   - 4a.1. Host click "Cancel" trong dialog
   - 4a.2. Use case kết thúc
 
 **Notes:**
+
 - Approve → tự động tạo Agreement
 - Reject → Tenant có thể gửi request mới
 - Rejection reason hiển thị cho Tenant
@@ -774,6 +838,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - RentalAgreement được tạo với status = "DRAFT"<br>- Tenant nhận notification để ký |
 
 **Main Flow:**
+
 1. Host approve rental request (UC35)
 2. Hệ thống tự động tạo RentalAgreement:
    - room_id = request.roomId
@@ -789,6 +854,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 4. Agreement hiển thị trong "My Agreements" của cả hai
 
 **Notes:**
+
 - Agreement tự động tạo khi approve
 - Cần cả hai bên ký mới active
 - Deposit mặc định = 1 tháng rent
@@ -808,6 +874,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - agreedByTenantAt được set<br>- Đợi Host ký |
 
 **Main Flow:**
+
 1. Tenant truy cập "My Agreements"
 2. Tenant chọn agreement cần ký
 3. Tenant xem chi tiết agreement:
@@ -826,11 +893,13 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 10. Hệ thống hiển thị thông báo thành công
 
 **Alternate Flow(s):**
+
 - **8a. Cả hai đã ký:**
   - 8a.1. Hệ thống set status = "ACTIVE"
   - 8a.2. Move-in process bắt đầu
 
 **Notes:**
+
 - Digital signature = timestamp khi click Accept
 - Agreement chỉ active khi cả hai đã ký
 - Sau khi active, Tenant có thể proceed move-in
@@ -849,6 +918,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - agreedByHostAt được set<br>- Nếu Tenant đã ký → status = "ACTIVE" |
 
 **Main Flow:**
+
 1. Host truy cập "Room Rental Agreements"
 2. Host chọn agreement cần ký
 3. Host xem chi tiết agreement
@@ -862,6 +932,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 10. Hệ thống hiển thị thông báo thành công
 
 **Notes:**
+
 - Tương tự UC37 nhưng cho Host
 - Cần cả hai ký mới activate
 
@@ -879,6 +950,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Monthly payment được ghi nhận |
 
 **Main Flow:**
+
 1. Hệ thống tự động tạo monthly payment record:
    - amount = agreement.rentAmount
    - dueDate = ngày 1 mỗi tháng
@@ -896,6 +968,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 6. Hệ thống cập nhật payment history
 
 **Alternate Flow(s):**
+
 - **3a. Tenant thanh toán muộn:**
   - 3a.1. Hệ thống gửi overdue reminder
   - 3a.2. Host có thể xem danh sách overdue
@@ -904,11 +977,13 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 3b.1. Sau 30 ngày → Host có thể initiate termination
 
 **Exception Flow(s):**
+
 - **5.1. Host chưa confirm payment:**
   - 5.1.a. Payment vẫn ở status "UNPAID"
   - 5.1.b. Tenant có thể gửi proof of payment
 
 **Notes:**
+
 - Payment history được lưu trong RentalPayment model
 - Reminder tự động gửi qua notification
 - Platform không giữ tiền (chỉ tracking)
@@ -927,6 +1002,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Rental status = "ACTIVE"<br>- Monthly payment cycle bắt đầu |
 
 **Main Flow:**
+
 1. Tenant dọn vào phòng
 2. Tenant click "Confirm Move-In" trong app
 3. Hệ thống hiển thị confirm dialog
@@ -943,11 +1019,13 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 10. Hệ thống tạo first monthly payment record
 
 **Alternate Flow(s):**
+
 - **7a. Host chưa confirm:**
   - 7a.1. Rental vẫn ở trạng thái waiting confirmation
   - 7a.2. Payment cycle chưa bắt đầu
 
 **Notes:**
+
 - Cần cả Tenant và Host confirm
 - Payment cycle bắt đầu sau move-in confirmation
 - First payment thường là deposit + first month rent
@@ -966,6 +1044,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Rental status = "COMPLETED"<br>- Agreement status = "TERMINATED"<br>- Deposit được xử lý |
 
 **Main Flow (Tenant initiate):**
+
 1. Tenant truy cập "My Rentals"
 2. Tenant chọn rental đang active
 3. Tenant click "Request Termination"
@@ -990,6 +1069,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 14. Cả hai có thể viết review
 
 **Main Flow (Host initiate):**
+
 1. Host truy cập "Room Rentals"
 2. Host chọn rental cần terminate
 3. Host click "Terminate Rental"
@@ -998,6 +1078,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 6. Các bước 9-14 tương tự
 
 **Alternate Flow(s):**
+
 - **8a. Notice period không đủ:**
   - 8a.1. Hệ thống hiển thị warning
   - 8a.2. Tenant vẫn có thể submit nhưng có thể mất deposit
@@ -1008,11 +1089,13 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 12a.3. Deposit refund = deposit - deduction
 
 **Exception Flow(s):**
+
 - **12.1. Tranh chấp về deposit:**
   - 12.1.a. Tenant có thể khiếu nại
   - 12.1.b. Admin có thể can thiệp
 
 **Notes:**
+
 - Notice period mặc định = 30 ngày
 - Deposit refund tùy thuộc vào tình trạng phòng
 - Cả hai bên có thể initiate termination
@@ -1031,6 +1114,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - User xem được danh sách rentals |
 
 **Main Flow (Tenant):**
+
 1. Tenant click "My Rentals"
 2. Hệ thống hiển thị tabs:
    - Active Rentals
@@ -1049,6 +1133,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
    - Actions (terminate, pay rent, etc.)
 
 **Main Flow (Host):**
+
 1. Host click "Room Rentals"
 2. Hệ thống hiển thị tabs:
    - Active Rentals
@@ -1064,10 +1149,12 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
    - Actions
 
 **Alternate Flow(s):**
+
 - **4a. Không có rental nào:**
   - 4a.1. Hệ thống hiển thị "No rentals found"
 
 **Notes:**
+
 - Active = đang thuê
 - Past = đã kết thúc (completed, terminated)
 - Payment history hiển thị đầy đủ
@@ -1086,6 +1173,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - RentalRequest được tạo với status = "REQUESTED"<br>- Host nhận notification |
 
 **Main Flow:**
+
 1. Tenant xem chi tiết phòng
 2. Tenant click "Request to Rent"
 3. Hệ thống kiểm tra identity verification
@@ -1101,12 +1189,14 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 10. Hệ thống hiển thị thông báo thành công
 
 **Alternate Flow(s):**
+
 - **3a. Chưa xác thực danh tính:**
   - 3a.1. Hệ thống hiển thị dialog yêu cầu xác thực
   - 3a.2. Tenant click "Verify My Identity"
   - 3a.3. Chuyển đến form Identity Verification
 
 **Notes:**
+
 - Message là bắt buộc (50-1000 ký tự)
 - Tenant cần được Host approve trước khi có Agreement
 
@@ -1124,6 +1214,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - RentalAgreement được tạo với status = "DRAFT"<br>- Tenant nhận notification để ký |
 
 **Main Flow:**
+
 1. Host approve rental request (UC35)
 2. Hệ thống tự động tạo RentalAgreement:
    - rentAmount = room.monthlyRent
@@ -1135,6 +1226,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 4. Agreement hiển thị trong "My Agreements" của cả hai
 
 **Notes:**
+
 - Agreement tự động tạo khi approve
 - Cần cả hai bên ký mới active
 
@@ -1152,6 +1244,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - agreedByTenantAt được set<br>- Đợi Host ký |
 
 **Main Flow:**
+
 1. Tenant truy cập "My Agreements"
 2. Tenant chọn agreement cần ký
 3. Tenant xem chi tiết agreement
@@ -1163,6 +1256,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 9. Hệ thống gửi notification
 
 **Notes:**
+
 - Digital signature = timestamp khi click Accept
 - Agreement chỉ active khi cả hai đã ký
 
@@ -1182,6 +1276,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - RoommatePost được tạo với status = "ACTIVE"<br>- Bài đăng hiển thị trong tìm kiếm |
 
 **Main Flow:**
+
 1. User click "Become a Host"
 2. User chọn "A Shared Room"
 3. Hệ thống kiểm tra identity verification
@@ -1202,10 +1297,12 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 9. Hệ thống chuyển đến post detail
 
 **Alternate Flow(s):**
+
 - **3a. Chưa xác thực:**
   - 3a.1. Chuyển đến Identity Verification form
 
 **Notes:**
+
 - SEEKER: Đang tìm chỗ ở chung
 - PROVIDER: Có chỗ ở, tìm người ở cùng
 - Không có booking hay payment
@@ -1224,6 +1321,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - RoommateRequest được tạo<br>- Receiver nhận notification |
 
 **Main Flow:**
+
 1. User xem bài đăng roommate
 2. User click "Send Request"
 3. User nhập message
@@ -1233,10 +1331,12 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 7. Hiển thị thành công
 
 **Alternate Flow(s):**
+
 - **2a. User đã gửi request cho bài này:**
   - 2a.1. Hiển thị "You already sent a request"
 
 **Notes:**
+
 - Không thể gửi request cho chính bài đăng của mình
 - Một user chỉ gửi được 1 request cho mỗi bài
 
@@ -1254,6 +1354,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - RoommateMatch được tạo<br>- RoommatePost status → "MATCHED"<br>- Chat được enable |
 
 **Main Flow:**
+
 1. Post owner accept request
 2. Hệ thống tạo RoommateMatch
 3. Hệ thống cập nhật post status = "MATCHED"
@@ -1262,6 +1363,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 6. Cả hai có thể chat với nhau
 
 **Notes:**
+
 - Match = kết nối thành công
 - Post tự động ẩn khỏi search
 - Không có transaction qua platform
@@ -1280,6 +1382,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Message được gửi và nhận real-time |
 
 **Main Flow:**
+
 1. User truy cập "My Roommate Requests"
 2. User chọn request đã được accepted
 3. User click "Start Chat"
@@ -1292,11 +1395,13 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 10. Message hiển thị trong chat
 
 **Alternate Flow(s):**
+
 - **3a. Chat từ Post Detail:**
   - 3a.1. User click "Contact" trong post detail
   - 3a.2. Chuyển đến chat window
 
 **Notes:**
+
 - Chat chỉ khả dụng sau khi match
 - Support text và image
 - Real-time qua Socket.IO
@@ -1315,6 +1420,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Post được cập nhật<br>- updatedAt được set |
 
 **Main Flow:**
+
 1. User truy cập "My Roommate Posts"
 2. User chọn post cần edit
 3. User click "Edit Post"
@@ -1337,6 +1443,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 12. Hệ thống redirect về post detail
 
 **Alternate Flow(s):**
+
 - **8a. Validation failed:**
   - 8a.1. Hệ thống highlight errors
   - 8a.2. Use case quay lại bước 5
@@ -1346,11 +1453,13 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 3a.2. Hiển thị "Cannot edit matched post"
 
 **Exception Flow(s):**
+
 - **9.1. Upload ảnh thất bại:**
   - 9.1.a. Hệ thống giữ ảnh cũ
   - 9.1.b. Hiển thị warning
 
 **Notes:**
+
 - Chỉ owner mới có thể edit
 - Không thể edit post đã matched
 - Post type không thể thay đổi
@@ -1369,6 +1478,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Post status = "CLOSED"<br>- Post không hiển thị trong search |
 
 **Main Flow:**
+
 1. User truy cập "My Roommate Posts"
 2. User chọn post cần đóng
 3. User click "Close Post"
@@ -1383,6 +1493,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 8. Hệ thống hiển thị thông báo thành công
 
 **Alternate Flow(s):**
+
 - **5a. User hủy:**
   - 5a.1. User click "Cancel"
   - 5a.2. Use case kết thúc
@@ -1393,6 +1504,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 6a.3. Post hiển thị lại trong search
 
 **Notes:**
+
 - User có thể reopen post đã closed
 - Closed post vẫn hiển thị trong "My Posts"
 - Pending requests vẫn còn hiệu lực
@@ -1411,6 +1523,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - User xem được danh sách requests |
 
 **Main Flow:**
+
 1. User click "My Roommate Requests"
 2. User chọn tab "Sent Requests"
 3. Hệ thống hiển thị danh sách requests đã gửi:
@@ -1430,6 +1543,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
      - REJECTED: View Reason (if any)
 
 **Alternate Flow(s):**
+
 - **3a. Không có request nào:**
   - 3a.1. Hiển thị "You haven't sent any requests yet"
   - 3a.2. Button "Find Roommates"
@@ -1440,6 +1554,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 5a.3. Status = "CANCELLED"
 
 **Notes:**
+
 - Filter theo status: All, Pending, Accepted, Rejected
 - Sort theo thời gian mới nhất
 
@@ -1457,6 +1572,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - User xem được danh sách requests |
 
 **Main Flow:**
+
 1. User click "My Roommate Requests"
 2. User chọn tab "Received Requests"
 3. Hệ thống hiển thị danh sách requests nhận được:
@@ -1476,6 +1592,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
      - REJECTED: View history
 
 **Alternate Flow(s):**
+
 - **3a. Không có request nào:**
   - 3a.1. Hiển thị "No requests received yet"
 
@@ -1490,6 +1607,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
   - 5b.3. Status = "REJECTED"
 
 **Notes:**
+
 - Pending requests có priority cao (hiển thị trước)
 - Badge notification cho pending requests
 - Filter theo status và post
@@ -1510,6 +1628,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Message được lưu<br>- Receiver nhận real-time notification |
 
 **Main Flow:**
+
 1. User mở conversation
 2. User nhập tin nhắn
 3. User click "Send" hoặc Enter
@@ -1519,6 +1638,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 7. Message hiển thị trong chat window
 
 **Notes:**
+
 - Real-time qua Socket.IO
 - Hỗ trợ gửi ảnh
 
@@ -1538,6 +1658,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Review được tạo<br>- Rating được cập nhật |
 
 **Main Flow:**
+
 1. User truy cập booking completed
 2. User click "Write Review"
 3. User chọn rating (1-5 sao)
@@ -1547,6 +1668,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 7. Hệ thống cập nhật average rating
 
 **Notes:**
+
 - Chỉ có thể review sau khi completed
 - Mỗi user chỉ review 1 lần cho mỗi booking
 
@@ -1566,6 +1688,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 | **Post-Conditions** | - Admin xem được statistics và có thể quản lý |
 
 **Main Flow:**
+
 1. Admin đăng nhập
 2. Hệ thống tự động redirect đến `/admin`
 3. Admin xem Dashboard với:
@@ -1581,6 +1704,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
    - Facilities Management
 
 **Notes:**
+
 - Admin không thấy user features (booking, wishlist, etc.)
 - Navbar chỉ hiện Admin Dashboard và Logout
 
@@ -1589,6 +1713,7 @@ Hệ thống Rental Home là nền tảng **đa quy trình** với **3 PROCESS R
 ## APPENDIX: STATE DIAGRAMS
 
 ### Booking Status Flow (Entire Place)
+
 ```
 draft → pending → approved → checked_in → checked_out → completed
                 ↘ rejected
@@ -1597,6 +1722,7 @@ draft → pending → approved → checked_in → checked_out → completed
 ```
 
 ### RentalRequest Status Flow (Room Rental)
+
 ```
 REQUESTED → APPROVED → (Agreement Created)
          ↘ REJECTED
@@ -1604,12 +1730,14 @@ REQUESTED → APPROVED → (Agreement Created)
 ```
 
 ### RentalAgreement Status Flow
+
 ```
 DRAFT → ACTIVE → TERMINATED
 (Both parties sign)
 ```
 
 ### RoommatePost Status Flow
+
 ```
 ACTIVE → MATCHED → CLOSED
       ↘ CLOSED
@@ -1620,9 +1748,6 @@ ACTIVE → MATCHED → CLOSED
 **Document Status:** CURRENT  
 **Version:** 2.0  
 **Last Modified:** December 30, 2025
-
-
-
 
 # USE CASES - BỔ SUNG
 
@@ -1642,27 +1767,49 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 ## DANH SÁCH USE CASES BỔ SUNG
 
 ### UC08: Cập nhật xác thực danh tính
+
 ### UC19: Guest check-in
+
 ### UC20: Guest check-out
+
 ### UC33: Gửi yêu cầu thuê phòng
+
 ### UC34: Host xem yêu cầu thuê
+
 ### UC39: Quản lý thanh toán hàng tháng
+
 ### UC40: Move-in xác nhận
+
 ### UC41: Kết thúc thuê phòng
+
 ### UC42: Xem danh sách thuê
+
 ### UC56: Chat với roommate
+
 ### UC57: Chỉnh sửa bài đăng
+
 ### UC58: Đóng bài đăng
+
 ### UC59: Xem yêu cầu đã gửi
+
 ### UC60: Xem yêu cầu nhận được
+
 ### UC70: Gửi tin nhắn
+
 ### UC71: Xem danh sách hội thoại
+
 ### UC72: Xem lịch sử tin nhắn
+
 ### UC73: Liên hệ Host
+
 ### UC91: Quản lý Users
+
 ### UC92: Quản lý Listings
+
 ### UC93: Quản lý Identity Verification
+
 ### UC94: Quản lý Categories
+
 ### UC95: Quản lý Facilities
 
 ---
@@ -1681,6 +1828,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Verification được cập nhật<br>- Status chuyển về "pending"<br>- Admin nhận notification |
 
 **Main Flow:**
+
 1. User truy cập Identity Verification form
 2. Hệ thống hiển thị rejection reason từ Admin
 3. User cập nhật thông tin:
@@ -1700,16 +1848,19 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 11. Hệ thống hiển thị thông báo thành công
 
 **Alternate Flow(s):**
+
 - **2a. Verification status = "approved":**
   - 2a.1. Hệ thống hiển thị thông tin đã được duyệt
   - 2a.2. Không cho phép cập nhật
 
 **Exception Flow(s):**
+
 - **8.1. Upload ảnh thất bại:**
   - 8.1.a. Hệ thống hiển thị "Failed to upload images"
   - 8.1.b. Use case quay lại bước 4
 
 **Notes:**
+
 - User chỉ có thể cập nhật khi status = "rejected"
 - Mỗi lần update, status reset về "pending"
 - Rejection reason được xóa sau khi resubmit
@@ -1730,6 +1881,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Booking status = "checked_in"<br>- checkInAt được set<br>- Host nhận notification |
 
 **Main Flow:**
+
 1. Guest truy cập Trip List
 2. Guest chọn booking sắp check-in
 3. Guest click "Check In"
@@ -1742,6 +1894,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 8. Hệ thống hiển thị thông báo thành công
 
 **Alternate Flow(s):**
+
 - **3a. Chưa đến ngày check-in:**
   - 3a.1. Nút "Check In" bị disable
   - 3a.2. Hiển thị "Check-in available on [date]"
@@ -1751,11 +1904,13 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 3b.2. Hiển thị warning "Late check-in"
 
 **Exception Flow(s):**
+
 - **6.1. Cập nhật thất bại:**
   - 6.1.a. Hệ thống hiển thị lỗi
   - 6.1.b. Guest có thể thử lại
 
 **Notes:**
+
 - Check-in có thể thực hiện trong ngày check-in hoặc sau đó
 - Chỉ Guest có thể trigger check-in
 - Sau check-in, nút "Check Out" sẽ xuất hiện
@@ -1774,6 +1929,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Booking status = "checked_out"<br>- checkOutAt được set<br>- Host có thể complete booking<br>- Review được enable |
 
 **Main Flow:**
+
 1. Guest truy cập Trip List
 2. Guest chọn booking đang ở
 3. Guest click "Check Out"
@@ -1788,6 +1944,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 9. Guest có thể viết review
 
 **Alternate Flow(s):**
+
 - **3a. Chưa check-in:**
   - 3a.1. Không hiển thị nút "Check Out"
 
@@ -1800,11 +1957,13 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 3c.2. Có thể phát sinh phí (tùy Host policy)
 
 **Exception Flow(s):**
+
 - **6.1. Cập nhật thất bại:**
   - 6.1.a. Hệ thống hiển thị lỗi
   - 6.1.b. Guest có thể thử lại
 
 **Notes:**
+
 - Check-out có thể thực hiện bất cứ lúc nào sau check-in
 - Sau check-out, Host cần complete booking
 - Review chỉ khả dụng sau check-out
@@ -1826,6 +1985,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - RentalRequest được tạo với status = "REQUESTED"<br>- Host nhận notification |
 
 **Main Flow:**
+
 1. Tenant xem chi tiết phòng
 2. Tenant click "Request to Rent"
 3. Hệ thống kiểm tra identity verification
@@ -1841,6 +2001,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 10. Hệ thống hiển thị thông báo thành công
 
 **Alternate Flow(s):**
+
 - **3a. Chưa xác thực danh tính:**
   - 3a.1. Hệ thống hiển thị dialog yêu cầu xác thực
   - 3a.2. Tenant click "Verify My Identity"
@@ -1851,11 +2012,13 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 7a.2. Use case quay lại bước 5
 
 **Exception Flow(s):**
+
 - **8.1. Tạo request thất bại:**
   - 8.1.a. Hệ thống hiển thị lỗi
   - 8.1.b. Tenant có thể thử lại
 
 **Notes:**
+
 - Message là bắt buộc (50-1000 ký tự)
 - Tenant cần được Host approve trước khi có Agreement
 - Một Tenant chỉ có thể gửi 1 request active cho 1 phòng
@@ -1874,6 +2037,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Host xem được thông tin chi tiết yêu cầu |
 
 **Main Flow:**
+
 1. Host truy cập "Room Rental Requests"
 2. Hệ thống hiển thị danh sách requests
 3. Host click vào một request để xem chi tiết
@@ -1889,10 +2053,12 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
    - Reject request (UC35)
 
 **Alternate Flow(s):**
+
 - **2a. Không có request nào:**
   - 2a.1. Hệ thống hiển thị "No rental requests yet"
 
 **Notes:**
+
 - Requests được sắp xếp theo thời gian (mới nhất trước)
 - Host có thể filter theo status
 
@@ -1910,6 +2076,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Monthly payment được ghi nhận |
 
 **Main Flow:**
+
 1. Hệ thống tự động tạo monthly payment record:
    - amount = agreement.rentAmount
    - dueDate = ngày 1 mỗi tháng
@@ -1927,6 +2094,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 6. Hệ thống cập nhật payment history
 
 **Alternate Flow(s):**
+
 - **3a. Tenant thanh toán muộn:**
   - 3a.1. Hệ thống gửi overdue reminder
   - 3a.2. Host có thể xem danh sách overdue
@@ -1935,11 +2103,13 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 3b.1. Sau 30 ngày → Host có thể initiate termination
 
 **Exception Flow(s):**
+
 - **5.1. Host chưa confirm payment:**
   - 5.1.a. Payment vẫn ở status "UNPAID"
   - 5.1.b. Tenant có thể gửi proof of payment
 
 **Notes:**
+
 - Payment history được lưu trong RentalPayment model
 - Reminder tự động gửi qua notification
 - Platform không giữ tiền (chỉ tracking)
@@ -1958,6 +2128,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Rental status = "ACTIVE"<br>- Monthly payment cycle bắt đầu |
 
 **Main Flow:**
+
 1. Tenant dọn vào phòng
 2. Tenant click "Confirm Move-In" trong app
 3. Hệ thống hiển thị confirm dialog
@@ -1974,11 +2145,13 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 10. Hệ thống tạo first monthly payment record
 
 **Alternate Flow(s):**
+
 - **7a. Host chưa confirm:**
   - 7a.1. Rental vẫn ở trạng thái waiting confirmation
   - 7a.2. Payment cycle chưa bắt đầu
 
 **Notes:**
+
 - Cần cả Tenant và Host confirm
 - Payment cycle bắt đầu sau move-in confirmation
 - First payment thường là deposit + first month rent
@@ -1997,6 +2170,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Rental status = "COMPLETED"<br>- Agreement status = "TERMINATED"<br>- Deposit được xử lý |
 
 **Main Flow (Tenant initiate):**
+
 1. Tenant truy cập "My Rentals"
 2. Tenant chọn rental đang active
 3. Tenant click "Request Termination"
@@ -2021,6 +2195,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 14. Cả hai có thể viết review
 
 **Main Flow (Host initiate):**
+
 1. Host truy cập "Room Rentals"
 2. Host chọn rental cần terminate
 3. Host click "Terminate Rental"
@@ -2029,6 +2204,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 6. Các bước 9-14 tương tự
 
 **Alternate Flow(s):**
+
 - **8a. Notice period không đủ:**
   - 8a.1. Hệ thống hiển thị warning
   - 8a.2. Tenant vẫn có thể submit nhưng có thể mất deposit
@@ -2039,11 +2215,13 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 12a.3. Deposit refund = deposit - deduction
 
 **Exception Flow(s):**
+
 - **12.1. Tranh chấp về deposit:**
   - 12.1.a. Tenant có thể khiếu nại
   - 12.1.b. Admin có thể can thiệp
 
 **Notes:**
+
 - Notice period mặc định = 30 ngày
 - Deposit refund tùy thuộc vào tình trạng phòng
 - Cả hai bên có thể initiate termination
@@ -2062,6 +2240,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - User xem được danh sách rentals |
 
 **Main Flow (Tenant):**
+
 1. Tenant click "My Rentals"
 2. Hệ thống hiển thị tabs:
    - Active Rentals
@@ -2080,6 +2259,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
    - Actions (terminate, pay rent, etc.)
 
 **Main Flow (Host):**
+
 1. Host click "Room Rentals"
 2. Hệ thống hiển thị tabs:
    - Active Rentals
@@ -2095,10 +2275,12 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
    - Actions
 
 **Alternate Flow(s):**
+
 - **4a. Không có rental nào:**
   - 4a.1. Hệ thống hiển thị "No rentals found"
 
 **Notes:**
+
 - Active = đang thuê
 - Past = đã kết thúc (completed, terminated)
 - Payment history hiển thị đầy đủ
@@ -2119,6 +2301,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Message được gửi và nhận real-time |
 
 **Main Flow:**
+
 1. User truy cập "My Roommate Requests"
 2. User chọn request đã được accepted
 3. User click "Start Chat"
@@ -2131,11 +2314,13 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 10. Message hiển thị trong chat
 
 **Alternate Flow(s):**
+
 - **3a. Chat từ Post Detail:**
   - 3a.1. User click "Contact" trong post detail
   - 3a.2. Chuyển đến chat window
 
 **Notes:**
+
 - Chat chỉ khả dụng sau khi match
 - Support text và image
 - Real-time qua Socket.IO
@@ -2154,6 +2339,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Post được cập nhật<br>- updatedAt được set |
 
 **Main Flow:**
+
 1. User truy cập "My Roommate Posts"
 2. User chọn post cần edit
 3. User click "Edit Post"
@@ -2176,6 +2362,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 12. Hệ thống redirect về post detail
 
 **Alternate Flow(s):**
+
 - **8a. Validation failed:**
   - 8a.1. Hệ thống highlight errors
   - 8a.2. Use case quay lại bước 5
@@ -2185,11 +2372,13 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 3a.2. Hiển thị "Cannot edit matched post"
 
 **Exception Flow(s):**
+
 - **9.1. Upload ảnh thất bại:**
   - 9.1.a. Hệ thống giữ ảnh cũ
   - 9.1.b. Hiển thị warning
 
 **Notes:**
+
 - Chỉ owner mới có thể edit
 - Không thể edit post đã matched
 - Post type không thể thay đổi
@@ -2208,6 +2397,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Post status = "CLOSED"<br>- Post không hiển thị trong search |
 
 **Main Flow:**
+
 1. User truy cập "My Roommate Posts"
 2. User chọn post cần đóng
 3. User click "Close Post"
@@ -2222,6 +2412,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 8. Hệ thống hiển thị thông báo thành công
 
 **Alternate Flow(s):**
+
 - **5a. User hủy:**
   - 5a.1. User click "Cancel"
   - 5a.2. Use case kết thúc
@@ -2232,6 +2423,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 6a.3. Post hiển thị lại trong search
 
 **Notes:**
+
 - User có thể reopen post đã closed
 - Closed post vẫn hiển thị trong "My Posts"
 - Pending requests vẫn còn hiệu lực
@@ -2250,6 +2442,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - User xem được danh sách requests |
 
 **Main Flow:**
+
 1. User click "My Roommate Requests"
 2. User chọn tab "Sent Requests"
 3. Hệ thống hiển thị danh sách requests đã gửi:
@@ -2269,6 +2462,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
      - REJECTED: View Reason (if any)
 
 **Alternate Flow(s):**
+
 - **3a. Không có request nào:**
   - 3a.1. Hiển thị "You haven't sent any requests yet"
   - 3a.2. Button "Find Roommates"
@@ -2279,6 +2473,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 5a.3. Status = "CANCELLED"
 
 **Notes:**
+
 - Filter theo status: All, Pending, Accepted, Rejected
 - Sort theo thời gian mới nhất
 
@@ -2296,6 +2491,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - User xem được danh sách requests |
 
 **Main Flow:**
+
 1. User click "My Roommate Requests"
 2. User chọn tab "Received Requests"
 3. Hệ thống hiển thị danh sách requests nhận được:
@@ -2315,6 +2511,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
      - REJECTED: View history
 
 **Alternate Flow(s):**
+
 - **3a. Không có request nào:**
   - 3a.1. Hiển thị "No requests received yet"
 
@@ -2329,6 +2526,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 5b.3. Status = "REJECTED"
 
 **Notes:**
+
 - Pending requests có priority cao (hiển thị trước)
 - Badge notification cho pending requests
 - Filter theo status và post
@@ -2349,6 +2547,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Message được gửi và lưu<br>- Receiver nhận real-time hoặc notification |
 
 **Main Flow:**
+
 1. User mở conversation
 2. User nhập tin nhắn vào input box
 3. User click "Send" hoặc nhấn Enter
@@ -2366,6 +2565,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 10. Hệ thống cập nhật lastMessage của conversation
 
 **Alternate Flow(s):**
+
 - **8a. Receiver offline:**
   - 8a.1. Hệ thống tạo notification
   - 8a.2. Notification hiển thị khi receiver login lại
@@ -2378,11 +2578,13 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 3a.5. photoUrl được set
 
 **Exception Flow(s):**
+
 - **6.1. Lưu message thất bại:**
   - 6.1.a. Hệ thống hiển thị "Failed to send message"
   - 6.1.b. User có thể retry
 
 **Notes:**
+
 - Support text và image
 - Real-time qua Socket.IO
 - Message history được lưu vĩnh viễn
@@ -2402,6 +2604,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - User xem được danh sách conversations |
 
 **Main Flow:**
+
 1. User click "Messages" icon
 2. Hệ thống load conversations của user
 3. Hệ thống hiển thị danh sách conversations:
@@ -2417,6 +2620,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 6. Hệ thống mở chat screen (UC72)
 
 **Alternate Flow(s):**
+
 - **2a. Không có conversation nào:**
   - 2a.1. Hiển thị "No conversations yet"
   - 2a.2. Suggestion: "Contact a host or find roommates"
@@ -2426,6 +2630,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 3a.2. Conversation được highlight
 
 **Notes:**
+
 - Real-time update khi có message mới
 - Unread count update tự động
 - Search conversation by name
@@ -2444,6 +2649,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - User xem được message history<br>- Unread messages được mark as read |
 
 **Main Flow:**
+
 1. User chọn conversation (UC71)
 2. Hệ thống load tất cả messages của conversation
 3. Hệ thống hiển thị messages:
@@ -2459,6 +2665,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
    - View ảnh full size (nếu có)
 
 **Alternate Flow(s):**
+
 - **2a. Conversation mới (chưa có message):**
   - 2a.1. Hiển thị "No messages yet"
   - 2a.2. Placeholder: "Start the conversation"
@@ -2468,6 +2675,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 3a.2. User click để view full size
 
 **Notes:**
+
 - Messages load theo pages (pagination)
 - Real-time update khi có message mới
 - Auto-scroll khi có message mới
@@ -2486,6 +2694,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Conversation được tạo (nếu chưa có)<br>- Message được gửi |
 
 **Main Flow:**
+
 1. Guest xem listing detail
 2. Guest click "Contact Host"
 3. Hệ thống kiểm tra conversation với Host
@@ -2499,6 +2708,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 8. Guest gửi message (UC70)
 
 **Alternate Flow(s):**
+
 - **4a. Đã có conversation:**
   - 4a.1. Hệ thống mở conversation hiện có
   - 4a.2. Hiển thị message history
@@ -2508,6 +2718,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 2a.2. Sau login, quay lại listing detail
 
 **Notes:**
+
 - Một conversation cho mỗi cặp Guest-Host
 - Template message giúp bắt đầu conversation
 - Conversation được reuse nếu đã tồn tại
@@ -2528,6 +2739,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Admin xem được thông tin users |
 
 **Main Flow:**
+
 1. Admin truy cập Admin Dashboard
 2. Admin click tab "Users"
 3. Hệ thống hiển thị danh sách users:
@@ -2554,6 +2766,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
    - View activity log
 
 **Alternate Flow(s):**
+
 - **6a. Block user:**
   - 6a.1. Admin click "Block User"
   - 6a.2. Confirm dialog
@@ -2561,6 +2774,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
   - 6a.4. Active bookings/listings được notify
 
 **Notes:**
+
 - Admin không thể block chính mình
 - Block user không xóa data
 - Unblock khôi phục quyền truy cập
@@ -2579,6 +2793,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Admin xem được listings |
 
 **Main Flow:**
+
 1. Admin truy cập Admin Dashboard
 2. Admin click tab "Listings"
 3. Hệ thống hiển thị danh sách listings:
@@ -2601,12 +2816,14 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
    - Delete listing (soft delete)
 
 **Alternate Flow(s):**
+
 - **6a. Hide listing:**
   - 6a.1. Admin click "Hide Listing"
   - 6a.2. Listing không hiển thị trong search
   - 6a.3. Host được notify
 
 **Notes:**
+
 - Admin có thể hide bất kỳ listing nào
 - Soft delete giữ data nhưng không hiển thị
 - Admin log được ghi nhận mọi action
@@ -2625,6 +2842,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Verification được approve/reject |
 
 **Main Flow:**
+
 1. Admin truy cập Admin Dashboard
 2. Admin click tab "Identity Verification"
 3. Hệ thống hiển thị tabs:
@@ -2644,7 +2862,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
    - ID card back image
 7. Admin verify thông tin
 8. Admin chọn action:
-   - **Approve:** 
+   - **Approve:**
      - 8a.1. Admin click "Approve"
      - 8a.2. Confirm dialog
      - 8a.3. Status = "approved"
@@ -2656,11 +2874,13 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
      - 8b.4. User được notify với reason
 
 **Alternate Flow(s):**
+
 - **6a. Filter by status:**
   - 6a.1. Admin chọn tab
   - 6a.2. View approved/rejected history
 
 **Notes:**
+
 - Pending có priority notification
 - Rejection reason hiển thị cho user
 - User có thể resubmit sau khi rejected
@@ -2679,6 +2899,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Categories được cập nhật |
 
 **Main Flow:**
+
 1. Admin truy cập Admin Dashboard
 2. Admin click tab "Data Management"
 3. Admin chọn "Categories"
@@ -2709,11 +2930,13 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
      - 5d.3. Category bị xóa
 
 **Alternate Flow(s):**
+
 - **5d.1. Category đang được sử dụng:**
   - 5d.1.a. Hệ thống hiển thị "Cannot delete - in use"
   - 5d.1.b. Chỉ có thể hide
 
 **Notes:**
+
 - Display order ảnh hưởng thứ tự hiển thị
 - Icon sử dụng React Icons
 - Hide category = soft delete
@@ -2732,6 +2955,7 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 | **Post-Conditions** | - Facilities được cập nhật |
 
 **Main Flow:**
+
 1. Admin truy cập Admin Dashboard
 2. Admin click tab "Data Management"
 3. Admin chọn "Facilities"
@@ -2761,11 +2985,13 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
      - 5d.3. Facility bị xóa
 
 **Alternate Flow(s):**
+
 - **5d.1. Facility đang được sử dụng:**
   - 5d.1.a. Hiển thị "Cannot delete - used by X listings"
   - 5d.1.b. Chỉ có thể hide
 
 **Notes:**
+
 - Facilities = amenities
 - Icon sử dụng Material Icons
 - Usage count hiển thị số lượng listings đang dùng
@@ -2774,4 +3000,3 @@ File này bổ sung các use case còn thiếu từ file USE_CASES_CURRENT.md
 ---
 
 **Document End**
-
