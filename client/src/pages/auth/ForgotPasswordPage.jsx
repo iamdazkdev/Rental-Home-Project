@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import "../../styles/ForgotPassword.scss";
-import {
-  API_ENDPOINTS,
-  DEFAULT_HEADERS,
-  HTTP_METHODS,
-} from "../../constants/api";
+import { Box, Typography } from "@mui/material";
+import { MailOutline, CheckCircleOutline, ArrowBack } from "@mui/icons-material";
+import api from "../../services/api";
+import { API_ENDPOINTS } from "../../constants/api";
+
+import AuthLayout from "../../components/layout/AuthLayout";
+import AppTextField from "../../components/ui/AppTextField";
+import AppPrimaryButton from "../../components/ui/AppPrimaryButton";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -14,10 +16,8 @@ const ForgotPasswordPage = () => {
   const [error, setError] = useState("");
   const [emailSent, setEmailSent] = useState(false);
 
-  // const navigate = useNavigate();
-
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
 
     if (!email) {
       setError("Please enter your email address");
@@ -29,37 +29,34 @@ const ForgotPasswordPage = () => {
     setMessage("");
 
     try {
-      const response = await fetch(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
-        method: HTTP_METHODS.POST,
-        headers: DEFAULT_HEADERS,
-        body: JSON.stringify({ email }),
+      const response = await api.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, { email }, {
+        ignoreAuthInterceptor: true
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200) {
         setEmailSent(true);
         setMessage(
           "Password reset instructions have been sent to your email address."
         );
         setEmail(""); // Clear the email field
-      } else {
-        switch (response.status) {
-          case 404:
-            setError("No account found with this email address.");
-            break;
-          case 429:
-            setError("Too many requests. Please try again later.");
-            break;
-          default:
-            setError(
-              data.message || "Failed to send reset email. Please try again."
-            );
-        }
       }
     } catch (err) {
       console.error("Error sending reset email:", err);
-      setError("Network error. Please check your connection and try again.");
+      const status = err.response?.status;
+      const data = err.response?.data;
+
+      switch (status) {
+        case 404:
+          setError("No account found with this email address.");
+          break;
+        case 429:
+          setError("Too many requests. Please try again later.");
+          break;
+        default:
+          setError(
+            data?.message || "Network error. Please check your connection and try again."
+          );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -75,168 +72,78 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="forgot-password">
-      <div className="forgot-password_content">
-        <div className="forgot-password_header">
-          <h1>Forgot Password?</h1>
-          <p>
-            {emailSent
-              ? "Check your email for reset instructions"
-              : "Enter your email address and we'll send you instructions to reset your password"}
-          </p>
-        </div>
+    <AuthLayout
+      title="Forgot Password?"
+      subtitle={
+        emailSent
+          ? "Check your email for reset instructions"
+          : "Enter your email address and we'll send you a link to reset your password."
+      }
+    >
+      {/* Error Message */}
+      {error && (
+        <Box sx={{ p: 2, mb: 3, bgcolor: '#ffdad6', color: '#93000a', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>{error}</Typography>
+        </Box>
+      )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="message error_message">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+      {/* Success Message */}
+      {message && (
+        <Box sx={{ p: 2, mb: 3, bgcolor: '#eaddff', color: '#25005a', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>{message}</Typography>
+        </Box>
+      )}
+
+      {!emailSent ? (
+        <form onSubmit={handleSubmit}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <AppTextField
+              id="email"
+              label="Email address"
+              type="email"
+              placeholder="name@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              error={error ? { message: "" } : null}
+              icon={MailOutline}
+            />
+
+            <AppPrimaryButton type="submit" isLoading={isLoading} loadingText="Sending...">
+              Send Reset Link
+            </AppPrimaryButton>
+          </Box>
+        </form>
+      ) : (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center', textAlign: 'center' }}>
+          <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: 'rgba(92, 0, 202, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5c00ca' }}>
+            <CheckCircleOutline sx={{ fontSize: 40 }} />
+          </Box>
+
+          <Box>
+            <Typography sx={{ color: '#464555', mb: 2, fontWeight: 500 }}>
+              Didn't receive the email?
+            </Typography>
+            <AppPrimaryButton
+              onClick={handleResendEmail}
+              isLoading={isLoading}
+              loadingText="Sending..."
+              sx={{ bgcolor: '#424666', '&:hover': { bgcolor: '#2f3133' }, boxShadow: 'none' }}
             >
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                fill="currentColor"
-              />
-            </svg>
-            <span>{error}</span>
-          </div>
-        )}
+              Resend Email
+            </AppPrimaryButton>
+          </Box>
+        </Box>
+      )}
 
-        {/* Success Message */}
-        {message && (
-          <div className="message success_message">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                fill="currentColor"
-              />
-            </svg>
-            <span>{message}</span>
-          </div>
-        )}
-
-        {!emailSent ? (
-          <form className="forgot-password_form" onSubmit={handleSubmit}>
-            <div className="input_group">
-              <input
-                placeholder="Email Address"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className={error ? "error" : ""}
-              />
-            </div>
-
-            <button type="submit" disabled={isLoading} className="reset_btn">
-              <span>
-                {isLoading ? "Sending..." : "Send Reset Instructions"}
-              </span>
-              {isLoading ? (
-                <svg
-                  className="loading-spinner"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 2V6M12 18V22M4.93 4.93L7.76 7.76M16.24 16.24L19.07 19.07M2 12H6M18 12H22M4.93 19.07L7.76 16.24M16.24 7.76L19.07 4.93"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M3 8l7.89 3.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </button>
-          </form>
-        ) : (
-          <div className="success_actions">
-            <div className="email_sent_info">
-              <svg
-                width="48"
-                height="48"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="email_icon"
-              >
-                <path
-                  d="M3 8l7.89 3.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <p>
-                We've sent password reset instructions to your email address.
-              </p>
-            </div>
-
-            <div className="resend_section">
-              <p>Didn't receive the email?</p>
-              <button
-                type="button"
-                className="resend_btn"
-                onClick={handleResendEmail}
-                disabled={isLoading}
-              >
-                {isLoading ? "Sending..." : "Resend Email"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="back_to_login">
-          <Link to="/login">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M19 12H5M5 12L12 19M5 12L12 5"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Back to Login
-          </Link>
-        </div>
-      </div>
-    </div>
+      {/* Back Link */}
+      <Box sx={{ mt: 5, textAlign: 'center' }}>
+        <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#ac332a', fontWeight: 600, textDecoration: 'none' }}>
+          <ArrowBack fontSize="small" />
+          Back to Sign In
+        </Link>
+      </Box>
+    </AuthLayout>
   );
 };
 

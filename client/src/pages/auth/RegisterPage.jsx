@@ -2,13 +2,20 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema } from "../../utils/validations/authSchema";
-import "../../styles/Register.scss";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setToken } from "../../redux/slices/authSlice";
 import { setUser } from "../../redux/slices/userSlice";
 import { API_ENDPOINTS } from "../../constants/api";
 import api from "../../services/api";
+
+import { Box, Typography, Checkbox } from "@mui/material";
+import { MailOutline, AddAPhoto } from "@mui/icons-material";
+
+import AuthLayout from "../../components/layout/AuthLayout";
+import AppTextField from "../../components/ui/AppTextField";
+import AppPasswordInput from "../../components/ui/AppPasswordInput";
+import AppPrimaryButton from "../../components/ui/AppPrimaryButton";
 
 const RegisterPage = () => {
   const {
@@ -34,22 +41,12 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleImageChange = useCallback((e) => {
     if (e.target.files && e.target.files[0]) {
       setValue("profileImage", e.target.files[0], { shouldValidate: true });
     }
   }, [setValue]);
-
-  const togglePasswordVisibility = useCallback(() => {
-    setShowPassword(prev => !prev);
-  }, []);
-
-  const toggleConfirmPasswordVisibility = useCallback(() => {
-    setShowConfirmPassword(prev => !prev);
-  }, []);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -75,9 +72,11 @@ const RegisterPage = () => {
         register_form.append(key, data[key]);
       }
 
-      const response = await api.post(API_ENDPOINTS.AUTH.REGISTER, register_form);
-      const data = response.data;
-      console.log("Registration response:", data);
+      const response = await api.post(API_ENDPOINTS.AUTH.REGISTER, register_form, {
+        ignoreAuthInterceptor: true
+      });
+      const resData = response.data;
+      console.log("Registration response:", resData);
 
       if (response.status === 200 || response.status === 201) {
         // Success - user registered, now auto-login
@@ -86,8 +85,10 @@ const RegisterPage = () => {
         // Auto-login with the registered credentials
         try {
           const loginResponse = await api.post(API_ENDPOINTS.AUTH.LOGIN, {
-            email: data.email,
+            email: resData.email,
             password: data.password,
+          }, {
+            ignoreAuthInterceptor: true
           });
 
           const loginData = loginResponse.data;
@@ -150,220 +151,74 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="register">
-      <div className="register_content">
-        <div className="register_header">
-          <h1>Create Account</h1>
-          <p>Join Rento and find your perfect home</p>
-        </div>
+    <AuthLayout title="Create Account" subtitle="Join Rento and find your perfect home">
+      {/* Messages */}
+      {error && (
+        <Box sx={{ p: 2, mb: 3, bgcolor: '#ffdad6', color: '#93000a', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>{error}</Typography>
+        </Box>
+      )}
+      {success && (
+        <Box sx={{ p: 2, mb: 3, bgcolor: '#eaddff', color: '#25005a', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>{success}</Typography>
+        </Box>
+      )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="message error_message">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                fill="currentColor"
-              />
-            </svg>
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Success Message */}
-        {success && (
-          <div className="message success_message">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                fill="currentColor"
-              />
-            </svg>
-            <span>{success}</span>
-          </div>
-        )}
-
-        <form className="register_content_form" onSubmit={hookFormSubmit(onSubmit)}>
-          <div className="name_row">
-            <div className="input_group">
-              <input
-                placeholder="First Name"
-                {...register("firstName")}
-                className={`name_input ${errors.firstName ? "error" : ""}`}
-              />
-              {errors.firstName && <span className="field-error">{errors.firstName.message}</span>}
-            </div>
-            <div className="input_group">
-              <input
-                placeholder="Last Name"
-                {...register("lastName")}
-                className={`name_input ${errors.lastName ? "error" : ""}`}
-              />
-              {errors.lastName && <span className="field-error">{errors.lastName.message}</span>}
-            </div>
-          </div>
-
-          <div className="input_group">
-            <input
-              placeholder="Email Address"
-              type="email"
-              {...register("email")}
-              className={errors.email ? "error" : ""}
+      {/* Form */}
+      <form onSubmit={hookFormSubmit(onSubmit)}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          
+          {/* Name Row */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+            <AppTextField
+              id="firstName"
+              label="First Name"
+              placeholder="Jane"
+              register={register}
+              error={errors.firstName}
             />
-            {errors.email && <span className="field-error">{errors.email.message}</span>}
-          </div>
-
-          <div className="input_group password_input_group">
-            <input
-              placeholder="Password"
-              type={showPassword ? "text" : "password"}
-              {...register("password")}
-              className={errors.password ? "error" : ""}
+            <AppTextField
+              id="lastName"
+              label="Last Name"
+              placeholder="Doe"
+              register={register}
+              error={errors.lastName}
             />
-            <button
-              type="button"
-              className="password_toggle_btn"
-              onClick={togglePasswordVisibility}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M1 1l22 22"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="3"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </button>
-            {errors.password && <span className="field-error">{errors.password.message}</span>}
-          </div>
+          </Box>
 
-          <div className="input_group password_input_group">
-            <input
-              placeholder="Confirm Password"
-              type={showConfirmPassword ? "text" : "password"}
-              {...register("confirmPassword")}
-              className={errors.confirmPassword ? "error" : ""}
+          {/* Email */}
+          <AppTextField
+            id="email"
+            label="Email Address"
+            placeholder="jane.doe@example.com"
+            type="email"
+            register={register}
+            error={errors.email}
+            icon={MailOutline}
+          />
+
+          {/* Password Group */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <AppPasswordInput
+              id="password"
+              label="Password"
+              register={register}
+              error={errors.password}
             />
-            <button
-              type="button"
-              className="password_toggle_btn"
-              onClick={toggleConfirmPasswordVisibility}
-              aria-label={
-                showConfirmPassword
-                  ? "Hide confirm password"
-                  : "Show confirm password"
-              }
-            >
-              {showConfirmPassword ? (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M1 1l22 22"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="3"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </button>
-            {errors.confirmPassword && (
-              <span className="field-error">{errors.confirmPassword.message}</span>
-            )}
-          </div>
+            <AppPasswordInput
+              id="confirmPassword"
+              label="Confirm Password"
+              register={register}
+              error={errors.confirmPassword}
+            />
+          </Box>
 
-          <div className="profile_upload_section">
+          {/* Profile Picture Upload */}
+          <Box>
+            <Typography component="label" sx={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#777587', ml: 2, mb: 1 }}>
+              Profile Picture
+            </Typography>
+            
             <input
               id="profileImageInput"
               type="file"
@@ -372,94 +227,79 @@ const RegisterPage = () => {
               onChange={handleImageChange}
             />
 
-            <div className="upload_container">
+            <Box
+              component="label"
+              htmlFor="profileImageInput"
+              sx={{
+                border: '2px dashed',
+                borderColor: 'rgba(199, 196, 216, 0.3)',
+                borderRadius: '16px',
+                p: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1.5,
+                bgcolor: 'rgba(243, 243, 246, 0.5)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                '&:hover': { bgcolor: 'rgba(232, 232, 234, 0.5)' },
+                '&:hover .photo-icon': { transform: 'scale(1.1)' }
+              }}
+            >
               {profileImage ? (
-                <div className="preview_container">
-                  <img
+                <>
+                  <Box
+                    component="img"
                     src={URL.createObjectURL(profileImage)}
                     alt="Profile preview"
-                    className="profile_preview"
+                    sx={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fd6e60' }}
                   />
-                  <label
-                    htmlFor="profileImageInput"
-                    className="change_photo_btn"
-                  >
-                    Change Photo
-                  </label>
-                </div>
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#424666' }}>Change Photo</Typography>
+                </>
               ) : (
-                <label htmlFor="profileImageInput" className="upload_label">
-                  <div className="upload_icon">
-                    <svg
-                      width="40"
-                      height="40"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.1 3.89 23 5 23H19C20.1 23 21 22.1 21 21V9M19 21H5V3H13V9H19Z"
-                        fill="currentColor"
-                      />
-                      <circle cx="12" cy="12" r="3" fill="currentColor" />
-                    </svg>
-                  </div>
-                  <span className="upload_text">Upload Your Photo</span>
-                  <span className="upload_hint">Click to select an image</span>
-                </label>
+                <>
+                  <Box className="photo-icon" sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: 'rgba(253, 110, 96, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ac332a', transition: 'transform 0.2s' }}>
+                    <AddAPhoto />
+                  </Box>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#424666' }}>Upload Your Photo</Typography>
+                    <Typography sx={{ fontSize: '0.6875rem', color: 'rgba(70, 69, 85, 0.7)' }}>Click to select an image from your device</Typography>
+                  </Box>
+                </>
               )}
-            </div>
-          </div>
+            </Box>
+            {errors.profileImage && <Typography sx={{ color: '#ba1a1a', fontSize: '0.75rem', ml: 2, mt: 0.5 }}>{errors.profileImage.message}</Typography>}
+          </Box>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="register_btn"
-          >
-            <span>{isLoading ? "Creating Account..." : "Create Account"}</span>
-            {isLoading ? (
-              <svg
-                className="loading-spinner"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 2V6M12 18V22M4.93 4.93L7.76 7.76M16.24 16.24L19.07 19.07M2 12H6M18 12H22M4.93 19.07L7.76 16.24M16.24 7.76L19.07 4.93"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            ) : (
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M5 12H19M19 12L12 5M19 12L12 19"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
-          </button>
-        </form>
+          {/* Terms and Privacy */}
+          <Box sx={{ px: 1, display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+            <Checkbox id="terms" sx={{ color: '#777587', p: 0, mt: 0.5, '&.Mui-checked': { color: '#ac332a' } }} required />
+            <Typography sx={{ fontSize: '0.75rem', color: '#464555', lineHeight: 1.6 }}>
+              By creating an account, I agree to Rento's{' '}
+              <Link to="#" style={{ color: '#ac332a', fontWeight: 600, textDecoration: 'none' }}>Terms of Service</Link>{' '}
+              and{' '}
+              <Link to="#" style={{ color: '#ac332a', fontWeight: 600, textDecoration: 'none' }}>Privacy Policy</Link>.
+            </Typography>
+          </Box>
 
-        <div className="login_link">
-          <span>Already have an account?</span>
-          <a href="/login">Sign In</a>
-        </div>
-      </div>
-    </div>
+          {/* Submit */}
+          <AppPrimaryButton type="submit" isLoading={isLoading} loadingText="Creating Account...">
+            Create Account
+          </AppPrimaryButton>
+        </Box>
+      </form>
+
+      {/* Bottom Navigation */}
+      <Box sx={{ mt: 5, textAlign: 'center' }}>
+        <Typography sx={{ fontSize: '0.875rem', color: '#464555', fontWeight: 500 }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: '#ac332a', fontWeight: 700, textDecoration: 'none' }}>
+            Sign In
+          </Link>
+        </Typography>
+      </Box>
+    </AuthLayout>
   );
 };
 

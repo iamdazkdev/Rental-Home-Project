@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
 
-const AppTextField = ({ id, label, type = "text", placeholder, register, error, icon: Icon }) => {
+const AppTextField = ({ id, label, type = "text", placeholder, register, error, icon: Icon, ...props }) => {
   return (
     <Box>
       <Typography component="label" htmlFor={id} sx={{ display: "block", fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#777587", ml: 2, mb: 1 }}>
@@ -14,6 +14,7 @@ const AppTextField = ({ id, label, type = "text", placeholder, register, error, 
           type={type}
           placeholder={placeholder}
           {...(register ? register(id) : {})}
+          {...props}
           sx={{
             width: "100%", pl: Icon ? "56px" : 3, pr: 3, py: 2, bgcolor: "#f3f3f6", border: "none", borderRadius: "16px",
             fontWeight: 500, color: "#1a1c1e", outline: "none", transition: "all 0.2s",

@@ -58,7 +58,9 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, data);
+      const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, data, {
+        ignoreAuthInterceptor: true
+      });
       const resData = response.data;
       console.log("Login response:", resData);
 

@@ -25,7 +25,6 @@ const AuthLayout = ({ children, title, subtitle }) => {
       {/* Decorative orbs */}
       <Box sx={{ position: "absolute", top: -96, left: -96, width: 384, height: 384, bgcolor: "rgba(92, 0, 202, 0.05)", borderRadius: "50%", filter: "blur(64px)" }} />
       <Box sx={{ position: "absolute", bottom: -96, right: -96, width: 384, height: 384, bgcolor: "rgba(172, 51, 42, 0.05)", borderRadius: "50%", filter: "blur(64px)" }} />
-
       {/* Main Card */}
       <Box
         component="main"
