@@ -1,16 +1,21 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "../../utils/validations/authSchema";
 import "../../styles/Login.scss";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setToken } from "../../redux/slices/authSlice";
 import { setUser } from "../../redux/slices/userSlice";
-import {
-  API_ENDPOINTS,
-} from "../../constants/api";
+import { API_ENDPOINTS } from "../../constants/api";
 import api from "../../services/api";
+import { Box, Typography, Checkbox, FormControlLabel } from "@mui/material";
+import { MailOutline } from "@mui/icons-material";
+import AuthLayout from "../../components/layout/AuthLayout";
+import AppTextField from "../../components/ui/AppTextField";
+import AppPasswordInput from "../../components/ui/AppPasswordInput";
+import AppPrimaryButton from "../../components/ui/AppPrimaryButton";
+import SocialAuthGroup from "../../components/ui/SocialAuthGroup";
 
 const LoginPage = () => {
   const {
@@ -27,7 +32,6 @@ const LoginPage = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -45,12 +49,6 @@ const LoginPage = () => {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, []);
-
-  // Removed manual handleChange in favor of react-hook-form
-
-  const togglePasswordVisibility = useCallback(() => {
-    setShowPassword(prev => !prev);
   }, []);
 
   const onSubmit = async (data) => {
@@ -109,177 +107,70 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="login">
-      <div className="login_content">
-        <div className="login_header">
-          <h1>Welcome Back</h1>
-          <p>Sign in to your Rento account</p>
-        </div>
+    <AuthLayout title="Welcome Back" subtitle="Sign in to your Rento account">
+      {/* Messages */}
+      {error && (
+        <Box sx={{ p: 2, mb: 3, bgcolor: '#ffdad6', color: '#93000a', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>{error}</Typography>
+        </Box>
+      )}
+      {success && (
+        <Box sx={{ p: 2, mb: 3, bgcolor: '#eaddff', color: '#25005a', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>{success}</Typography>
+        </Box>
+      )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="message error_message">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                fill="currentColor"
-              />
-            </svg>
-            <span>{error}</span>
-          </div>
-        )}
+      {/* Form */}
+      <form onSubmit={hookFormSubmit(onSubmit)}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          
+          {/* Email */}
+          <AppTextField
+            id="email"
+            label="Email address"
+            placeholder="name@company.com"
+            register={register}
+            error={errors.email}
+            icon={MailOutline}
+          />
 
-        {/* Success Message */}
-        {success && (
-          <div className="message success_message">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                fill="currentColor"
-              />
-            </svg>
-            <span>{success}</span>
-          </div>
-        )}
+          {/* Password */}
+          <AppPasswordInput
+            id="password"
+            register={register}
+            error={errors.password}
+            showForgotPassword={true}
+          />
 
-        <form className="login_content_form" onSubmit={hookFormSubmit(onSubmit)}>
-          <div className="input_group">
-            <input
-              placeholder="Email Address"
-              type="email"
-              {...register("email")}
-              className={errors.email || (error && error.includes("email")) ? "error" : ""}
+          {/* Remember Me */}
+          <Box sx={{ px: 2, display: 'flex', alignItems: 'center' }}>
+            <FormControlLabel
+              control={<Checkbox id="remember" sx={{ color: '#777587', '&.Mui-checked': { color: '#5c00ca' } }} />}
+              label={<Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: '#464555' }}>Remember me for 30 days</Typography>}
             />
-            {errors.email && <span className="field-error">{errors.email.message}</span>}
-          </div>
+          </Box>
 
-          <div className="input_group password_input_group">
-            <input
-              placeholder="Password"
-              type={showPassword ? "text" : "password"}
-              {...register("password")}
-              className={errors.password || (error && error.includes("password")) ? "error" : ""}
-            />
-            <button
-              type="button"
-              className="password_toggle_btn"
-              onClick={togglePasswordVisibility}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M1 1l22 22"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="3"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
-            </button>
-            {errors.password && <span className="field-error">{errors.password.message}</span>}
-          </div>
+          {/* Submit */}
+          <AppPrimaryButton type="submit" isLoading={isLoading} loadingText="Signing In...">
+            Sign In
+          </AppPrimaryButton>
 
-          <div className="forgot_password">
-            <a href="/forgot-password">Forgot Password?</a>
-          </div>
+        </Box>
+      </form>
 
-          <button type="submit" disabled={isLoading} className="login_btn">
-            <span>{isLoading ? "Signing In..." : "Sign In"}</span>
-            {isLoading ? (
-              <svg
-                className="loading-spinner"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 2V6M12 18V22M4.93 4.93L7.76 7.76M16.24 16.24L19.07 19.07M2 12H6M18 12H22M4.93 19.07L7.76 16.24M16.24 7.76L19.07 4.93"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            ) : (
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M5 12H19M19 12L12 5M19 12L12 19"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
-          </button>
-        </form>
+      {/* Social Buttons */}
+      <SocialAuthGroup />
 
-        <div className="register_link">
-          <span>Don't have an account?</span>
-          <a href="/register">Create Account</a>
-        </div>
-      </div>
-    </div>
+      {/* Footer */}
+      <Box sx={{ textAlign: 'center' }}>
+        <Typography sx={{ color: '#464555', fontWeight: 500 }}>
+          Don’t have an account?{' '}
+          <Link to="/register" style={{ color: '#ac332a', fontWeight: 700, textDecoration: 'none' }}>
+            Create Account
+          </Link>
+        </Typography>
+      </Box>
+    </AuthLayout>
   );
 };
 
